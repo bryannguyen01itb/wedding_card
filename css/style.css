@@ -12,6 +12,10 @@
     --primary-color: #8fb8a8;
     --primary-rgb: 143, 184, 168;
     --primary-hover: #7ea997;
+    --save-date-animation-duration: .55s;
+    --section-animation-duration: .85s;
+    --gallery-animation-duration: .82s;
+    --animation-easing: cubic-bezier(.22, 1, .36, 1);
 }
 
 html {
@@ -1631,7 +1635,9 @@ body::after {
 .animate-item {
     opacity: 0;
     transform: translate3d(0, 18px, 0);
-    transition: opacity .55s ease, transform .55s cubic-bezier(.22, 1, .36, 1);
+    transition:
+        opacity var(--save-date-animation-duration) ease,
+        transform var(--save-date-animation-duration) var(--animation-easing);
     backface-visibility: hidden;
 }
 
@@ -1639,8 +1645,8 @@ body::after {
     opacity: 0;
     transform: translate3d(0, 34px, 0);
     transition:
-        opacity .85s ease var(--reveal-delay, 0ms),
-        transform .85s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
+        opacity var(--section-animation-duration) ease var(--reveal-delay, 0ms),
+        transform var(--section-animation-duration) var(--animation-easing) var(--reveal-delay, 0ms);
     backface-visibility: hidden;
 }
 
@@ -1668,8 +1674,8 @@ body::after {
 .gallery-reveal {
     opacity: 0;
     transition:
-        opacity .82s ease var(--gallery-delay, 0ms),
-        transform .82s cubic-bezier(.22, 1, .36, 1) var(--gallery-delay, 0ms);
+        opacity var(--gallery-animation-duration) ease var(--gallery-delay, 0ms),
+        transform var(--gallery-animation-duration) var(--animation-easing) var(--gallery-delay, 0ms);
     backface-visibility: hidden;
 }
 
@@ -1684,14 +1690,4 @@ body::after {
 .gallery-reveal.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .scroll-reveal,
-    .gallery-reveal {
-        transition-duration: .32s;
-        transition-delay: 0ms;
-    }
-
 }

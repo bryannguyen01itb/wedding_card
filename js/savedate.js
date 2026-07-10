@@ -21,6 +21,14 @@ const revealSelector = [
     ".thanks .thanks-sign"
 ].join(",");
 
+const sectionStaggerDelay = 55;
+
+const galleryStaggerDelay = 60;
+
+const revealStartRatio = 0.82;
+
+const revealRootMargin = "0px 0px -20px 0px";
+
 function revealItem(item){
 
     item.classList.add("is-visible");
@@ -31,7 +39,7 @@ function isInRevealRange(item){
 
     const rect = item.getBoundingClientRect();
 
-    return rect.top < window.innerHeight * 0.82 && rect.bottom > 0;
+    return rect.top < window.innerHeight * revealStartRatio && rect.bottom > 0;
 
 }
 
@@ -91,13 +99,13 @@ scrollRevealItems.forEach((item, index) => {
 
     item.classList.add("scroll-reveal");
 
-    item.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * 55}ms`);
+    item.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * sectionStaggerDelay}ms`);
 
 });
 
 observeOnce(scrollRevealItems, {
     threshold: 0.12,
-    rootMargin: "0px 0px -20px 0px"
+    rootMargin: revealRootMargin
 });
 
 const galleryItems = document.querySelectorAll(".gallery-item");
@@ -108,9 +116,11 @@ galleryItems.forEach((item, index) => {
 
     item.classList.add("gallery-reveal", direction);
 
+    item.style.setProperty("--gallery-delay", `${Math.min(index % 4, 3) * galleryStaggerDelay}ms`);
+
 });
 
 observeOnce(galleryItems, {
     threshold: 0.18,
-    rootMargin: "0px 0px -20px 0px"
+    rootMargin: revealRootMargin
 });

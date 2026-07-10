@@ -210,8 +210,6 @@ function renderGallery(items){
             ? createGalleryText(normalizedItem)
             : createGalleryImage(normalizedItem));
 
-        tile.style.setProperty("--gallery-delay", `${Math.min(index % 4, 3) * 60}ms`);
-
         galleryGrid.appendChild(tile);
 
     });
