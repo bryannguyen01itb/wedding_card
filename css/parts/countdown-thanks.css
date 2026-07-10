@@ -1,0 +1,141 @@
+/* ================= Countdown ================= */
+.countdown {
+    position: relative;
+    padding: 1rem .35rem;
+    background: url("../../img/anh_2.jpg") center/cover;
+    overflow: hidden;
+}
+
+.countdown::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    filter: blur(3px);
+    transform: scale(1.08);
+}
+
+.countdown::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+}
+
+.countdown>* {
+    position: relative;
+    z-index: 5;
+}
+
+.countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .25rem;
+}
+
+.count-item {
+    background: rgba(255, 255, 255, .25);
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
+    padding: .5rem;
+    text-align: center;
+}
+
+.count-item div {
+    font-size: .72rem;
+
+    font-weight: 700;
+
+    color: #fff;
+
+}
+
+.count-item span {
+
+    display: block;
+
+    margin-top: .12rem;
+
+    color: #fff;
+
+    font-size: .26rem;
+
+    letter-spacing: .05rem;
+
+}
+
+/*================ THANKS ================*/
+
+.thanks {
+
+    padding: 0rem .5rem 1.2rem .5rem;
+
+    text-align: center;
+
+    background: #fff;
+
+}
+
+.thanks-heart {
+
+    font-size: .8rem;
+
+    color: #d89aa5;
+
+    margin-bottom: .25rem;
+
+    animation: pulseHeart 2s infinite;
+
+}
+
+.thanks-title {
+
+    font-size: .42rem;
+
+    letter-spacing: .08rem;
+
+    color: var(--primary-color);
+
+    font-weight: 600;
+
+    margin-bottom: .5rem;
+
+}
+
+.thanks-content {
+
+    color: #666;
+
+    line-height: 1.9;
+
+    font-size: .28rem;
+
+}
+
+.thanks-sign {
+
+    margin-top: .8rem;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: .25rem;
+
+    font-family: "Great Vibes", cursive;
+
+    font-size: .7rem;
+
+    color: #444;
+
+}
+
+.thanks-heart-small {
+
+    color: #d89aa5;
+
+    font-size: .55rem;
+
+}

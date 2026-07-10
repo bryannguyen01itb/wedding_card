@@ -148,98 +148,8 @@
                 </div>
 
                 <section class="timeline">
-
-                    <h2 class="section-title">
-                        LỊCH TRÌNH
-                    </h2>
-
-                    <div class="timeline-card">
-
-                        <img id="brideEventImage">
-
-                        <div class="timeline-content">
-
-                            <div class="timeline-events">
-                                <div class="timeline-event">
-                                    <div class="timeline-name" id="brideMealTitle"></div>
-
-                                    <div class="timeline-row">
-
-                                        <i class="bi bi-clock-fill"></i>
-
-                                        <span id="brideMealTime"></span>
-
-                                    </div>
-                                </div>
-
-                                <div class="timeline-event">
-                                    <div class="timeline-name" id="brideEventTitle"></div>
-
-                                    <div class="timeline-row">
-
-                                        <i class="bi bi-clock-fill"></i>
-                                        <span id="brideEventTime"></span>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="timeline-row timeline-address">
-
-                                <i class="bi bi-geo-alt-fill"></i>
-
-                                <span id="brideEventAddress"></span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="timeline-card">
-
-                        <img id="groomEventImage">
-
-                        <div class="timeline-content">
-
-                            <div class="timeline-events">
-                                <div class="timeline-event">
-                                    <div class="timeline-name" id="groomMealTitle"></div>
-
-                                    <div class="timeline-row">
-
-                                        <i class="bi bi-clock-fill"></i>
-
-                                        <span id="groomMealTime"></span>
-
-                                    </div>
-                                </div>
-
-                                <div class="timeline-event">
-                                    <div class="timeline-name" id="groomEventTitle"></div>
-
-                                    <div class="timeline-row">
-
-                                        <i class="bi bi-clock-fill"></i>
-
-                                        <span id="groomEventTime"></span>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="timeline-row timeline-address">
-
-                                <i class="bi bi-geo-alt-fill"></i>
-
-                                <span id="groomEventAddress"></span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
+                    <h2 class="section-title">LỊCH TRÌNH</h2>
+                    <div id="timelineCards"></div>
                 </section>
 
                 <div class="section-divider" aria-hidden="true">
@@ -408,39 +318,7 @@
                                 ×
                             </button>
 
-                            <!-- Groom -->
-
-                            <div class="gift-card">
-
-                                <div class="gift-name">
-                                    CHÚ RỂ
-                                </div>
-                                <img id="groomQR" class="gift-qr">
-                                <div class="gift-bank" id="groomBank"></div>
-                                <div class="gift-account-name" id="groomAccountName"></div>
-                                <div class="copy-box copy-number" id="groomCopy">
-                                    <span id="groomAccountNumber"></span>
-                                    <i class="bi bi-clipboard"></i>
-                                </div>
-
-                            </div>
-
-                            <!-- Bride -->
-
-                            <div class="gift-card">
-
-                                <div class="gift-name">
-                                    CÔ DÂU
-                                </div>
-                                <img id="brideQR" class="gift-qr">
-                                <div class="gift-bank" id="brideBank"></div>
-                                <div class="gift-account-name" id="brideAccountName"></div>
-                                <div class="copy-box copy-number" id="brideCopy">
-                                    <span id="brideAccountNumber"></span>
-                                    <i class="bi bi-clipboard"></i>
-                                </div>
-
-                            </div>
+                            <div id="giftCards"></div>
 
                         </div>
 
@@ -526,21 +404,8 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-app-compat.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore-compat.js"></script>
-
-    <script src="js/firebaseConfig.js"></script>
-
-    <script src="js/config.js"></script>
-    <script src="js/renderConfig.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/music.js"></script>
-    <script src="js/hero.js"></script>
-    <script src="js/savedate.js"></script>
-    <script src="js/calendar.js"></script>
-    <script src="js/countdown.js"></script>
-    <script src="js/gift.js"></script>
-    <script src="js/wish.js"></script>
+    <script type="module" src="js/app.js"></script>
 
 </body>
 
