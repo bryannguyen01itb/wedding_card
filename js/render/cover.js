@@ -1,5 +1,5 @@
 import { wedding } from "../config.js";
-import { setText, setSrc } from "../utils/dom.js";
+import { setText, setSrc, setSplitName } from "../utils/dom.js";
 import { formatDate } from "../utils/date.js";
 
 const MENU_ITEMS = [
@@ -63,8 +63,8 @@ export function renderCover() {
     const { groom, bride } = wedding;
 
     setText("coverHeadline", wedding.cover.headline);
-    setText("coverGroom", groom.nickname);
-    setText("coverBride", bride.nickname);
+    setSplitName("coverGroom", groom.nickname);
+    setSplitName("coverBride", bride.nickname);
     setText("coverDate", formatDate(wedding.date));
 }
 

@@ -2,8 +2,9 @@
  * Cấu hình nội dung thiệp cưới.
  * Chỉnh sửa file này để thay đổi toàn bộ thông tin hiển thị trên thiệp.
  */
-export const wedding = {
+export let wedding = {
     // --- Thông tin chung ---
+    weddingId: "demo-wedding-2026",
     date: "2026-09-12",
     location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
@@ -159,3 +160,8 @@ export const wedding = {
         }
     }
 };
+
+
+export function setWeddingConfig(nextWedding) {
+    wedding = nextWedding;
+}

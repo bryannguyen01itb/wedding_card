@@ -1,5 +1,5 @@
 import { wedding } from "../config.js";
-import { setText, setHtml } from "../utils/dom.js";
+import { setText, setHtml, setSplitName } from "../utils/dom.js";
 
 export function renderSectionTitles() {
     const { sections } = wedding;
@@ -26,6 +26,6 @@ export function renderThanks() {
 
     setText("thanksTitle", sections.thanks.title);
     setHtml("thanksContent", sections.thanks.paragraphs.join("<br><br>"));
-    setText("thanksGroom", groom.nickname);
-    setText("thanksBride", bride.nickname);
+    setSplitName("thanksGroom", groom.nickname);
+    setSplitName("thanksBride", bride.nickname);
 }

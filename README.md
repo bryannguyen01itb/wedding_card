@@ -31,6 +31,7 @@ Mở `js/config.js`. Đây là file cần sửa nhiều nhất khi làm thiệp 
 
 | Trường | Mô tả |
 |--------|-------|
+| `weddingId` | Mã riêng của từng thiệp, dùng để tách dữ liệu Firebase |
 | `date` | Ngày cưới, dạng `YYYY-MM-DD` |
 | `location` | Địa điểm hiển thị ở poster đầu thiệp |
 | `music` | Đường dẫn file nhạc nền |
@@ -170,22 +171,176 @@ Sau khi deploy, nên kiểm tra trên:
 - màn nhỏ khoảng 360px
 - màn phổ biến 390-430px
 
-## Firebase lời chúc
+## Firebase config và lời chúc
 
-Lời chúc lưu vào collection `wishes` trên Firestore. Cấu hình Firebase nằm trong `js/firebase.js`.
+Cấu hình Firebase nằm trong `js/firebase.js`.
 
-Firestore rules mẫu:
+Mỗi thiệp cần có một `weddingId` riêng. Quy ước đặt `weddingId`:
+
+- viết chữ thường
+- không dấu
+- không khoảng trắng
+- dùng dấu `-`
+- không trùng với thiệp khác
+
+Ví dụ:
+
+```txt
+nam-linh-2026
+cuong-chi-2026
+minh-anh-hp-2026
+```
+
+### Cấu trúc Firestore
+
+Dùng một collection chung:
+
+```txt
+weddings
+```
+
+Mỗi khách là một document:
+
+```txt
+weddings/{weddingId}
+```
+
+Ví dụ:
+
+```txt
+weddings/nam-linh-2026
+weddings/cuong-chi-2026
+```
+
+Document `weddings/{weddingId}` chứa toàn bộ config thiệp, ví dụ các field:
+
+```js
+{
+  weddingId: "nam-linh-2026",
+  date: "2026-09-12",
+  location: "HẢI PHÒNG, VIỆT NAM",
+  music: "music/1_doi.mp3",
+  theme: { primaryColor: "#8fb8a8" },
+  header: { logo: "N & L" },
+  cover: { headline: "TRÂN TRỌNG KÍNH MỜI" },
+  poster: { image: "img/anh_1.jpg" },
+  groom: { ... },
+  bride: { ... },
+  sections: { ... },
+  wish: { ... },
+  ceremony: { ... },
+  gallery: { ... },
+  gift: { ... }
+}
+```
+
+Lời chúc được lưu trong subcollection riêng của từng thiệp:
+
+```txt
+weddings/{weddingId}/wishes/{wishId}
+```
+
+Nhờ vậy nhiều thiệp dùng chung một Firebase project vẫn không bị lẫn lời chúc.
+
+### Link Cloudflare
+
+Một Cloudflare Pages project có thể dùng cho nhiều thiệp bằng query `?wedding=`:
+
+```txt
+https://your-project.pages.dev/?wedding=nam-linh-2026
+https://your-project.pages.dev/?wedding=cuong-chi-2026
+```
+
+Khi không có `?wedding=...`, hoặc Firebase không tìm thấy document, app sẽ dùng config fallback trong `js/config.js`.
+
+### Firestore rules mẫu
 
 ```txt
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /wishes/{id} {
+    match /weddings/{weddingId} {
       allow read: if true;
-      allow create: if true;
+
+      match /wishes/{wishId} {
+        allow read: if true;
+        allow create: if true;
+      }
     }
   }
 }
+```
+
+Rules trên cho phép mọi người đọc config/lời chúc và gửi lời chúc. Việc tạo/sửa config nên làm trong Firebase Console hoặc admin nội bộ của bạn, không public form sửa config cho khách khi chưa có đăng nhập/phân quyền.
+
+### Upload config lên Firebase bằng script
+
+Không nên nhập tay toàn bộ config trong Firebase Console vì rất lâu và dễ sai. Dự án có script để upload trực tiếp `js/config.js` lên Firestore.
+
+Cài dependency một lần:
+
+```bash
+npm install
+```
+
+Tạo service account key:
+
+1. Vào Firebase Console.
+2. Project settings.
+3. Service accounts.
+4. Generate new private key.
+5. Tải file JSON về.
+6. Đổi tên thành `serviceAccountKey.json`.
+7. Đặt vào thư mục `scripts/`.
+
+Đường dẫn sẽ là:
+
+```txt
+scripts/serviceAccountKey.json
+```
+
+File này đã được ignore trong `.gitignore`, không được commit lên GitHub.
+
+Sau đó sửa `js/config.js`, đảm bảo có `weddingId` đúng:
+
+```js
+weddingId: "nam-linh-2026"
+```
+
+Chạy lệnh upload:
+
+```bash
+npm run upload:config
+```
+
+Script sẽ ghi config vào:
+
+```txt
+weddings/{weddingId}
+```
+
+Ví dụ:
+
+```txt
+weddings/nam-linh-2026
+```
+
+Mặc định script sẽ ghi đè document config để Firebase khớp với `js/config.js`. Nếu muốn merge với dữ liệu cũ, chạy:
+
+```bash
+npm run upload:config -- --merge
+```
+
+Nếu muốn dùng file config khác:
+
+```bash
+npm run upload:config -- --config=js/config.js
+```
+
+Sau khi upload, mở link Cloudflare:
+
+```txt
+https://your-project.pages.dev/?wedding=nam-linh-2026
 ```
 
 ## Lưu ý tương thích

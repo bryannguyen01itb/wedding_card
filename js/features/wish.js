@@ -17,6 +17,13 @@ const form = {
 
 const { wish: wishConfig } = wedding;
 
+function getWishesCollection() {
+    return db
+        .collection("weddings")
+        .doc(wedding.weddingId)
+        .collection("wishes");
+}
+
 let toastTimer;
 
 function showWishToast(message, type = "success") {
@@ -87,7 +94,7 @@ function sendWish() {
     const data = getFormData();
     if (!validate(data)) return;
 
-    db.collection("wishes").add({
+    getWishesCollection().add({
         ...data,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
@@ -158,7 +165,7 @@ function render() {
 }
 
 function loadWishes() {
-    db.collection("wishes")
+    getWishesCollection()
         .orderBy("createdAt", "desc")
         .onSnapshot(snapshot => {
             allWishes = snapshot.docs.map(doc => doc.data());

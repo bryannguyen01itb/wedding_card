@@ -1,3 +1,4 @@
+import { loadWeddingConfig } from "./services/weddingData.js";
 import { renderContent } from "./render/index.js";
 import { initCover } from "./features/cover.js";
 import { initMusic } from "./features/music.js";
@@ -8,15 +9,21 @@ import { initGift } from "./features/gift.js";
 import { initWish } from "./features/wish.js";
 import { initHeaderMenu } from "./features/headerMenu.js";
 
-// 1. Render nội dung từ config vào DOM
-renderContent();
+async function bootstrap() {
+    await loadWeddingConfig();
 
-// 2. Khởi tạo tính năng tương tác
-initCover();
-initHeaderMenu();
-initMusic();
-initCalendar();
-initCountdown();
-initScrollReveal();
-initGift();
-initWish();
+    // 1. Render nội dung từ config đã tải
+    renderContent();
+
+    // 2. Khởi tạo tính năng tương tác
+    initCover();
+    initHeaderMenu();
+    initMusic();
+    initCalendar();
+    initCountdown();
+    initScrollReveal();
+    initGift();
+    initWish();
+}
+
+bootstrap();

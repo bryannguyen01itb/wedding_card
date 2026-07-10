@@ -12,6 +12,28 @@ export function setHtml(id, value) {
     if (el) el.innerHTML = value;
 }
 
+function getNameLines(name) {
+    const words = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (words.length <= 2) return words;
+
+    const middle = Math.ceil(words.length / 2);
+    return [
+        words.slice(0, middle).join(" "),
+        words.slice(middle).join(" ")
+    ];
+}
+
+export function setSplitName(id, value) {
+    const el = $(id);
+    if (!el) return;
+
+    el.textContent = "";
+    getNameLines(value).forEach((line, index) => {
+        if (index > 0) el.appendChild(document.createElement("br"));
+        el.appendChild(document.createTextNode(line));
+    });
+}
+
 export function setSrc(id, value) {
     const el = $(id);
     if (el) el.src = value;
