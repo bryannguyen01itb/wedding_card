@@ -625,7 +625,7 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-template-rows: repeat(10, 1.08rem);
     gap: .13rem;
-    padding: .42rem .58rem .5rem .34rem;
+    padding: .4rem;
     overflow: hidden;
     background: #fff;
     border: 1px solid rgba(var(--primary-rgb), .18);
@@ -740,46 +740,46 @@
 }
 
 .gallery-poster--few {
-    grid-template-rows: repeat(8, 1.08rem);
+    grid-template-rows: repeat(9, 1.08rem);
 }
 
 .gallery-poster--few .gallery-frame--1 {
-    grid-column: 3 / span 4;
+    grid-column: 4 / span 17;
     grid-row: 1 / span 4;
 }
 
 .gallery-poster--few .gallery-frame--2 {
-    grid-column: 1 / span 2;
-    grid-row: 3 / span 3;
+    grid-column: 1 / span 3;
+    grid-row: 3 / span 4;
 }
 
 .gallery-poster--few .gallery-frame--3 {
-    grid-column: 3 / span 2;
+    grid-column: 4 / span 2;
     grid-row: 5 / span 2;
 }
 
 .gallery-poster--few .gallery-frame--4 {
-    grid-column: 5 / span 2;
+    grid-column: 6 / span 10;
     grid-row: 5 / span 2;
 }
 
 .gallery-poster--few .gallery-frame--5 {
-    grid-column: 1 / span 6;
-    grid-row: 7 / span 2;
+    grid-column: 1 / span 15;
+    grid-row: 7 / span 3;
 }
 
 .gallery-poster--medium {
-    grid-template-rows: repeat(9, 1.08rem);
+    grid-template-rows: repeat(11, 1.08rem);
 }
 
 .gallery-poster--medium .gallery-frame--6 {
     grid-column: 1 / span 2;
-    grid-row: 8 / span 2;
+    grid-row: 8 / span 4;
 }
 
 .gallery-poster--medium .gallery-frame--7 {
     grid-column: 3 / span 3;
-    grid-row: 8 / span 2;
+    grid-row: 8 / span 4;
 }
 
 .gallery-poster--many {
@@ -826,11 +826,11 @@
 .gallery-side-text {
     position: absolute;
     z-index: 3;
-    right: .2rem;
+    right: .5rem;
     bottom: 1.2rem;
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    font-size: .26rem;
+    font-size: .35rem;
     line-height: 1;
     letter-spacing: .09rem;
     color: #333;
