@@ -70,7 +70,7 @@ document.querySelectorAll(".copy-number").forEach(box => {
 
         span.textContent = "✓ Đã sao chép";
 
-        icon.className = "bi bi-clipboard-check-fill";
+        icon.className = "bi bi-check";
 
         setTimeout(() => {
 

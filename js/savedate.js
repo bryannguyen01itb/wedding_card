@@ -21,7 +21,47 @@ const revealSelector = [
     ".thanks .thanks-sign"
 ].join(",");
 
+function revealItem(item){
+
+    item.classList.add("is-visible");
+
+}
+
+function isInRevealRange(item){
+
+    const rect = item.getBoundingClientRect();
+
+    return rect.top < window.innerHeight - 60 && rect.bottom > 0;
+
+}
+
+function revealVisibleItems(items){
+
+    items.forEach(item => {
+
+        if(!item.classList.contains("is-visible") && isInRevealRange(item)){
+
+            revealItem(item);
+
+        }
+
+    });
+
+}
+
 function observeOnce(items, options){
+
+    if(!("IntersectionObserver" in window)){
+
+        revealVisibleItems(items);
+
+        window.addEventListener("scroll", () => revealVisibleItems(items), { passive: true });
+
+        window.addEventListener("resize", () => revealVisibleItems(items));
+
+        return;
+
+    }
 
     const observer = new IntersectionObserver(entries => {
 
@@ -29,7 +69,7 @@ function observeOnce(items, options){
 
             if(entry.isIntersecting){
 
-                entry.target.classList.add("is-visible");
+                revealItem(entry.target);
 
                 observer.unobserve(entry.target);
 
@@ -40,6 +80,8 @@ function observeOnce(items, options){
     }, options);
 
     items.forEach(item => observer.observe(item));
+
+    requestAnimationFrame(() => revealVisibleItems(items));
 
 }
 
@@ -55,7 +97,7 @@ scrollRevealItems.forEach((item, index) => {
 
 observeOnce(scrollRevealItems, {
     threshold: 0.12,
-    rootMargin: "0px 0px 8% 0px"
+    rootMargin: "0px 0px 120px 0px"
 });
 
 const galleryItems = document.querySelectorAll(".gallery-item");
@@ -70,5 +112,5 @@ galleryItems.forEach((item, index) => {
 
 observeOnce(galleryItems, {
     threshold: 0.18,
-    rootMargin: "0px 0px 8% 0px"
+    rootMargin: "0px 0px 120px 0px"
 });
