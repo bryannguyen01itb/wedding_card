@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy wedding</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <audio id="bgMusic" loop preload="auto"></audio>
+    <div class="music-player" id="musicBtn">
+        <img src="img/music.png" alt="Music">
+    </div>
+
+    <div class="container">
+        <div class="cover">
+            <div class="cover__headline">
+                TRÂN TRỌNG KÍNH MỜI
+            </div>
+            <div class="card" id="openCard">
+                <img class="card__close" src="img/card_wedding.png">
+
+                <img class="card__open" src="img/card_wedding_open.png">
+                <div class="cover__click">
+                    <img src="img/click.png" alt="">
+                </div>
+            </div>
+            <div class="cover__footer">
+                <div class="man_name" id="coverGroom"></div>
+                <div class="heartbeat">❤</div>
+                <div class="women_name" id="coverBride"></div>
+            </div>
+            <div class="cover__date" id="coverDate"></div>
+        </div>
+
+        <div class="invitation">
+            <div class="invitation__header">
+                C & C
+            </div>
+            <div class="invitation__container">
+                <div class="poster">
+                    <img src="img/anh_1.jpeg" alt="">
+                    <svg class="wave" viewBox="0 0 1440 200" preserveAspectRatio="none">
+                        <path fill="#ffffff"
+                            d="M0,96L80,112C160,128,320,160,480,160C640,160,800,128,960,122.7C1120,117,1280,139,1360,149.3L1440,160L1440,320L0,320Z">
+                        </path>
+                    </svg>
+                    <div class="poster-content">
+                        <div class="couple">
+                            <div class="text_1" id="posterGroom"></div>
+                            <div class="heart">❤</div>
+                            <div class="text_2" id="posterBride"></div>
+                        </div>
+
+                        <div class="info">
+                            <div class="date__time" id="posterDate"></div>
+                            <div class="location" id="posterLocation"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <section class="save-date">
+
+                    <div class="save-title animate-item">
+                        SAVE THE DATE
+                    </div>
+
+                    <div class="month-year animate-item">
+
+                        <span id="month"></span>
+
+                        <span class="dot">•</span>
+
+                        <span id="year"></span>
+
+                    </div>
+
+                    <div class="calendar animate-item">
+
+                        <div class="week">
+
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                            <span>Sun</span>
+
+                        </div>
+
+                        <div id="calendarDays" class="days">
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="about">
+
+                    <h2 class="about-title">
+                        ĐÔI NÉT VỀ CHÚNG TÔI
+                    </h2>
+
+                    <div class="person">
+
+                        <img id="groomAvatar">
+
+                        <div class="person-name" id="groomName"></div>
+
+                        <div class="parent" id="groomFather"></div>
+
+                        <div class="parent" id="groomMother"></div>
+
+                    </div>
+
+                    <div class="person">
+
+                        <img id="brideAvatar">
+
+                        <div class="person-name" id="brideName"></div>
+
+                        <div class="parent" id="brideFather"></div>
+
+                        <div class="parent" id="brideMother"></div>
+
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="timeline">
+
+                    <h2 class="section-title">
+                        LỊCH TRÌNH
+                    </h2>
+
+                    <div class="timeline-card">
+
+                        <img id="brideEventImage">
+
+                        <div class="timeline-content">
+
+                            <div class="timeline-events">
+                                <div class="timeline-event">
+                                    <div class="timeline-name" id="brideMealTitle"></div>
+
+                                    <div class="timeline-row">
+
+                                        <i class="bi bi-clock-fill"></i>
+
+                                        <span id="brideMealTime"></span>
+
+                                    </div>
+                                </div>
+
+                                <div class="timeline-event">
+                                    <div class="timeline-name" id="brideEventTitle"></div>
+
+                                    <div class="timeline-row">
+
+                                        <i class="bi bi-clock-fill"></i>
+                                        <span id="brideEventTime"></span>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-row timeline-address">
+
+                                <i class="bi bi-geo-alt-fill"></i>
+
+                                <span id="brideEventAddress"></span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="timeline-card">
+
+                        <img id="groomEventImage">
+
+                        <div class="timeline-content">
+
+                            <div class="timeline-events">
+                                <div class="timeline-event">
+                                    <div class="timeline-name" id="groomMealTitle"></div>
+
+                                    <div class="timeline-row">
+
+                                        <i class="bi bi-clock-fill"></i>
+
+                                        <span id="groomMealTime"></span>
+
+                                    </div>
+                                </div>
+
+                                <div class="timeline-event">
+                                    <div class="timeline-name" id="groomEventTitle"></div>
+
+                                    <div class="timeline-row">
+
+                                        <i class="bi bi-clock-fill"></i>
+
+                                        <span id="groomEventTime"></span>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-row timeline-address">
+
+                                <i class="bi bi-geo-alt-fill"></i>
+
+                                <span id="groomEventAddress"></span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="gallery">
+
+                    <h2 class="section-title">
+                        ALBUM ẢNH CƯỚI
+                    </h2>
+
+                    <div class="gallery-grid">
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="wish">
+
+                    <h2 class="section-title">
+                        NHẮN GỬI YÊU THƯƠNG
+                    </h2>
+
+                    <div class="wish-form">
+
+                        <input id="wishName" type="text" placeholder="Họ và tên">
+
+                        <div class="wish-side">
+
+                            <div class="side-group">
+
+                                <label class="side-card">
+
+                                    <input type="radio" name="side" value="Bạn cô dâu" checked>
+
+                                    <span class="side-content">
+
+                                        <div class="side-icon"><i class="bi bi-gender-female" style="color: palevioletred;"></i></div>
+
+                                        <div class="side-text">
+                                            Bạn cô dâu
+                                        </div>
+
+                                    </span>
+
+                                </label>
+
+                                <label class="side-card">
+
+                                    <input type="radio" name="side" value="Bạn chú rể">
+
+                                    <span class="side-content">
+
+                                        <div class="side-icon"><i class="bi bi-gender-male" style="color: blue;"></i></div>
+
+                                        <div class="side-text">
+                                            Bạn chú rể
+                                        </div>
+
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                        <div class="wish-attendance">
+
+                            <div class="wish-label">
+                                Xác nhận tham dự
+                            </div>
+
+                            <div class="side-group">
+
+                                <label class="side-card">
+
+                                    <input type="radio" name="attendance" value="Có tham gia" checked>
+
+                                    <span class="side-content">
+
+                                        <div class="side-icon">✓</div>
+
+                                        <div class="side-text">
+                                            Có tham gia
+                                        </div>
+
+                                    </span>
+
+                                </label>
+
+                                <label class="side-card">
+
+                                    <input type="radio" name="attendance" value="Không tham gia">
+
+                                    <span class="side-content">
+
+                                        <div class="side-icon">×</div>
+
+                                        <div class="side-text">
+                                            Không tham gia
+                                        </div>
+
+                                    </span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                        <textarea id="wishMessage" rows="5"
+                            placeholder="Gửi lời chúc đến cô dâu và chú rể..."></textarea>
+
+                        <button id="wishBtn">
+
+                            Gửi lời chúc
+
+                        </button>
+
+                    </div>
+
+                    <div class="wish-list" id="wishList"></div>
+
+                    <button id="loadMoreBtn" class="load-more">
+                        Xem thêm
+                    </button>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="gift">
+
+                    <h2 class="section-title">
+                        HỘP MỪNG CƯỚI
+                    </h2>
+
+                    <div class="gift-desc">
+                        Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.
+                        Nếu muốn gửi lời chúc theo một cách đặc biệt hơn,
+                        hãy mở hộp quà nhỏ dưới đây.
+                    </div>
+
+                    <button class="gift-box" id="openGiftBox" type="button" aria-label="Mở hộp mừng cưới">
+                        <span class="gift-box__lid"></span>
+                        <span class="gift-box__body"></span>
+                        <span class="gift-box__ribbon"></span>
+                        <span class="gift-box__text">Mở hộp quà</span>
+                    </button>
+
+                    <div class="gift-modal" id="giftModal" aria-hidden="true">
+
+                        <div class="gift-modal__backdrop" id="closeGiftBackdrop"></div>
+
+                        <div class="gift-modal__content" role="dialog" aria-modal="true"
+                            aria-label="Thông tin mừng cưới">
+
+                            <button class="gift-modal__close" id="closeGiftBox" type="button" aria-label="Đóng">
+                                ×
+                            </button>
+
+                            <!-- Groom -->
+
+                            <div class="gift-card">
+
+                                <div class="gift-name">
+                                    CHÚ RỂ
+                                </div>
+                                <img id="groomQR" class="gift-qr">
+                                <div class="gift-bank" id="groomBank"></div>
+                                <div class="gift-account-name" id="groomAccountName"></div>
+                                <div class="copy-box copy-number" id="groomCopy">
+                                    <span id="groomAccountNumber"></span>
+                                    <i class="bi bi-clipboard"></i>
+                                </div>
+
+                            </div>
+
+                            <!-- Bride -->
+
+                            <div class="gift-card">
+
+                                <div class="gift-name">
+                                    CÔ DÂU
+                                </div>
+                                <img id="brideQR" class="gift-qr">
+                                <div class="gift-bank" id="brideBank"></div>
+                                <div class="gift-account-name" id="brideAccountName"></div>
+                                <div class="copy-box copy-number" id="brideCopy">
+                                    <span id="brideAccountNumber"></span>
+                                    <i class="bi bi-clipboard"></i>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="countdown">
+
+                    <h2 class="section-title">
+                        ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI
+                    </h2>
+
+                    <div class="countdown-grid">
+
+                        <div class="count-item">
+                            <div id="days">00</div>
+                            <span>Ngày</span>
+                        </div>
+
+                        <div class="count-item">
+                            <div id="hours">00</div>
+                            <span>Giờ</span>
+                        </div>
+
+                        <div class="count-item">
+                            <div id="minutes">00</div>
+                            <span>Phút</span>
+                        </div>
+
+                        <div class="count-item">
+                            <div id="seconds">00</div>
+                            <span>Giây</span>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <div class="section-divider" aria-hidden="true">
+                    <span></span>
+                </div>
+
+                <section class="thanks">
+
+                    <div class="thanks-heart">
+                        ❤
+                    </div>
+
+                    <div class="thanks-title">
+                        XIN CHÂN THÀNH CẢM ƠN
+                    </div>
+
+                    <div class="thanks-content">
+                        Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc
+                        đối với gia đình chúng tôi.
+                        <br><br>
+                        Rất mong được đón tiếp Quý khách
+                        trong ngày trọng đại của chúng tôi.
+                    </div>
+
+                    <div class="thanks-sign">
+
+                        <span id="thanksGroom"></span>
+
+                        <span class="thanks-heart-small">❤</span>
+
+                        <span id="thanksBride"></span>
+
+                    </div>
+
+                </section>
+
+            </div>
+            <div class="invitation__footer"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore-compat.js"></script>
+
+    <script src="js/firebaseConfig.js"></script>
+
+    <script src="js/config.js"></script>
+    <script src="js/renderConfig.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/music.js"></script>
+    <script src="js/hero.js"></script>
+    <script src="js/savedate.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/countdown.js"></script>
+    <script src="js/gift.js"></script>
+    <script src="js/wish.js"></script>
+
+</body>
+
+</html>
