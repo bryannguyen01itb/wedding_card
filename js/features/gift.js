@@ -3,6 +3,10 @@ import { bindClick } from "../utils/dom.js";
 export function initGift() {
     const modal = document.getElementById("giftModal");
 
+    if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+
     function setOpen(isOpen) {
         if (!modal) return;
         modal.classList.toggle("show", isOpen);

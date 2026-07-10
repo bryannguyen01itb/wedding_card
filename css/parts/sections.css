@@ -5,17 +5,12 @@
     opacity: 0;
     min-height: 100vh;
     overflow-x: hidden;
-    transform: translateY(18px) scale(.99);
-    transition:
-        opacity .72s ease,
-        transform .82s cubic-bezier(.22, 1, .36, 1);
-    will-change: opacity, transform;
+    transition: opacity .72s ease;
 }
 
 .invitation.show {
     display: block;
     opacity: 1;
-    transform: translateY(0) scale(1);
 }
 
 .invitation__header {
@@ -118,6 +113,13 @@
 
 .invitation__container {
     position: relative;
+    transform: translateY(18px) scale(.99);
+    transition: transform .82s cubic-bezier(.22, 1, .36, 1);
+    will-change: transform;
+}
+
+.invitation.show .invitation__container {
+    transform: translateY(0) scale(1);
 }
 
 .invitation section {
@@ -979,6 +981,42 @@
 
     font-size: .3rem;
 
+}
+
+.wish-toast {
+    position: fixed;
+    left: 50%;
+    bottom: .46rem;
+    z-index: 12000;
+    width: calc(100% - .8rem);
+    max-width: 420px;
+    padding: .24rem .34rem;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--primary-color);
+    box-shadow: 0 14px 34px rgba(var(--primary-rgb), .34);
+    font-size: .27rem;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 18px) scale(.96);
+    transition:
+        opacity .25s ease,
+        visibility .25s ease,
+        transform .28s cubic-bezier(.22, 1, .36, 1);
+}
+
+.wish-toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0) scale(1);
+}
+
+.wish-toast.error {
+    background: #b76e79;
+    box-shadow: 0 14px 34px rgba(183, 110, 121, .28);
 }
 
 /*================ WISH LIST ================*/

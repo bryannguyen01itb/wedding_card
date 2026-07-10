@@ -17,6 +17,30 @@ const form = {
 
 const { wish: wishConfig } = wedding;
 
+let toastTimer;
+
+function showWishToast(message, type = "success") {
+    let toast = document.getElementById("wishToast");
+
+    if (!toast) {
+        toast = createEl("div", "wish-toast");
+        toast.id = "wishToast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.className = `wish-toast ${type}`;
+
+    window.clearTimeout(toastTimer);
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    toastTimer = window.setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2600);
+}
+
 function getChecked(name) {
     return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
 }
@@ -47,12 +71,12 @@ function getFormData() {
 
 function validate(data) {
     if (!data.name) {
-        alert(wishConfig.validation.noName);
+        showWishToast(wishConfig.validation.noName, "error");
         return false;
     }
 
     if (!data.message) {
-        alert(wishConfig.validation.noMessage);
+        showWishToast(wishConfig.validation.noMessage, "error");
         return false;
     }
 
@@ -68,12 +92,12 @@ function sendWish() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
         .then(() => {
-            alert(wishConfig.messages.success);
+            showWishToast(wishConfig.messages.success, "success");
             resetForm();
         })
         .catch(error => {
             console.error(error);
-            alert(wishConfig.messages.error);
+            showWishToast(wishConfig.messages.error, "error");
         });
 }
 
