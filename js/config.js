@@ -139,7 +139,7 @@ export const wedding = {
             { src: "img/anh_6.jpeg", alt: "Ảnh cưới 4" },
             { src: "img/anh_7.jpeg", alt: "Ảnh cưới 5" },
             { src: "img/anh_8.jpeg", alt: "Ảnh cưới 6" },
-            { src: "img/anh_1.jpg", alt: "Ảnh cưới 7" }
+            { src: "img/anh_1.jpg", alt: "Ảnh cưới 7" },
         ]
     },
 
