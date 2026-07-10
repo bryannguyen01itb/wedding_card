@@ -101,6 +101,7 @@ export const wedding = {
     // --- Lịch trình ngày cưới ---
     ceremony: {
         image: "img/anh_2.jpg",
+        mapButtonLabel: "Chỉ đường",
         bride: {
             title: "LỄ VU QUY",
             time: "10:00",
@@ -108,7 +109,8 @@ export const wedding = {
                 title: "BỮA CƠM THÂN MẬT",
                 time: "17:00 • 11.09.2026"
             },
-            address: "Nhà gái - Thôn ABC, Xã DEF, Hải Phòng"
+            address: "Nhà gái - Thôn ABC, Xã DEF, Hải Phòng",
+            mapUrl: "https://maps.app.goo.gl/YSFromJyb9d6s9wi6"
         },
         groom: {
             title: "LỄ THÀNH HÔN",
@@ -117,7 +119,8 @@ export const wedding = {
                 title: "BỮA CƠM THÂN MẬT",
                 time: "16:00 • 12.09.2026"
             },
-            address: "Nhà trai - Thôn ABC, Xã DEF, Hải Phòng"
+            address: "Nhà trai - Thôn ABC, Xã DEF, Hải Phòng",
+            mapUrl: "https://maps.app.goo.gl/kNT9o3enxq8bn2ow5"
         }
     },
 

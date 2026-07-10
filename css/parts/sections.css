@@ -503,6 +503,34 @@
     line-height: 1.5;
 }
 
+.timeline-map-link {
+    width: fit-content;
+    margin: .22rem auto 0;
+    padding: .16rem .34rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .14rem;
+    color: #fff;
+    background: var(--primary-color);
+    font-size: .26rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(var(--primary-rgb), .28);
+    transition: background .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+
+.timeline-map-link:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(var(--primary-rgb), .38);
+}
+
+.timeline-map-link i {
+    font-size: .32rem;
+}
+
 /*================ GALLERY ================*/
 .gallery {
     padding: 0rem .3rem 1rem .3rem;

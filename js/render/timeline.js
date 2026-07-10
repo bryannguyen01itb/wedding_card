@@ -37,6 +37,15 @@ function createTimelineCard(event, label) {
     address.innerHTML = `<i class="bi bi-geo-alt-fill"></i><span>${event.address}</span>`;
     content.appendChild(address);
 
+    if (event.mapUrl) {
+        const mapLink = createEl("a", "timeline-map-link");
+        mapLink.href = event.mapUrl;
+        mapLink.target = "_blank";
+        mapLink.rel = "noopener noreferrer";
+        mapLink.innerHTML = `<i class="bi bi-map-fill"></i><span>${wedding.ceremony.mapButtonLabel || "Chỉ đường"}</span>`;
+        content.appendChild(mapLink);
+    }
+
     card.appendChild(content);
     return card;
 }
