@@ -4,6 +4,7 @@ import { showMusic, playMusic } from "./music.js";
 const COVER_FADE_DELAY = 850;
 const INVITATION_SHOW_DELAY = 1450;
 
+/** Xử lý mở bìa thiệp và chuyển sang nội dung chính */
 export function initCover() {
     const card = document.getElementById("openCard");
     const cover = document.querySelector(".cover");

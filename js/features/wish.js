@@ -1,5 +1,8 @@
+import { wedding } from "../config.js";
 import { db } from "../firebase.js";
 import { createEl } from "../utils/dom.js";
+
+const WISH_LIMIT = 3;
 
 let allWishes = [];
 let expanded = false;
@@ -12,14 +15,24 @@ const form = {
     loadMore: document.getElementById("loadMoreBtn")
 };
 
+const { wish: wishConfig } = wedding;
+
 function getChecked(name) {
     return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
+}
+
+function getDefaultValue(options) {
+    return options.find(option => option.default)?.value || options[0]?.value || "";
 }
 
 function resetForm() {
     form.name.value = "";
     form.message.value = "";
-    const defaultAttendance = document.querySelector('input[name="attendance"][value="Có tham gia"]');
+
+    const defaultSide = document.querySelector(`input[name="side"][value="${getDefaultValue(wishConfig.sides)}"]`);
+    const defaultAttendance = document.querySelector(`input[name="attendance"][value="${getDefaultValue(wishConfig.attendance)}"]`);
+
+    if (defaultSide) defaultSide.checked = true;
     if (defaultAttendance) defaultAttendance.checked = true;
 }
 
@@ -33,8 +46,16 @@ function getFormData() {
 }
 
 function validate(data) {
-    if (!data.name) { alert("Vui lòng nhập tên."); return false; }
-    if (!data.message) { alert("Vui lòng nhập lời chúc."); return false; }
+    if (!data.name) {
+        alert(wishConfig.validation.noName);
+        return false;
+    }
+
+    if (!data.message) {
+        alert(wishConfig.validation.noMessage);
+        return false;
+    }
+
     return true;
 }
 
@@ -47,12 +68,12 @@ function sendWish() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
         .then(() => {
-            alert("Đã gửi lời chúc!");
+            alert(wishConfig.messages.success);
             resetForm();
         })
         .catch(error => {
             console.error(error);
-            alert("Gửi thất bại.");
+            alert(wishConfig.messages.error);
         });
 }
 
@@ -65,7 +86,7 @@ function createWishCard(data) {
     const name = data.name || "Khách mời";
     const side = data.side || "";
     const attendance = data.attendance || "Chưa xác nhận";
-    const attending = attendance === "Có tham gia";
+    const attending = attendance === getDefaultValue(wishConfig.attendance);
 
     const card = createEl("div", "wish-card");
     const header = createEl("div", "wish-header");
@@ -74,7 +95,9 @@ function createWishCard(data) {
     header.appendChild(createEl("div", "avatar", name.charAt(0).toUpperCase()));
     userInfo.appendChild(createEl("div", "user-name", name));
     userInfo.appendChild(createEl("div", "user-side", side));
-    userInfo.appendChild(createEl(`attendance-badge ${attending ? "attending" : "absent"}`, attendance));
+    userInfo.appendChild(
+        createEl("div", `attendance-badge ${attending ? "attending" : "absent"}`, attendance)
+    );
     header.appendChild(userInfo);
 
     card.appendChild(header);
@@ -85,21 +108,21 @@ function createWishCard(data) {
 }
 
 function updateLoadMore() {
-    if (allWishes.length <= 3) {
+    if (allWishes.length <= WISH_LIMIT) {
         form.loadMore.style.display = "none";
         return;
     }
 
     form.loadMore.style.display = "block";
     form.loadMore.textContent = expanded
-        ? "Thu gọn"
-        : `Xem tất cả lời chúc (${allWishes.length})`;
+        ? wishConfig.collapse
+        : `${wishConfig.loadMore} (${allWishes.length})`;
     form.loadMore.classList.toggle("collapse", expanded);
 }
 
 function render() {
     form.list.textContent = "";
-    const wishes = expanded ? allWishes : allWishes.slice(0, 3);
+    const wishes = expanded ? allWishes : allWishes.slice(0, WISH_LIMIT);
     wishes.forEach(data => form.list.appendChild(createWishCard(data)));
     updateLoadMore();
 }

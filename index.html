@@ -167,108 +167,26 @@
 
                     <div class="wish-form">
 
-                        <input id="wishName" type="text" placeholder="Họ và tên">
+                        <input id="wishName" type="text">
 
                         <div class="wish-side">
-
-                            <div class="side-group">
-
-                                <label class="side-card">
-
-                                    <input type="radio" name="side" value="Bạn cô dâu" checked>
-
-                                    <span class="side-content">
-
-                                        <div class="side-icon"><i class="bi bi-gender-female" style="color: palevioletred;"></i></div>
-
-                                        <div class="side-text">
-                                            Bạn cô dâu
-                                        </div>
-
-                                    </span>
-
-                                </label>
-
-                                <label class="side-card">
-
-                                    <input type="radio" name="side" value="Bạn chú rể">
-
-                                    <span class="side-content">
-
-                                        <div class="side-icon"><i class="bi bi-gender-male" style="color: blue;"></i></div>
-
-                                        <div class="side-text">
-                                            Bạn chú rể
-                                        </div>
-
-                                    </span>
-
-                                </label>
-
-                            </div>
-
+                            <div class="side-group" id="wishSideGroup"></div>
                         </div>
 
                         <div class="wish-attendance">
-
-                            <div class="wish-label">
-                                Xác nhận tham dự
-                            </div>
-
-                            <div class="side-group">
-
-                                <label class="side-card">
-
-                                    <input type="radio" name="attendance" value="Có tham gia" checked>
-
-                                    <span class="side-content">
-
-                                        <div class="side-icon">✓</div>
-
-                                        <div class="side-text">
-                                            Có tham gia
-                                        </div>
-
-                                    </span>
-
-                                </label>
-
-                                <label class="side-card">
-
-                                    <input type="radio" name="attendance" value="Không tham gia">
-
-                                    <span class="side-content">
-
-                                        <div class="side-icon">×</div>
-
-                                        <div class="side-text">
-                                            Không tham gia
-                                        </div>
-
-                                    </span>
-
-                                </label>
-
-                            </div>
-
+                            <div class="wish-label" id="wishAttendanceLabel"></div>
+                            <div class="side-group" id="wishAttendanceGroup"></div>
                         </div>
 
-                        <textarea id="wishMessage" rows="5"
-                            placeholder="Gửi lời chúc đến cô dâu và chú rể..."></textarea>
+                        <textarea id="wishMessage" rows="5"></textarea>
 
-                        <button id="wishBtn">
-
-                            Gửi lời chúc
-
-                        </button>
+                        <button id="wishBtn" type="button"></button>
 
                     </div>
 
                     <div class="wish-list" id="wishList"></div>
 
-                    <button id="loadMoreBtn" class="load-more">
-                        Xem thêm
-                    </button>
+                    <button id="loadMoreBtn" class="load-more" type="button"></button>
 
                 </section>
 
@@ -320,22 +238,22 @@
 
                         <div class="count-item">
                             <div id="days">00</div>
-                            <span>Ngày</span>
+                            <span id="countdownDaysLabel"></span>
                         </div>
 
                         <div class="count-item">
                             <div id="hours">00</div>
-                            <span>Giờ</span>
+                            <span id="countdownHoursLabel"></span>
                         </div>
 
                         <div class="count-item">
                             <div id="minutes">00</div>
-                            <span>Phút</span>
+                            <span id="countdownMinutesLabel"></span>
                         </div>
 
                         <div class="count-item">
                             <div id="seconds">00</div>
-                            <span>Giây</span>
+                            <span id="countdownSecondsLabel"></span>
                         </div>
 
                     </div>

@@ -1,7 +1,18 @@
-/** Cấu hình nội dung thiệp cưới — chỉnh sửa file này để thay đổi thông tin */
+/**
+ * Cấu hình nội dung thiệp cưới.
+ * Chỉnh sửa file này để thay đổi toàn bộ thông tin hiển thị trên thiệp.
+ */
 export const wedding = {
+    // --- Thông tin chung ---
     date: "2026-09-12",
+    location: "HẢI PHÒNG, VIỆT NAM",
+    music: "music/1_doi.mp3",
 
+    theme: {
+        primaryColor: "#8fb8a8"
+    },
+
+    // --- Giao diện bìa & poster ---
     header: {
         logo: "C & C"
     },
@@ -14,34 +25,7 @@ export const wedding = {
         image: "img/anh_1.jpeg"
     },
 
-    sections: {
-        saveDate: "SAVE THE DATE",
-        about: "ĐÔI NÉT VỀ CHÚNG TÔI",
-        timeline: "LỊCH TRÌNH",
-        gallery: "ALBUM ẢNH CƯỚI",
-        wish: "NHẮN GỬI YÊU THƯƠNG",
-        gift: {
-            title: "HỘP MỪNG CƯỚI",
-            description: "Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi. Nếu muốn gửi lời chúc theo một cách đặc biệt hơn, hãy mở hộp quà nhỏ dưới đây.",
-            openLabel: "Mở hộp quà"
-        },
-        countdown: "ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI",
-        thanks: {
-            title: "XIN CHÂN THÀNH CẢM ƠN",
-            paragraphs: [
-                "Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc đối với gia đình chúng tôi.",
-                "Rất mong được đón tiếp Quý khách trong ngày trọng đại của chúng tôi."
-            ]
-        }
-    },
-
-    theme: {
-        primaryColor: "#8fb8a8"
-    },
-
-    location: "HẢI PHÒNG, VIỆT NAM",
-    music: "music/1_doi.mp3",
-
+    // --- Cô dâu & chú rể ---
     groom: {
         nickname: "CHÚ RỂ",
         fullName: "NGUYỄN VĂN A",
@@ -58,6 +42,63 @@ export const wedding = {
         avatar: "img/co_dau.jpeg"
     },
 
+    // --- Tiêu đề & nội dung từng section ---
+    sections: {
+        saveDate: "SAVE THE DATE",
+        about: "ĐÔI NÉT VỀ CHÚNG TÔI",
+        timeline: "LỊCH TRÌNH",
+        gallery: "ALBUM ẢNH CƯỚI",
+        wish: "NHẮN GỬI YÊU THƯƠNG",
+        gift: {
+            title: "HỘP MỪNG CƯỚI",
+            description: "Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi. Nếu muốn gửi lời chúc theo một cách đặc biệt hơn, hãy mở hộp quà nhỏ dưới đây.",
+            openLabel: "Mở hộp quà"
+        },
+        countdown: {
+            title: "ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI",
+            labels: {
+                days: "Ngày",
+                hours: "Giờ",
+                minutes: "Phút",
+                seconds: "Giây"
+            }
+        },
+        thanks: {
+            title: "XIN CHÂN THÀNH CẢM ƠN",
+            paragraphs: [
+                "Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc đối với gia đình chúng tôi.",
+                "Rất mong được đón tiếp Quý khách trong ngày trọng đại của chúng tôi."
+            ]
+        }
+    },
+
+    // --- Form lời chúc ---
+    wish: {
+        namePlaceholder: "Họ và tên",
+        messagePlaceholder: "Gửi lời chúc đến cô dâu và chú rể...",
+        submit: "Gửi lời chúc",
+        loadMore: "Xem thêm",
+        collapse: "Thu gọn",
+        attendanceLabel: "Xác nhận tham dự",
+        sides: [
+            { value: "Bạn cô dâu", icon: "bi-gender-female", color: "palevioletred", default: true },
+            { value: "Bạn chú rể", icon: "bi-gender-male", color: "blue" }
+        ],
+        attendance: [
+            { value: "Có tham gia", icon: "✓", default: true },
+            { value: "Không tham gia", icon: "×" }
+        ],
+        validation: {
+            noName: "Vui lòng nhập tên.",
+            noMessage: "Vui lòng nhập lời chúc."
+        },
+        messages: {
+            success: "Đã gửi lời chúc!",
+            error: "Gửi thất bại."
+        }
+    },
+
+    // --- Lịch trình ngày cưới ---
     ceremony: {
         image: "img/anh_2.jpg",
         bride: {
@@ -80,6 +121,7 @@ export const wedding = {
         }
     },
 
+    // --- Album ảnh ---
     gallery: [
         { type: "image", src: "img/anh_3.jpeg", size: "wide" },
         { type: "text", title: "My story", subtitle: "From this day forward" },
@@ -92,6 +134,7 @@ export const wedding = {
         { type: "image", src: "img/anh_1.jpeg" }
     ],
 
+    // --- Tài khoản mừng cưới ---
     gift: {
         groom: {
             qr: "img/qr_groom.jpeg",
