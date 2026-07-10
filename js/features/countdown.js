@@ -1,6 +1,6 @@
 import { wedding } from "../config.js";
+import { parseWeddingDate } from "../utils/date.js";
 
-const target = new Date(wedding.date).getTime();
 const elements = {
     days: document.getElementById("days"),
     hours: document.getElementById("hours"),
@@ -15,6 +15,7 @@ function setValue(key, value) {
 }
 
 function update() {
+    const target = parseWeddingDate(wedding.date).getTime();
     const distance = Math.max(target - Date.now(), 0);
     const dayMs = 86400000;
     const hourMs = 3600000;

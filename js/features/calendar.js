@@ -1,4 +1,5 @@
 import { wedding } from "../config.js";
+import { parseWeddingDate } from "../utils/date.js";
 
 const MONTH_NAMES = [
     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -6,7 +7,7 @@ const MONTH_NAMES = [
 ];
 
 export function initCalendar() {
-    const date = new Date(wedding.date);
+    const date = parseWeddingDate(wedding.date);
     const monthEl = document.getElementById("month");
     const yearEl = document.getElementById("year");
     const daysEl = document.getElementById("calendarDays");
