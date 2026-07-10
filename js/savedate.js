@@ -54,8 +54,8 @@ scrollRevealItems.forEach((item, index) => {
 });
 
 observeOnce(scrollRevealItems, {
-    threshold: 0.18,
-    rootMargin: "0px 0px -8% 0px"
+    threshold: 0.12,
+    rootMargin: "0px 0px 8% 0px"
 });
 
 const galleryItems = document.querySelectorAll(".gallery-item");
@@ -69,6 +69,6 @@ galleryItems.forEach((item, index) => {
 });
 
 observeOnce(galleryItems, {
-    threshold: 0.28,
-    rootMargin: "0px 0px -6% 0px"
+    threshold: 0.18,
+    rootMargin: "0px 0px 8% 0px"
 });

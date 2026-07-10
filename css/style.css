@@ -361,8 +361,9 @@ button {
 .heart,
 .info {
     opacity: 0;
-    transform: translateY(40px);
-    transition: 1s ease;
+    transform: translate3d(0, 28px, 0);
+    transition: opacity .75s ease, transform .75s cubic-bezier(.22, 1, .36, 1);
+    backface-visibility: hidden;
 }
 
 .text_1.show,
@@ -370,7 +371,7 @@ button {
 .heart.show,
 .info.show {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
 }
 
 /*================ SAVE DATE ================*/
@@ -494,10 +495,12 @@ button {
 }
 
 .active::before {
-    content: "❤";
+    content: "\F415";
     position: absolute;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -48%) scale(1);
+    font-family: "bootstrap-icons";
+    font-weight: 400;
     color: #ff365bc7;
     font-size: 1rem;
     line-height: 1;
@@ -547,7 +550,9 @@ button {
 }
 
 .section-divider span::before {
-    content: "❤";
+    content: "\F772";
+    font-family: "bootstrap-icons";
+    font-weight: 400;
     color: var(--primary-color);
     font-size: .45rem;
     line-height: 1;
@@ -1607,34 +1612,35 @@ button {
 
 .animate-item {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity .7s ease, transform .7s ease;
+    transform: translate3d(0, 18px, 0);
+    transition: opacity .55s ease, transform .55s cubic-bezier(.22, 1, .36, 1);
+    backface-visibility: hidden;
 }
 
 .scroll-reveal {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translate3d(0, 28px, 0);
     transition:
-        opacity .6s ease var(--reveal-delay, 0ms),
-        transform .6s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
-    will-change: opacity, transform;
+        opacity .68s ease var(--reveal-delay, 0ms),
+        transform .68s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
+    backface-visibility: hidden;
 }
 
 .scroll-reveal.is-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
 }
 
 .about .person.scroll-reveal:nth-of-type(1) {
-    transform: translateX(-48px) translateY(12px);
+    transform: translate3d(-38px, 10px, 0);
 }
 
 .about .person.scroll-reveal:nth-of-type(2) {
-    transform: translateX(48px) translateY(12px);
+    transform: translate3d(38px, 10px, 0);
 }
 
 .about .person.scroll-reveal.is-visible {
-    transform: translateX(0) translateY(0);
+    transform: translate3d(0, 0, 0);
 }
 
 .gallery-grid {
@@ -1644,22 +1650,22 @@ button {
 .gallery-reveal {
     opacity: 0;
     transition:
-        opacity .65s ease var(--gallery-delay, 0ms),
-        transform .72s cubic-bezier(.22, 1, .36, 1) var(--gallery-delay, 0ms);
-    will-change: opacity, transform;
+        opacity .7s ease var(--gallery-delay, 0ms),
+        transform .7s cubic-bezier(.22, 1, .36, 1) var(--gallery-delay, 0ms);
+    backface-visibility: hidden;
 }
 
 .gallery-reveal.from-left {
-    transform: translateX(-52px) translateY(18px) scale(.96);
+    transform: translate3d(-42px, 14px, 0) scale(.98);
 }
 
 .gallery-reveal.from-right {
-    transform: translateX(52px) translateY(18px) scale(.96);
+    transform: translate3d(42px, 14px, 0) scale(.98);
 }
 
 .gallery-reveal.is-visible {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
