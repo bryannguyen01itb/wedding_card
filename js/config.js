@@ -6,7 +6,7 @@ export const wedding = {
         primaryColor: "#8fb8a8"
     },
 
-    location: "HẢI DƯƠNG, VIỆT NAM",
+    location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
 
     groom: {
@@ -34,7 +34,7 @@ export const wedding = {
                 title: "BỮA CƠM THÂN MẬT",
                 time: "17:00 • 11.09.2026"
             },
-            address: "Nhà gái - Hải Dương"
+            address: "Nhà gái - Thôn ABC, Xã DEF, Hải Phòng"
         },
         groom: {
             title: "LỄ THÀNH HÔN",
@@ -43,7 +43,7 @@ export const wedding = {
                 title: "BỮA CƠM THÂN MẬT",
                 time: "16:00 • 12.09.2026"
             },
-            address: "Nhà trai - Hải Dương"
+            address: "Nhà trai - Thôn ABC, Xã DEF, Hải Phòng"
         }
     },
 
