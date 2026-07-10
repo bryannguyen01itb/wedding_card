@@ -5,12 +5,17 @@
     opacity: 0;
     min-height: 100vh;
     overflow-x: hidden;
-    transition: opacity 1s ease;
+    transform: translateY(18px) scale(.99);
+    transition:
+        opacity .72s ease,
+        transform .82s cubic-bezier(.22, 1, .36, 1);
+    will-change: opacity, transform;
 }
 
 .invitation.show {
     display: block;
     opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
 .invitation__header {
