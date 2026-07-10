@@ -31,7 +31,7 @@ function isInRevealRange(item){
 
     const rect = item.getBoundingClientRect();
 
-    return rect.top < window.innerHeight - 60 && rect.bottom > 0;
+    return rect.top < window.innerHeight * 0.82 && rect.bottom > 0;
 
 }
 
@@ -97,7 +97,7 @@ scrollRevealItems.forEach((item, index) => {
 
 observeOnce(scrollRevealItems, {
     threshold: 0.12,
-    rootMargin: "0px 0px 120px 0px"
+    rootMargin: "0px 0px -20px 0px"
 });
 
 const galleryItems = document.querySelectorAll(".gallery-item");
@@ -112,5 +112,5 @@ galleryItems.forEach((item, index) => {
 
 observeOnce(galleryItems, {
     threshold: 0.18,
-    rootMargin: "0px 0px 120px 0px"
+    rootMargin: "0px 0px -20px 0px"
 });

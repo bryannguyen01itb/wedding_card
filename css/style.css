@@ -1637,10 +1637,10 @@ body::after {
 
 .scroll-reveal {
     opacity: 0;
-    transform: translate3d(0, 28px, 0);
+    transform: translate3d(0, 34px, 0);
     transition:
-        opacity .68s ease var(--reveal-delay, 0ms),
-        transform .68s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
+        opacity .85s ease var(--reveal-delay, 0ms),
+        transform .85s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
     backface-visibility: hidden;
 }
 
@@ -1650,11 +1650,11 @@ body::after {
 }
 
 .about .person.scroll-reveal:nth-of-type(1) {
-    transform: translate3d(-38px, 10px, 0);
+    transform: translate3d(-74px, 14px, 0);
 }
 
 .about .person.scroll-reveal:nth-of-type(2) {
-    transform: translate3d(38px, 10px, 0);
+    transform: translate3d(74px, 14px, 0);
 }
 
 .about .person.scroll-reveal.is-visible {
@@ -1668,8 +1668,8 @@ body::after {
 .gallery-reveal {
     opacity: 0;
     transition:
-        opacity .7s ease var(--gallery-delay, 0ms),
-        transform .7s cubic-bezier(.22, 1, .36, 1) var(--gallery-delay, 0ms);
+        opacity .82s ease var(--gallery-delay, 0ms),
+        transform .82s cubic-bezier(.22, 1, .36, 1) var(--gallery-delay, 0ms);
     backface-visibility: hidden;
 }
 
