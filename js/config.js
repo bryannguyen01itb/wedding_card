@@ -2,6 +2,39 @@
 export const wedding = {
     date: "2026-09-12",
 
+    header: {
+        logo: "C & C"
+    },
+
+    cover: {
+        headline: "TRÂN TRỌNG KÍNH MỜI"
+    },
+
+    poster: {
+        image: "img/anh_1.jpeg"
+    },
+
+    sections: {
+        saveDate: "SAVE THE DATE",
+        about: "ĐÔI NÉT VỀ CHÚNG TÔI",
+        timeline: "LỊCH TRÌNH",
+        gallery: "ALBUM ẢNH CƯỚI",
+        wish: "NHẮN GỬI YÊU THƯƠNG",
+        gift: {
+            title: "HỘP MỪNG CƯỚI",
+            description: "Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi. Nếu muốn gửi lời chúc theo một cách đặc biệt hơn, hãy mở hộp quà nhỏ dưới đây.",
+            openLabel: "Mở hộp quà"
+        },
+        countdown: "ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI",
+        thanks: {
+            title: "XIN CHÂN THÀNH CẢM ƠN",
+            paragraphs: [
+                "Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc đối với gia đình chúng tôi.",
+                "Rất mong được đón tiếp Quý khách trong ngày trọng đại của chúng tôi."
+            ]
+        }
+    },
+
     theme: {
         primaryColor: "#8fb8a8"
     },

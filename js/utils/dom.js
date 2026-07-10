@@ -7,6 +7,11 @@ export function setText(id, value) {
     if (el) el.textContent = value;
 }
 
+export function setHtml(id, value) {
+    const el = $(id);
+    if (el) el.innerHTML = value;
+}
+
 export function setSrc(id, value) {
     const el = $(id);
     if (el) el.src = value;

@@ -1,5 +1,5 @@
 import { wedding } from "../config.js";
-import { setText, setSrc, createEl } from "../utils/dom.js";
+import { setText, setSrc, setHtml, createEl } from "../utils/dom.js";
 import { formatDate, formatEventTime } from "../utils/date.js";
 import { applyTheme } from "../utils/theme.js";
 
@@ -111,25 +111,60 @@ function renderGift() {
     container.appendChild(renderGiftCard("bride", wedding.gift.bride, "CÔ DÂU"));
 }
 
-function renderCoverAndPoster() {
+function renderHeader() {
+    setText("invitationHeader", wedding.header.logo);
+}
+
+function renderCover() {
     const date = formatDate(wedding.date);
     const { groom, bride } = wedding;
 
+    setText("coverHeadline", wedding.cover.headline);
     setText("coverGroom", groom.nickname);
     setText("coverBride", bride.nickname);
+    setText("coverDate", date);
+}
+
+function renderPoster() {
+    const date = formatDate(wedding.date);
+    const { groom, bride } = wedding;
+
+    setSrc("posterImage", wedding.poster.image);
     setText("posterGroom", groom.nickname);
     setText("posterBride", bride.nickname);
-    setText("thanksGroom", groom.nickname);
-    setText("thanksBride", bride.nickname);
-    setText("coverDate", date);
     setText("posterDate", date);
     setText("posterLocation", wedding.location);
+}
+
+function renderSections() {
+    const { sections } = wedding;
+
+    setText("saveDateTitle", sections.saveDate);
+    setText("aboutTitle", sections.about);
+    setText("timelineTitle", sections.timeline);
+    setText("galleryTitle", sections.gallery);
+    setText("wishTitle", sections.wish);
+    setText("giftTitle", sections.gift.title);
+    setText("giftDesc", sections.gift.description);
+    setText("giftOpenLabel", sections.gift.openLabel);
+    setText("countdownTitle", sections.countdown);
+    setText("thanksTitle", sections.thanks.title);
+    setHtml("thanksContent", sections.thanks.paragraphs.join("<br><br>"));
+}
+
+function renderThanksSign() {
+    setText("thanksGroom", wedding.groom.nickname);
+    setText("thanksBride", wedding.bride.nickname);
 }
 
 export function renderContent() {
     applyTheme(wedding.theme?.primaryColor);
 
-    renderCoverAndPoster();
+    renderHeader();
+    renderCover();
+    renderPoster();
+    renderSections();
+    renderThanksSign();
     renderPerson("groom", wedding.groom);
     renderPerson("bride", wedding.bride);
     renderTimeline();

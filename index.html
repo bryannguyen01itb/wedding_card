@@ -20,9 +20,7 @@
 
     <div class="container">
         <div class="cover">
-            <div class="cover__headline">
-                TRÂN TRỌNG KÍNH MỜI
-            </div>
+            <div class="cover__headline" id="coverHeadline"></div>
             <div class="card" id="openCard">
                 <img class="card__close" src="img/card_wedding.png">
 
@@ -42,12 +40,10 @@
         </div>
 
         <div class="invitation">
-            <div class="invitation__header">
-                C & C
-            </div>
+            <div class="invitation__header" id="invitationHeader"></div>
             <div class="invitation__container">
                 <div class="poster">
-                    <img src="img/anh_1.jpeg" alt="">
+                    <img id="posterImage" alt="">
                     <svg class="wave" viewBox="0 0 1440 200" preserveAspectRatio="none">
                         <path fill="#ffffff"
                             d="M0,96L80,112C160,128,320,160,480,160C640,160,800,128,960,122.7C1120,117,1280,139,1360,149.3L1440,160L1440,320L0,320Z">
@@ -72,9 +68,7 @@
 
                 <section class="save-date">
 
-                    <div class="save-title animate-item">
-                        SAVE THE DATE
-                    </div>
+                    <div class="save-title animate-item" id="saveDateTitle"></div>
 
                     <div class="month-year animate-item">
 
@@ -113,9 +107,7 @@
 
                 <section class="about">
 
-                    <h2 class="about-title">
-                        ĐÔI NÉT VỀ CHÚNG TÔI
-                    </h2>
+                    <h2 class="about-title" id="aboutTitle"></h2>
 
                     <div class="person">
 
@@ -148,7 +140,7 @@
                 </div>
 
                 <section class="timeline">
-                    <h2 class="section-title">LỊCH TRÌNH</h2>
+                    <h2 class="section-title" id="timelineTitle"></h2>
                     <div id="timelineCards"></div>
                 </section>
 
@@ -158,9 +150,7 @@
 
                 <section class="gallery">
 
-                    <h2 class="section-title">
-                        ALBUM ẢNH CƯỚI
-                    </h2>
+                    <h2 class="section-title" id="galleryTitle"></h2>
 
                     <div class="gallery-grid">
                     </div>
@@ -173,9 +163,7 @@
 
                 <section class="wish">
 
-                    <h2 class="section-title">
-                        NHẮN GỬI YÊU THƯƠNG
-                    </h2>
+                    <h2 class="section-title" id="wishTitle"></h2>
 
                     <div class="wish-form">
 
@@ -290,21 +278,15 @@
 
                 <section class="gift">
 
-                    <h2 class="section-title">
-                        HỘP MỪNG CƯỚI
-                    </h2>
+                    <h2 class="section-title" id="giftTitle"></h2>
 
-                    <div class="gift-desc">
-                        Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.
-                        Nếu muốn gửi lời chúc theo một cách đặc biệt hơn,
-                        hãy mở hộp quà nhỏ dưới đây.
-                    </div>
+                    <div class="gift-desc" id="giftDesc"></div>
 
                     <button class="gift-box" id="openGiftBox" type="button" aria-label="Mở hộp mừng cưới">
                         <span class="gift-box__lid"></span>
                         <span class="gift-box__body"></span>
                         <span class="gift-box__ribbon"></span>
-                        <span class="gift-box__text">Mở hộp quà</span>
+                        <span class="gift-box__text" id="giftOpenLabel"></span>
                     </button>
 
                     <div class="gift-modal" id="giftModal" aria-hidden="true">
@@ -332,9 +314,7 @@
 
                 <section class="countdown">
 
-                    <h2 class="section-title">
-                        ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI
-                    </h2>
+                    <h2 class="section-title" id="countdownTitle"></h2>
 
                     <div class="countdown-grid">
 
@@ -372,17 +352,9 @@
                         <i class="bi bi-heart-fill"></i>
                     </div>
 
-                    <div class="thanks-title">
-                        XIN CHÂN THÀNH CẢM ƠN
-                    </div>
+                    <div class="thanks-title" id="thanksTitle"></div>
 
-                    <div class="thanks-content">
-                        Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc
-                        đối với gia đình chúng tôi.
-                        <br><br>
-                        Rất mong được đón tiếp Quý khách
-                        trong ngày trọng đại của chúng tôi.
-                    </div>
+                    <div class="thanks-content" id="thanksContent"></div>
 
                     <div class="thanks-sign">
 
