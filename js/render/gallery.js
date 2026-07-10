@@ -1,42 +1,96 @@
 import { createEl } from "../utils/dom.js";
+import { formatDate } from "../utils/date.js";
 
-function createGalleryImage(item) {
+const DEFAULT_INTRO = {
+    eyebrow: "WELCOME TO OUR",
+    script: "love",
+    title: "STORY",
+    sideText: "SAVE THE DATE"
+};
+
+function normalizePhoto(item) {
+    if (typeof item === "string") {
+        return { src: item, alt: "" };
+    }
+
+    return item;
+}
+
+function normalizeGalleryConfig(config) {
+    if (Array.isArray(config)) {
+        return {
+            intro: DEFAULT_INTRO,
+            photos: config
+                .filter(item => typeof item === "string" || item.type !== "text")
+                .map(normalizePhoto)
+        };
+    }
+
+    return {
+        intro: { ...DEFAULT_INTRO, ...(config?.intro || {}) },
+        photos: (config?.photos || []).map(normalizePhoto)
+    };
+}
+
+function createIntroBlock(intro, weddingDate) {
+    const introBlock = createEl("div", "gallery-intro gallery-item");
+
+    introBlock.appendChild(createEl("div", "gallery-intro__eyebrow", intro.eyebrow));
+    introBlock.appendChild(createEl("div", "gallery-intro__script", intro.script));
+    introBlock.appendChild(createEl("div", "gallery-intro__title", intro.title));
+    introBlock.appendChild(createEl("span", "gallery-intro__line"));
+    introBlock.appendChild(createEl("div", "gallery-intro__date", formatDate(weddingDate)));
+
+    return introBlock;
+}
+
+function getGalleryLayout(photoCount) {
+    if (photoCount >= 10) return "gallery-poster--many";
+    if (photoCount >= 8) return "gallery-poster--full";
+    if (photoCount >= 6) return "gallery-poster--medium";
+    return "gallery-poster--few";
+}
+
+function createGalleryPhoto(photo, index) {
+    const frame = createEl("figure", `gallery-frame gallery-frame--${index + 1} gallery-item`);
     const img = document.createElement("img");
-    img.src = item.src;
-    img.alt = item.alt || "";
-    return img;
+
+    img.src = photo.src;
+    img.alt = photo.alt || "";
+    img.loading = "lazy";
+
+    frame.appendChild(img);
+    return frame;
 }
 
-function createGalleryText(item) {
-    const content = createEl("div", "gallery-text__content");
-    content.appendChild(createEl("div", "gallery-text__title", item.title || ""));
-    content.appendChild(createEl("div", "gallery-text__subtitle", item.subtitle || ""));
-    return content;
-}
-
-export function renderGallery(items) {
+export function renderGallery(config, weddingDate) {
     const grid = document.querySelector(".gallery-grid");
     if (!grid) return;
 
+    const { intro, photos } = normalizeGalleryConfig(config);
+    const visiblePhotos = photos.filter(photo => photo?.src);
+    const layoutClass = getGalleryLayout(visiblePhotos.length);
+
     grid.textContent = "";
+    grid.classList.remove(
+        "gallery-poster--few",
+        "gallery-poster--medium",
+        "gallery-poster--full",
+        "gallery-poster--many"
+    );
+    grid.classList.add("gallery-poster", layoutClass);
 
-    items.forEach(item => {
-        const normalized = typeof item === "string" ? { type: "image", src: item } : item;
-        const tile = createEl(
-            "div",
-            `gallery-item ${normalized.type === "text" ? "gallery-text" : "gallery-photo"}`
-        );
+    grid.appendChild(createIntroBlock(intro, weddingDate));
 
-        if (normalized.size) {
-            tile.classList.add(`gallery-item--${normalized.size}`);
-        }
-
-        tile.appendChild(
-            normalized.type === "text"
-                ? createGalleryText(normalized)
-                : createGalleryImage(normalized)
-        );
-
-        grid.appendChild(tile);
+    visiblePhotos.forEach((photo, index) => {
+        grid.appendChild(createGalleryPhoto(photo, index));
     });
+
+    const sideText = createEl("div", "gallery-side-text", intro.sideText);
+    const fanTop = createEl("span", "gallery-fan gallery-fan--top");
+    const fanBottom = createEl("span", "gallery-fan gallery-fan--bottom");
+
+    grid.appendChild(sideText);
+    grid.appendChild(fanTop);
+    grid.appendChild(fanBottom);
 }

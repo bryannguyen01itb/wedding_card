@@ -125,17 +125,23 @@ export const wedding = {
     },
 
     // --- Album ảnh ---
-    gallery: [
-        { type: "image", src: "img/anh_3.jpeg", size: "wide" },
-        { type: "text", title: "My story", subtitle: "From this day forward" },
-        { type: "image", src: "img/anh_4.jpeg", size: "tall" },
-        { type: "image", src: "img/anh_5.jpeg" },
-        { type: "image", src: "img/anh_6.jpeg" },
-        { type: "text", title: "Forever love", subtitle: "Our little forever" },
-        { type: "image", src: "img/anh_7.jpeg", size: "tall" },
-        { type: "image", src: "img/anh_8.jpeg" },
-        { type: "image", src: "img/anh_1.jpeg" }
-    ],
+    gallery: {
+        intro: {
+            eyebrow: "WELCOME TO OUR",
+            script: "love",
+            title: "STORY",
+            sideText: "SAVE THE DATE"
+        },
+        photos: [
+            { src: "img/anh_3.jpeg", alt: "Ảnh cưới 1" },
+            { src: "img/anh_4.jpeg", alt: "Ảnh cưới 2" },
+            { src: "img/anh_5.jpeg", alt: "Ảnh cưới 3" },
+            { src: "img/anh_6.jpeg", alt: "Ảnh cưới 4" },
+            { src: "img/anh_7.jpeg", alt: "Ảnh cưới 5" },
+            { src: "img/anh_8.jpeg", alt: "Ảnh cưới 6" },
+            { src: "img/anh_1.jpeg", alt: "Ảnh cưới 7" }
+        ]
+    },
 
     // --- Tài khoản mừng cưới ---
     gift: {

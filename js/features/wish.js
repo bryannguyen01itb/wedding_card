@@ -89,8 +89,14 @@ function createWishCard(data) {
     const attending = attendance === getDefaultValue(wishConfig.attendance);
 
     const card = createEl("div", "wish-card");
+    const pinIcon = createEl("div", "wish-pin");
     const header = createEl("div", "wish-header");
     const userInfo = createEl("div", "user-info");
+
+    const pinSymbol = document.createElement("i");
+    pinSymbol.className = "bi bi-quote";
+    pinIcon.appendChild(pinSymbol);
+    card.appendChild(pinIcon);
 
     header.appendChild(createEl("div", "avatar", name.charAt(0).toUpperCase()));
     userInfo.appendChild(createEl("div", "user-name", name));

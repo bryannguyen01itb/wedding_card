@@ -20,7 +20,7 @@ export function renderContent() {
     renderPerson("groom", wedding.groom);
     renderPerson("bride", wedding.bride);
     renderTimeline();
-    renderGallery(wedding.gallery);
+    renderGallery(wedding.gallery, wedding.date);
     renderGift();
     renderWishForm();
 }

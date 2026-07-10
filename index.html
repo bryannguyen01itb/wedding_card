@@ -14,9 +14,14 @@
 
 <body>
     <audio id="bgMusic" loop preload="auto"></audio>
-    <div class="music-player" id="musicBtn">
-        <img src="img/music.png" alt="Music">
-    </div>
+    <button class="music-player" id="musicBtn" type="button" aria-label="Phát hoặc tạm dừng nhạc">
+        <span class="music-equalizer" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+    </button>
 
     <div class="container">
         <div class="cover">
@@ -66,7 +71,7 @@
 
                 </div>
 
-                <section class="save-date">
+                <section class="save-date" id="saveDateSection">
 
                     <div class="save-title animate-item" id="saveDateTitle"></div>
 
@@ -105,7 +110,7 @@
                     <span></span>
                 </div>
 
-                <section class="about">
+                <section class="about" id="aboutSection">
 
                     <h2 class="about-title" id="aboutTitle"></h2>
 
@@ -139,7 +144,7 @@
                     <span></span>
                 </div>
 
-                <section class="timeline">
+                <section class="timeline" id="timelineSection">
                     <h2 class="section-title" id="timelineTitle"></h2>
                     <div id="timelineCards"></div>
                 </section>
@@ -148,7 +153,7 @@
                     <span></span>
                 </div>
 
-                <section class="gallery">
+                <section class="gallery" id="gallerySection">
 
                     <h2 class="section-title" id="galleryTitle"></h2>
 
@@ -161,7 +166,7 @@
                     <span></span>
                 </div>
 
-                <section class="wish">
+                <section class="wish" id="wishSection">
 
                     <h2 class="section-title" id="wishTitle"></h2>
 
@@ -194,7 +199,7 @@
                     <span></span>
                 </div>
 
-                <section class="gift">
+                <section class="gift" id="giftSection">
 
                     <h2 class="section-title" id="giftTitle"></h2>
 
@@ -230,7 +235,7 @@
                     <span></span>
                 </div>
 
-                <section class="countdown">
+                <section class="countdown" id="countdownSection">
 
                     <h2 class="section-title" id="countdownTitle"></h2>
 
@@ -264,7 +269,7 @@
                     <span></span>
                 </div>
 
-                <section class="thanks">
+                <section class="thanks" id="thanksSection">
 
                     <div class="thanks-heart">
                         <i class="bi bi-heart-fill"></i>
