@@ -1,0 +1,946 @@
+/* ================= Concept 2: Botanical Airy ================= */
+
+body.concept-2 {
+--botanical-ink: #26342f;
+    --botanical-muted: #6f7b75;
+    --botanical-paper: #fffefa;
+    --botanical-cream: #f7f1e6;
+    --botanical-mint: #dfeee5;
+    --botanical-leaf: #5f8a73;
+    --botanical-rose: #d99aa6;
+    --botanical-clay: #c98f72;
+    --botanical-line: rgba(var(--botanical-leaf-rgb), .22);
+    --botanical-ink-rgb: 38, 52, 47;
+    --botanical-muted-rgb: 111, 123, 117;
+    --botanical-paper-rgb: 255, 254, 250;
+    --botanical-cream-rgb: 247, 241, 230;
+    --botanical-mint-rgb: 223, 238, 229;
+    --botanical-leaf-rgb: 95, 138, 115;
+    --botanical-rose-rgb: 217, 154, 166;
+    --botanical-clay-rgb: 201, 143, 114;
+    --botanical-shadow: 0 18px 42px rgba(var(--botanical-ink-rgb), .14);
+}
+
+body.concept-2 {
+color: var(--botanical-ink);
+    background: #e7eee8;
+    font-family: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.concept-2::before {
+background:
+        linear-gradient(135deg, rgba(255,254,250,.86), rgba(var(--botanical-mint-rgb), .76)),
+        var(--concept-background-image, var(--site-background-image, url("../../img/bg.jpeg"))) center/cover no-repeat;
+    filter: blur(16px) saturate(.85) brightness(1.08);
+    transform: scale(1.1);
+}
+
+body.concept-2::after {
+background:
+        radial-gradient(circle at 12% 14%, rgba(var(--botanical-rose-rgb), .2), transparent 27%),
+        radial-gradient(circle at 90% 24%, rgba(var(--botanical-leaf-rgb), .18), transparent 28%),
+        linear-gradient(120deg, rgba(255,255,255,.3), rgba(255,255,255,.08));
+}
+
+body.concept-2 .container,
+body.concept-2 .invitation__container,
+body.concept-2 .invitation section,
+body.concept-2 .section-divider {
+background: var(--botanical-paper);
+}
+
+body.concept-2 .container {
+box-shadow: 0 26px 80px rgba(var(--botanical-ink-rgb), .2);
+}
+
+body.concept-2 button,
+body.concept-2 input,
+body.concept-2 textarea {
+font-family: inherit;
+}
+
+body.concept-2 .cover {
+position: relative;
+    justify-content: flex-start;
+    padding: .72rem .46rem .7rem;
+    gap: .3rem;
+    color: var(--botanical-ink);
+    background:
+        linear-gradient(180deg, rgba(255,254,250,.96), rgba(var(--botanical-cream-rgb), .78)),
+        radial-gradient(circle at 18% 20%, rgba(var(--botanical-rose-rgb), .26), transparent 30%),
+        radial-gradient(circle at 90% 76%, rgba(var(--botanical-leaf-rgb), .2), transparent 34%);
+    overflow: hidden;
+}
+
+body.concept-2 .cover::before {
+content: "";
+    position: absolute;
+    left: -.7rem;
+    top: 1.2rem;
+    width: 2.2rem;
+    height: 5.4rem;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
+    border-radius: 50%;
+    transform: rotate(-18deg);
+}
+
+body.concept-2 .cover::after {
+content: "";
+    position: absolute;
+    right: -.9rem;
+    bottom: .8rem;
+    width: 2.6rem;
+    height: 5.8rem;
+    border-radius: 50%;
+    background: rgba(var(--botanical-mint-rgb), .65);
+    transform: rotate(16deg);
+}
+
+body.concept-2 .cover .cover__headline {
+position: relative;
+    z-index: 2;
+    align-self: stretch;
+    color: var(--botanical-leaf);
+    font-family: "Nunito Sans", sans-serif;
+    font-size: .19rem;
+    font-weight: 800;
+    letter-spacing: .13rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+body.concept-2 .cover .card {
+position: relative;
+    z-index: 2;
+    width: min(6.3rem, 78vw);
+    height: 7.6rem;
+    margin: .18rem auto .05rem;
+    padding: 0;
+    border-radius: 3.2rem 3.2rem .38rem .38rem;
+    background:
+        linear-gradient(to bottom, rgba(255,255,255,.1), rgba(var(--botanical-ink-rgb), .08)),
+        var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat;
+    box-shadow: var(--botanical-shadow);
+    overflow: hidden;
+}
+
+body.concept-2 .cover .card::before {
+content: "";
+    position: absolute;
+    inset: .18rem;
+    border: 1px solid rgba(255,255,255,.72);
+    border-radius: 3rem 3rem .28rem .28rem;
+    z-index: 2;
+}
+
+body.concept-2 .cover .card::after {
+content: var(--concept-cover-label, "open invitation");
+    position: absolute;
+    left: 50%;
+    bottom: .36rem;
+    z-index: 3;
+    transform: translateX(-50%);
+    padding: .12rem .28rem;
+    border-radius: 999px;
+    color: var(--botanical-ink);
+    background: rgba(255,254,250,.76);
+    font-size: .18rem;
+    letter-spacing: .08rem;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+}
+
+body.concept-2 .card__close,
+body.concept-2 .card__open {
+opacity: 0;
+    pointer-events: none;
+}
+
+body.concept-2 .card.open .card__close,
+body.concept-2 .card.open .card__open {
+opacity: 0;
+}
+
+body.concept-2 .cover__click {
+top: auto;
+    left: auto;
+    right: .46rem;
+    bottom: .42rem;
+    width: 1.2rem;
+    opacity: .55;
+    filter: saturate(.6);
+}
+
+body.concept-2 .cover .cover__footer {
+position: relative;
+    z-index: 2;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: .2rem;
+    align-items: center;
+    padding: .18rem .08rem 0;
+}
+
+body.concept-2 .cover .cover__footer .man_name,
+body.concept-2 .cover .cover__footer .women_name {
+color: var(--botanical-ink);
+    font-family: "Parisienne", "Great Vibes", cursive;
+    font-size: .68rem;
+    font-weight: 400;
+    line-height: 1.18;
+    text-align: center;
+}
+
+body.concept-2 .cover .cover__footer .heartbeat {
+width: .78rem;
+    height: .78rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--botanical-rose);
+    font-size: .36rem;
+    box-shadow: 0 10px 22px rgba(var(--botanical-rose-rgb), .28);
+}
+
+body.concept-2 .cover .cover__date {
+position: relative;
+    z-index: 2;
+    margin-top: .04rem;
+    color: var(--botanical-muted);
+    font-size: .24rem;
+    font-weight: 800;
+    letter-spacing: .16rem;
+}
+
+body.concept-2 .cover.opening {
+background: var(--botanical-paper);
+}
+
+body.concept-2 .invitation__header {
+color: #fff;
+    background: linear-gradient(to bottom, rgba(var(--botanical-ink-rgb), .32), transparent);
+}
+
+body.concept-2 .invitation__header.scrolled,
+body.concept-2 .invitation__header.menu-open {
+color: var(--botanical-ink);
+    background: rgba(255,254,250,.86);
+    border-bottom: 1px solid rgba(var(--botanical-leaf-rgb), .15);
+    box-shadow: 0 10px 26px rgba(var(--botanical-ink-rgb), .1);
+}
+
+body.concept-2 .invitation__logo {
+font-family: "Parisienne", "Great Vibes", cursive;
+    color: inherit;
+    font-size: .52rem;
+}
+
+body.concept-2 .invitation-menu__toggle {
+border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.38);
+}
+
+body.concept-2 .invitation__header.scrolled .invitation-menu__toggle,
+body.concept-2 .invitation__header.menu-open .invitation-menu__toggle {
+background: rgba(var(--botanical-leaf-rgb), .1);
+    border-color: rgba(var(--botanical-leaf-rgb), .2);
+}
+
+body.concept-2 .invitation-menu {
+border-radius: .32rem;
+    background: rgba(255,254,250,.95);
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .invitation-menu__item {
+border-radius: 999px;
+    color: var(--botanical-ink);
+    background: var(--botanical-mint);
+}
+
+body.concept-2 .invitation-menu__item:hover {
+background: var(--botanical-leaf);
+    color: #fff;
+}
+
+body.concept-2 .poster {
+height: 100vh;
+    background: var(--botanical-paper);
+}
+
+body.concept-2 .poster img {
+filter: saturate(1.02) contrast(1.02) brightness(1.04);
+    object-position: center;
+}
+
+body.concept-2 .poster::before {
+background: linear-gradient(to bottom, rgba(var(--botanical-ink-rgb), .06), rgba(var(--botanical-ink-rgb), .22));
+    z-index: 1;
+}
+
+body.concept-2 .poster::after {
+background: linear-gradient(to top, rgba(255,254,250,.94), rgba(255,254,250,.42) 36%, transparent 68%);
+    z-index: 2;
+}
+
+body.concept-2 .wave {
+display: none;
+}
+
+body.concept-2 .poster-content {
+z-index: 5;
+    justify-content: flex-end;
+    padding: 0 .42rem 1.25rem;
+    color: var(--botanical-ink);
+}
+
+body.concept-2 .couple {
+width: 100%;
+    padding: 0;
+    row-gap: .1rem;
+}
+
+body.concept-2 .text_1,
+body.concept-2 .text_2 {
+color: var(--botanical-ink);
+    font-family: "Parisienne", "Great Vibes", cursive;
+    font-size: .9rem;
+    font-weight: 400;
+    line-height: 1.06;
+    text-shadow: 0 8px 20px rgba(255,255,255,.55);
+}
+
+body.concept-2 .text_1 {
+align-self: flex-start;
+    text-align: left;
+    padding-left: .06rem;
+}
+
+body.concept-2 .text_2 {
+align-self: flex-end;
+    text-align: right;
+    padding-right: .06rem;
+}
+
+body.concept-2 .heart {
+align-self: center;
+    color: var(--botanical-rose);
+    font-size: .44rem;
+    line-height: 1;
+    text-shadow: none;
+}
+
+body.concept-2 .info {
+margin-top: .34rem;
+    padding: .24rem .34rem .02rem;
+}
+
+body.concept-2 .date__time,
+body.concept-2 .location {
+color: var(--botanical-ink);
+    font-family: "Nunito Sans", sans-serif;
+}
+
+body.concept-2 .date__time {
+margin-top: 0;
+    font-size: .25rem;
+    font-weight: 900;
+    letter-spacing: .16rem;
+}
+
+body.concept-2 .location {
+margin-top: .08rem;
+    color: var(--botanical-muted);
+    font-size: .2rem;
+    letter-spacing: .08rem;
+}
+
+body.concept-2 .save-date,
+body.concept-2 .about,
+body.concept-2 .timeline,
+body.concept-2 .gallery,
+body.concept-2 .wish,
+body.concept-2 .gift,
+body.concept-2 .thanks {
+position: relative;
+    color: var(--botanical-ink);
+    background: var(--botanical-paper);
+}
+
+body.concept-2 .section-title,
+body.concept-2 .about-title,
+body.concept-2 .save-title,
+body.concept-2 .thanks-title {
+color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .48rem;
+    font-weight: 500;
+    letter-spacing: .04rem;
+    text-transform: none;
+}
+
+body.concept-2 .section-title::after,
+body.concept-2 .about-title::after,
+body.concept-2 .save-title::after,
+body.concept-2 .thanks-title::after {
+content: "";
+    display: block;
+    width: .95rem;
+    height: .08rem;
+    margin: .18rem auto 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--botanical-rose), var(--botanical-leaf));
+}
+
+body.concept-2 .section-divider {
+gap: .2rem;
+    padding: .42rem .55rem;
+    background: var(--botanical-paper);
+}
+
+body.concept-2 .section-divider::before,
+body.concept-2 .section-divider::after {
+background: linear-gradient(to right, transparent, rgba(var(--botanical-leaf-rgb), .45));
+}
+
+body.concept-2 .section-divider::after {
+background: linear-gradient(to left, transparent, rgba(var(--botanical-leaf-rgb), .45));
+}
+
+body.concept-2 .section-divider span {
+width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    background: var(--botanical-mint);
+}
+
+body.concept-2 .section-divider span::before {
+content: "\F417";
+    color: var(--botanical-rose);
+    filter: none;
+    font-size: .34rem;
+}
+
+body.concept-2 .save-date {
+padding: .95rem .36rem .75rem;
+    background:
+        linear-gradient(180deg, rgba(var(--botanical-mint-rgb), .46), rgba(255,254,250,1));
+}
+
+body.concept-2 .save-title {
+font-size: .36rem;
+}
+
+body.concept-2 .month-year {
+color: var(--botanical-leaf);
+    font-family: "Lora", Georgia, serif;
+    font-size: .62rem;
+    font-weight: 500;
+}
+
+body.concept-2 .dot {
+color: var(--botanical-rose);
+    opacity: .8;
+}
+
+body.concept-2 .calendar {
+max-width: 345px;
+    border-radius: .46rem;
+    padding: .42rem;
+    background: #fff;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .16);
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .calendar::before {
+display: none;
+}
+
+body.concept-2 .week span {
+color: var(--botanical-muted);
+    font-weight: 800;
+    font-size: .18rem;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+body.concept-2 .days span {
+color: var(--botanical-ink);
+    font-size: .28rem;
+}
+
+body.concept-2 .active {
+color: #fff !important;
+}
+
+body.concept-2 .active::before {
+content: "";
+    width: .66rem;
+    height: .66rem;
+    border-radius: 50% 50% 50% 8px;
+    background: var(--botanical-rose);
+    transform: translate(-50%, -50%) rotate(-45deg);
+    box-shadow: 0 10px 20px rgba(var(--botanical-rose-rgb), .28);
+}
+
+body.concept-2 .about {
+padding: .05rem .34rem .2rem;
+}
+
+body.concept-2 .person {
+display: grid;
+    grid-template-columns: 3rem 1fr;
+    column-gap: .32rem;
+    align-items: center;
+    text-align: left;
+    margin-bottom: .48rem;
+    padding: .22rem;
+    border-radius: .34rem;
+    background: linear-gradient(135deg, #fff, rgba(var(--botanical-mint-rgb), .52));
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .person:nth-of-type(even) {
+grid-template-columns: 1fr 3rem;
+    text-align: right;
+    background: linear-gradient(135deg, rgba(var(--botanical-cream-rgb), .74), #fff);
+}
+
+body.concept-2 .person:nth-of-type(even) img {
+grid-column: 2;
+    grid-row: 1 / span 4;
+}
+
+body.concept-2 .person:nth-of-type(even) .person-name,
+body.concept-2 .person:nth-of-type(even) .parent {
+grid-column: 1;
+}
+
+body.concept-2 .person img {
+grid-row: 1 / span 4;
+    width: 3rem;
+    height: 3rem;
+    border-radius: .28rem;
+    object-fit: cover;
+    margin: 0;
+    box-shadow: 0 14px 26px rgba(var(--botanical-ink-rgb), .15);
+}
+
+body.concept-2 .person-name {
+margin-top: 0;
+    color: var(--botanical-leaf);
+    font-family: "Lora", Georgia, serif;
+    font-size: .38rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+body.concept-2 .parent {
+color: var(--botanical-muted);
+    font-size: .23rem;
+}
+
+body.concept-2 .timeline {
+padding: .05rem .28rem .25rem;
+}
+
+body.concept-2 .timeline-card {
+position: relative;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: .22rem;
+    min-height: 4.05rem;
+    margin-bottom: .42rem;
+    padding: .22rem;
+    border-radius: .42rem;
+    overflow: visible;
+    background: #fff;
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .timeline-card:nth-child(even) {
+grid-template-columns: 1fr 2.5rem;
+}
+
+body.concept-2 .timeline-card::before,
+body.concept-2 .timeline-card::after {
+content: "";
+    position: absolute;
+    top: 50%;
+    width: .42rem;
+    height: .42rem;
+    border-radius: 50%;
+    background: var(--botanical-paper);
+    transform: translateY(-50%);
+    box-shadow: inset 0 0 0 1px rgba(var(--botanical-leaf-rgb), .12);
+}
+
+body.concept-2 .timeline-card::before {
+left: -.21rem;
+}
+
+body.concept-2 .timeline-card::after {
+right: -.21rem;
+}
+
+body.concept-2 .timeline-card > img {
+width: 100%;
+    height: 100%;
+    min-height: 3.65rem;
+    border-radius: .3rem;
+    object-fit: cover;
+    box-shadow: 0 12px 24px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body.concept-2 .timeline-card:nth-child(even) > img {
+grid-column: 2;
+    grid-row: 1;
+}
+
+body.concept-2 .timeline-card:nth-child(even) .timeline-content {
+grid-column: 1;
+    grid-row: 1;
+}
+
+body.concept-2 .timeline-content {
+padding: .08rem .06rem;
+}
+
+body.concept-2 .timeline-events {
+display: grid;
+    gap: .16rem;
+}
+
+body.concept-2 .timeline-event {
+position: relative;
+    padding: .18rem .2rem .18rem .32rem;
+    border-radius: .24rem;
+    background: var(--botanical-mint);
+}
+
+body.concept-2 .timeline-event::before {
+content: "";
+    position: absolute;
+    left: .16rem;
+    top: .22rem;
+    bottom: .22rem;
+    width: 2px;
+    border-radius: 999px;
+    background: var(--botanical-leaf);
+}
+
+body.concept-2 .timeline-event + .timeline-event {
+border-left: 0;
+}
+
+body.concept-2 .timeline-name {
+text-align: left;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .28rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .1rem;
+}
+
+body.concept-2 .timeline-row {
+gap: .12rem;
+    margin: .12rem 0;
+}
+
+body.concept-2 .timeline-event .timeline-row,
+body.concept-2 .timeline-address {
+justify-content: flex-start;
+    text-align: left;
+}
+
+body.concept-2 .timeline-row i {
+color: var(--botanical-rose);
+    font-size: .3rem;
+}
+
+body.concept-2 .timeline-row span {
+color: var(--botanical-muted);
+    font-size: .23rem;
+    line-height: 1.45;
+}
+
+body.concept-2 .timeline-address {
+margin-top: .18rem;
+    padding-top: .18rem;
+    border-top: 1px dashed rgba(var(--botanical-leaf-rgb), .28);
+}
+
+body.concept-2 .timeline-map-link,
+body.concept-2 #wishBtn,
+body.concept-2 .load-more {
+border-radius: 999px;
+    color: #fff;
+    background: var(--botanical-leaf);
+    box-shadow: 0 10px 22px rgba(var(--botanical-leaf-rgb), .2);
+}
+
+body.concept-2 .timeline-map-link:hover,
+body.concept-2 #wishBtn:hover,
+body.concept-2 .load-more:hover {
+background: var(--botanical-rose);
+}
+
+body.concept-2 .gallery {
+padding: .05rem .2rem 1rem;
+    background: linear-gradient(180deg, var(--botanical-paper), rgba(var(--botanical-mint-rgb), .52));
+}
+
+body.concept-2 .gallery-grid {
+border-radius: .42rem;
+    padding: .28rem;
+    gap: .11rem;
+    background: #fff;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .16);
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .gallery-intro,
+body.concept-2 .gallery-intro__eyebrow,
+body.concept-2 .gallery-intro__title {
+color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+}
+
+body.concept-2 .gallery-intro__script {
+color: var(--botanical-rose);
+    font-family: "Parisienne", "Great Vibes", cursive;
+}
+
+body.concept-2 .gallery-intro__line {
+background: var(--botanical-leaf);
+}
+
+body.concept-2 .gallery-intro__date,
+body.concept-2 .gallery-side-text {
+color: var(--botanical-muted);
+}
+
+body.concept-2 .gallery-frame {
+border-radius: .18rem;
+    background: var(--botanical-mint);
+}
+
+body.concept-2 .gallery-frame img {
+filter: saturate(1.04) brightness(1.03);
+}
+
+body.concept-2 .gallery-fan {
+opacity: .18;
+    background: repeating-conic-gradient(from -18deg, rgba(var(--botanical-leaf-rgb), .45) 0deg 2deg, transparent 2deg 10deg);
+}
+
+body.concept-2 .wish {
+padding: .05rem .32rem 1rem;
+}
+
+body.concept-2 .wish-form,
+body.concept-2 .wish-card,
+body.concept-2 .gift-card {
+border-radius: .32rem;
+    background: #fff;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .14);
+    box-shadow: var(--botanical-shadow);
+}
+
+body.concept-2 .wish input,
+body.concept-2 .wish textarea,
+body.concept-2 .side-content,
+body.concept-2 .copy-box {
+border-radius: .22rem;
+    color: var(--botanical-ink);
+    background: #fffefa;
+    border-color: rgba(var(--botanical-leaf-rgb), .2);
+}
+
+body.concept-2 .wish input:focus,
+body.concept-2 .wish textarea:focus {
+border-color: var(--botanical-leaf);
+    box-shadow: 0 0 0 3px rgba(var(--botanical-leaf-rgb), .1);
+}
+
+body.concept-2 .wish-label,
+body.concept-2 .side-text,
+body.concept-2 .user-name,
+body.concept-2 .gift-bank,
+body.concept-2 .copy-box span {
+color: var(--botanical-ink);
+}
+
+body.concept-2 .side-card input:checked + .side-content {
+border-color: var(--botanical-leaf);
+    background: var(--botanical-mint);
+    box-shadow: none;
+}
+
+body.concept-2 .side-card input:checked + .side-content::after,
+body.concept-2 .avatar,
+body.concept-2 .wish-pin,
+body.concept-2 .wish-toast {
+background: var(--botanical-leaf);
+}
+
+body.concept-2 .wish-message,
+body.concept-2 .user-side,
+body.concept-2 .wish-time,
+body.concept-2 .gift-desc,
+body.concept-2 .thanks-content,
+body.concept-2 .gift-account-name {
+color: var(--botanical-muted);
+}
+
+body.concept-2 .attendance-badge.attending {
+color: var(--botanical-leaf);
+    background: rgba(var(--botanical-leaf-rgb), .12);
+}
+
+body.concept-2 .attendance-badge.absent {
+color: var(--botanical-muted);
+    background: rgba(var(--botanical-muted-rgb), .1);
+}
+
+body.concept-2 .gift {
+padding: .05rem .32rem 1rem;
+    background: linear-gradient(180deg, rgba(var(--botanical-mint-rgb), .4), var(--botanical-paper));
+}
+
+body.concept-2 .gift-box__body,
+body.concept-2 .gift-box__lid {
+border-radius: .22rem;
+    background: linear-gradient(135deg, var(--botanical-leaf), #91b6a2);
+    box-shadow: 0 18px 35px rgba(var(--botanical-leaf-rgb), .22);
+}
+
+body.concept-2 .gift-box__ribbon,
+body.concept-2 .gift-box__ribbon::before,
+body.concept-2 .gift-box__ribbon::after {
+background: var(--botanical-rose);
+    border-color: var(--botanical-rose);
+}
+
+body.concept-2 .gift-box__text,
+body.concept-2 .gift-name,
+body.concept-2 .gift-modal__close {
+color: var(--botanical-leaf);
+}
+
+body.concept-2 .gift-modal__content {
+border-radius: .34rem;
+    background: var(--botanical-paper);
+}
+
+body.concept-2 .gift-modal__close {
+background: var(--botanical-mint);
+}
+
+body.concept-2 .gift-qr {
+border-radius: .2rem;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
+    padding: .08rem;
+    background: #fff;
+}
+
+body.concept-2 .countdown {
+background: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) center/cover;
+}
+
+body.concept-2 .countdown::before {
+    background: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) center/cover;
+    filter: blur(2px) brightness(1.04);
+    opacity: .46;
+}
+
+body.concept-2 .countdown::after {
+    background: linear-gradient(135deg, rgba(255,254,250,.26), rgba(var(--botanical-mint-rgb), .14));
+}
+
+body.concept-2 .count-item {
+border-radius: .34rem;
+    background: rgba(255,255,255,.68);
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .16);
+    box-shadow: 0 14px 28px rgba(var(--botanical-ink-rgb), .12);
+    backdrop-filter: blur(8px);
+}
+
+body.concept-2 .count-item div {
+color: var(--botanical-leaf);
+    font-family: "Lora", Georgia, serif;
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+body.concept-2 .count-item span {
+color: var(--botanical-muted);
+    font-weight: 800;
+}
+
+body.concept-2 .thanks {
+padding: .15rem .48rem 1.25rem;
+}
+
+body.concept-2 .thanks-heart,
+body.concept-2 .thanks-heart-small {
+color: var(--botanical-rose);
+}
+
+body.concept-2 .thanks-sign {
+color: var(--botanical-ink);
+    font-family: "Parisienne", "Great Vibes", cursive;
+    font-size: .58rem;
+}
+
+body.concept-2 .music-player {
+background: var(--botanical-leaf);
+    box-shadow: 0 12px 28px rgba(var(--botanical-leaf-rgb), .26);
+}
+
+body.concept-2 .music-player:hover {
+background: var(--botanical-rose);
+}
+
+@media (max-width: 360px) {
+body.concept-2 .cover .cover__footer .man_name,
+body.concept-2 .cover .cover__footer .women_name {
+font-size: .5rem;
+}
+
+body.concept-2 .text_1,
+body.concept-2 .text_2 {
+font-size: .72rem;
+}
+
+body.concept-2 .person,
+body.concept-2 .person:nth-of-type(even),
+body.concept-2 .timeline-card,
+body.concept-2 .timeline-card:nth-child(even) {
+grid-template-columns: 1fr;
+        text-align: center;
+}
+
+body.concept-2 .person img,
+body.concept-2 .person:nth-of-type(even) img,
+body.concept-2 .timeline-card > img,
+body.concept-2 .timeline-card:nth-child(even) > img,
+body.concept-2 .timeline-card:nth-child(even) .timeline-content {
+grid-column: 1;
+        grid-row: auto;
+}
+
+body.concept-2 .person img {
+margin: 0 auto .26rem;
+}
+
+body.concept-2 .timeline-card > img {
+height: 3rem;
+}
+
+}

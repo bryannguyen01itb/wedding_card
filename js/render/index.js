@@ -10,7 +10,7 @@ import { renderWishForm } from "./wish.js";
 
 /** Đổ toàn bộ nội dung từ config.js vào trang */
 export function renderContent() {
-    applyTheme(wedding.theme?.primaryColor);
+    applyTheme(wedding.theme);
 
     renderHeader();
     renderCover();

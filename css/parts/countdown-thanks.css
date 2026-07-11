@@ -2,7 +2,7 @@
 .countdown {
     position: relative;
     padding: 1rem .35rem;
-    background: url("../../img/anh_2.jpg") center/cover;
+    background: var(--countdown-image, url("../../img/anh_2.jpg")) center/cover;
     overflow: hidden;
 }
 
