@@ -4,14 +4,14 @@
  */
 export let wedding = {
     // --- Thông tin chung ---
-    weddingId: "wedding-cp-3",
+    weddingId: "wedding-cp-4",
     date: "2026-09-12",
     location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
 
     theme: {
-        // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop
-        concept: "concept-1",
+        // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop, concept-4: MeHappy Soft
+        concept: "concept-4",
         primaryColor: "#8fb8a8",
         concepts: {
             "concept-1": {
@@ -42,6 +42,16 @@ export let wedding = {
                 },
                 cover: {
                     openLabel: "tap to open"
+                }
+            },
+            "concept-4": {
+                images: {
+                    background: "img/bg.jpeg",
+                    cover: "img/anh_1.jpg",
+                    countdown: "img/anh_2.jpg"
+                },
+                cover: {
+                    openLabel: "Chạm để mở"
                 }
             }
         }

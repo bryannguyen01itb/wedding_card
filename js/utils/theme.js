@@ -73,6 +73,10 @@ function normalizeConcept(concept) {
         return "concept-3";
     }
 
+    if (["4", "concept4", "concept-4", "mehappy", "mehappy-soft"].includes(value)) {
+        return "concept-4";
+    }
+
     return "concept-1";
 }
 
@@ -112,7 +116,7 @@ function setImageVar(target, name, value) {
 
 function applyConcept(concept) {
     const activeConcept = normalizeConcept(concept);
-    document.body.classList.remove("concept-1", "concept-2", "concept-3");
+    document.body.classList.remove("concept-1", "concept-2", "concept-3", "concept-4");
     document.body.classList.add(activeConcept);
     document.body.dataset.concept = activeConcept;
     return activeConcept;
@@ -195,6 +199,11 @@ export function applyTheme(theme = {}) {
 
     if (activeConcept === "concept-3") {
         applyConceptThreeConfig(conceptConfig, rootStyle, bodyStyle, primaryColor);
+        return;
+    }
+
+    if (activeConcept === "concept-4") {
+        applyConceptMediaConfig(conceptConfig, rootStyle, bodyStyle, "Chạm để mở");
         return;
     }
 

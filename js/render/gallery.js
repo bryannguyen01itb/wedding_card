@@ -44,7 +44,8 @@ function createIntroBlock(intro, weddingDate) {
     return introBlock;
 }
 
-function getGalleryLayout(photoCount) {
+function getGalleryLayout(photoCount, fixedLayout) {
+    if (fixedLayout) return "gallery-poster--fixed";
     if (photoCount >= 10) return "gallery-poster--many";
     if (photoCount >= 8) return "gallery-poster--full";
     if (photoCount >= 6) return "gallery-poster--medium";
@@ -68,15 +69,18 @@ export function renderGallery(config, weddingDate) {
     if (!grid) return;
 
     const { intro, photos } = normalizeGalleryConfig(config);
-    const visiblePhotos = photos.filter(photo => photo?.src);
-    const layoutClass = getGalleryLayout(visiblePhotos.length);
+    const fixedConcept = document.body.classList.contains("concept-4");
+    const allVisiblePhotos = photos.filter(photo => photo?.src);
+    const visiblePhotos = fixedConcept ? allVisiblePhotos.slice(0, 7) : allVisiblePhotos;
+    const layoutClass = getGalleryLayout(visiblePhotos.length, fixedConcept);
 
     grid.textContent = "";
     grid.classList.remove(
         "gallery-poster--few",
         "gallery-poster--medium",
         "gallery-poster--full",
-        "gallery-poster--many"
+        "gallery-poster--many",
+        "gallery-poster--fixed"
     );
     grid.classList.add("gallery-poster", layoutClass);
 
