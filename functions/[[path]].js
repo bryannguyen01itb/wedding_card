@@ -47,7 +47,7 @@ async function getWeddingMeta(weddingId) {
             cf: { cacheTtl: 60, cacheEverything: true }
         });
 
-        if (!response.ok) return FALLBACK_META;
+        if (!response.ok) return { notFound: true };
 
         const document = await response.json();
         const data = decodeFirestoreFields(document.fields || {});
@@ -59,7 +59,7 @@ async function getWeddingMeta(weddingId) {
             description: FALLBACK_META.description
         };
     } catch (_error) {
-        return FALLBACK_META;
+        return { notFound: true };
     }
 }
 
@@ -94,6 +94,27 @@ function upsertMeta(html, selector, content) {
     }
 
     return html.replace("</head>", `    ${tag}\n</head>`);
+}
+
+
+function createNotFoundHtml() {
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Không tìm thấy thiệp cưới</title>
+    <meta name="robots" content="noindex">
+    <meta property="og:title" content="Không tìm thấy thiệp cưới">
+    <meta property="og:description" content="Đường dẫn thiệp này không còn tồn tại hoặc weddingId đã được đổi.">
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#fff7f7;color:#333;display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px;box-sizing:border-box;">
+    <main style="max-width:420px;background:#fff;border-radius:18px;padding:32px 24px;box-shadow:0 18px 45px rgba(0,0,0,.08);">
+        <h1 style="font-size:24px;margin:0 0 12px;">Không tìm thấy thiệp cưới</h1>
+        <p style="font-size:16px;line-height:1.6;margin:0;color:#666;">Đường dẫn thiệp này không còn tồn tại hoặc weddingId đã được đổi.</p>
+    </main>
+</body>
+</html>`;
 }
 
 function injectPreviewMeta(html, meta, requestUrl) {
@@ -131,12 +152,20 @@ export async function onRequest(context) {
     const url = new URL(context.request.url);
     const weddingId = (url.searchParams.get("wedding") || "").trim();
     const meta = await getWeddingMeta(weddingId);
-    const html = await response.text();
-    const body = injectPreviewMeta(html, meta, context.request.url);
     const headers = new Headers(response.headers);
-
     headers.set("content-type", "text/html; charset=UTF-8");
     headers.set("cache-control", "public, max-age=60");
+
+    if (weddingId && meta.notFound) {
+        return new Response(createNotFoundHtml(), {
+            status: 404,
+            statusText: "Not Found",
+            headers
+        });
+    }
+
+    const html = await response.text();
+    const body = injectPreviewMeta(html, meta, context.request.url);
 
     return new Response(body, {
         status: response.status,

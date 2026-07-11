@@ -3,6 +3,14 @@ import { db } from "../firebase.js";
 
 const WEDDING_QUERY_KEY = "wedding";
 
+export class WeddingConfigError extends Error {
+    constructor(message, code) {
+        super(message);
+        this.name = "WeddingConfigError";
+        this.code = code;
+    }
+}
+
 function isPlainObject(value) {
     return Object.prototype.toString.call(value) === "[object Object]";
 }
@@ -39,9 +47,7 @@ export async function loadWeddingConfig() {
         const doc = await db.collection("weddings").doc(weddingId).get();
 
         if (!doc.exists) {
-            console.warn(`Không tìm thấy config Firebase cho weddingId: ${weddingId}`);
-            setWeddingConfig(fallbackWedding);
-            return fallbackWedding;
+            throw new WeddingConfigError(`Không tìm thấy thiệp cưới: ${weddingId}`, "not-found");
         }
 
         const remoteWedding = mergeConfig(fallbackWedding, {
@@ -52,8 +58,11 @@ export async function loadWeddingConfig() {
         setWeddingConfig(remoteWedding);
         return remoteWedding;
     } catch (error) {
+        if (error instanceof WeddingConfigError) {
+            throw error;
+        }
+
         console.error("Không thể tải config từ Firebase:", error);
-        setWeddingConfig(fallbackWedding);
-        return fallbackWedding;
+        throw new WeddingConfigError("Không thể tải dữ liệu thiệp cưới.", "load-failed");
     }
 }

@@ -248,3 +248,49 @@ body::after {
 
 
 
+
+/* ================= Wedding Error ================= */
+.wedding-error {
+    min-height: 100vh;
+    width: min(100%, 480px);
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+    padding: .6rem;
+    background: linear-gradient(180deg, #fff, rgba(var(--primary-rgb), .12));
+    text-align: center;
+}
+
+.wedding-error__card {
+    width: 100%;
+    padding: .7rem .45rem;
+    border-radius: .32rem;
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid rgba(var(--primary-rgb), .14);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, .08);
+}
+
+.wedding-error__card i {
+    display: inline-grid;
+    place-items: center;
+    width: 1rem;
+    height: 1rem;
+    margin-bottom: .28rem;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--primary-color);
+    font-size: .42rem;
+}
+
+.wedding-error__card h1 {
+    margin-bottom: .18rem;
+    color: #333;
+    font-size: .42rem;
+    line-height: 1.35;
+}
+
+.wedding-error__card p {
+    color: #666;
+    font-size: .28rem;
+    line-height: 1.7;
+}
