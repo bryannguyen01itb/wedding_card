@@ -2,7 +2,7 @@ import { wedding } from "../config.js";
 import { applyTheme } from "../utils/theme.js";
 import { renderHeader, renderCover, renderPoster } from "./cover.js";
 import { renderSectionTitles, renderThanks } from "./sections.js";
-import { renderPerson } from "./about.js";
+import { renderAboutCard, renderPerson } from "./about.js";
 import { renderTimeline } from "./timeline.js";
 import { renderGallery } from "./gallery.js";
 import { renderGift } from "./gift.js";
@@ -17,6 +17,7 @@ export function renderContent() {
     renderPoster();
     renderSectionTitles();
     renderThanks();
+    renderAboutCard();
     renderPerson("groom", wedding.groom);
     renderPerson("bride", wedding.bride);
     renderTimeline();

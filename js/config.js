@@ -82,6 +82,15 @@ export let wedding = {
         avatar: "img/co_dau.jpeg"
     },
 
+    // --- Card đôi nét concept 1 ---
+    aboutCard: {
+        image: "img/about.jpg",
+        script: "First",
+        title: "Married",
+        groomLabel: "NHÀ TRAI",
+        brideLabel: "NHÀ GÁI"
+    },
+
     // --- Tiêu đề & nội dung từng section ---
     sections: {
         saveDate: "SAVE THE DATE",

@@ -152,3 +152,168 @@ body.concept-1 .cover .cover__date {
         font-size: .58rem;
     }
 }
+
+/* Concept 1 about card */
+body.concept-1 .about {
+    padding: .05rem .34rem .65rem;
+}
+
+body.concept-1 .about-title {
+    margin-bottom: .7rem;
+    font-family: "Lora", Georgia, serif;
+    font-weight: 700;
+    letter-spacing: .12rem;
+}
+
+body.concept-1 .about .section-subtitle:not([hidden]) {
+    margin-top: -.46rem;
+    margin-bottom: .55rem;
+}
+
+body.concept-1 .about-portrait {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto .42rem;
+    overflow: hidden;
+    border-radius: .48rem .48rem .18rem .18rem;
+    box-shadow: 0 22px 48px rgba(42, 48, 45, .14);
+    background: rgba(var(--primary-rgb), .08);
+}
+
+body.concept-1 .about-portrait::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(to bottom, rgba(0,0,0,.03), transparent 42%, rgba(0,0,0,.32)),
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,.32), transparent 28%);
+}
+
+body.concept-1 .about-portrait::after {
+    content: "";
+    position: absolute;
+    inset: .18rem;
+    z-index: 2;
+    border: 1px solid rgba(255,255,255,.68);
+    border-radius: .36rem .36rem .12rem .12rem;
+    pointer-events: none;
+}
+
+body.concept-1 .about-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.03) brightness(1.02);
+}
+
+body.concept-1 .about-portrait__text {
+    position: absolute;
+    left: 50%;
+    bottom: .42rem;
+    z-index: 3;
+    width: 100%;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    color: #fff;
+    text-shadow: 0 8px 22px rgba(0,0,0,.22);
+    pointer-events: none;
+}
+
+body.concept-1 .about-portrait__text span {
+    margin-bottom: -.18rem;
+    font-family: "Great Vibes", cursive;
+    font-size: 1.18rem;
+    font-weight: 400;
+    line-height: .88;
+    letter-spacing: .02rem;
+}
+
+body.concept-1 .about-portrait__text strong {
+    font-family: "Lora", Georgia, serif;
+    font-size: .86rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: .18rem;
+    text-transform: uppercase;
+}
+
+body.concept-1 .about .person {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    width: 50%;
+    min-height: 2.45rem;
+    margin: 0 0 .18rem;
+    padding: .1rem .18rem .2rem;
+    color: #6f684f;
+}
+
+body.concept-1 .about .person--groom {
+    float: left;
+}
+
+body.concept-1 .about .person--bride {
+    float: right;
+}
+
+body.concept-1 .about .person img {
+    display: none;
+}
+
+body.concept-1 .about .person-name {
+    margin: 0 0 .2rem;
+    color: #817858;
+    font-family: "Lora", Georgia, serif;
+    font-size: .36rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+body.concept-1 .about .person-name::before {
+    content: attr(data-side);
+    display: block;
+    margin-bottom: .18rem;
+    color: #948b69;
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: .22rem;
+    font-weight: 800;
+    letter-spacing: .08rem;
+    text-transform: uppercase;
+}
+
+body.concept-1 .about .parent {
+    margin-top: .08rem;
+    color: #6f684f;
+    font-family: "Lora", Georgia, serif;
+    font-size: .25rem;
+    line-height: 1.55;
+}
+
+body.concept-1 .about::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+@media (max-width: 360px) {
+    body.concept-1 .about-portrait__text span {
+        font-size: .98rem;
+    }
+
+    body.concept-1 .about-portrait__text strong {
+        font-size: .66rem;
+        letter-spacing: .14rem;
+    }
+
+    body.concept-1 .about .person-name {
+        font-size: .31rem;
+    }
+
+    body.concept-1 .about .parent {
+        font-size: .22rem;
+    }
+}
