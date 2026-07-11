@@ -23,7 +23,7 @@ export function updateLinkPreview() {
     const brideName = wedding.bride?.nickname || "CÔ DÂU";
     const title = `THƯ MỜI CƯỚI ${groomName} & ${brideName}`;
     const description = "Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.";
-    const image = resolveUrl(wedding.poster?.image);
+    const image = resolveUrl(wedding.preview?.image || wedding.poster?.image);
     const url = window.location.href;
 
     document.title = title;
@@ -31,6 +31,9 @@ export function updateLinkPreview() {
     setMeta('meta[property="og:title"]', title);
     setMeta('meta[property="og:description"]', description);
     setMeta('meta[property="og:image"]', image);
+    setMeta('meta[property="og:image:secure_url"]', image);
+    setMeta('meta[property="og:image:width"]', "1200");
+    setMeta('meta[property="og:image:height"]', "630");
     setMeta('meta[property="og:url"]', url);
     setMeta('meta[name="twitter:title"]', title);
     setMeta('meta[name="twitter:description"]', description);

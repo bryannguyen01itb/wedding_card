@@ -5,7 +5,7 @@ const WEDDING_COLLECTION = "weddings";
 const FALLBACK_META = {
     groomNickname: "CHÚ RỂ",
     brideNickname: "CÔ DÂU",
-    posterImage: "img/anh_1.jpg",
+    previewImage: "img/preview.jpeg",
     description: "Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi."
 };
 
@@ -55,7 +55,7 @@ async function getWeddingMeta(weddingId) {
         return {
             groomNickname: data.groom?.nickname || FALLBACK_META.groomNickname,
             brideNickname: data.bride?.nickname || FALLBACK_META.brideNickname,
-            posterImage: data.poster?.image || FALLBACK_META.posterImage,
+            previewImage: data.preview?.image || data.poster?.image || FALLBACK_META.previewImage,
             description: FALLBACK_META.description
         };
     } catch (_error) {
@@ -65,12 +65,12 @@ async function getWeddingMeta(weddingId) {
 
 function toAbsoluteUrl(path, requestUrl) {
     const value = String(path || "").trim();
-    if (!value) return new URL(FALLBACK_META.posterImage, requestUrl).href;
+    if (!value) return new URL(FALLBACK_META.previewImage, requestUrl).href;
 
     try {
         return new URL(value, requestUrl).href;
     } catch (_error) {
-        return new URL(FALLBACK_META.posterImage, requestUrl).href;
+        return new URL(FALLBACK_META.previewImage, requestUrl).href;
     }
 }
 
@@ -98,7 +98,7 @@ function upsertMeta(html, selector, content) {
 
 function injectPreviewMeta(html, meta, requestUrl) {
     const title = `THƯ MỜI CƯỚI ${meta.groomNickname} & ${meta.brideNickname}`;
-    const imageUrl = toAbsoluteUrl(meta.posterImage, requestUrl);
+    const imageUrl = toAbsoluteUrl(meta.previewImage, requestUrl);
     const pageUrl = new URL(requestUrl).href;
 
     let output = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtmlAttribute(title)}</title>`);

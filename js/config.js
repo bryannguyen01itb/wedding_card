@@ -60,6 +60,11 @@ export let wedding = {
         image: "img/anh_1.jpg"
     },
 
+    // --- Ảnh preview khi gửi link Zalo/Facebook/Telegram ---
+    preview: {
+        image: "img/preview.jpeg"
+    },
+
     // --- Cô dâu & chú rể ---
     groom: {
         nickname: "CHÚ RỂ",
