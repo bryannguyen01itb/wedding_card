@@ -90,15 +90,19 @@
 
 .thanks-title {
 
+    text-align: center;
+
     font-size: .42rem;
 
-    letter-spacing: .08rem;
+    letter-spacing: .15rem;
 
     color: var(--primary-color);
 
-    font-weight: 400;
+    font-weight: 700;
 
-    margin-bottom: .5rem;
+    line-height: 1.25;
+
+    margin-bottom: .8rem;
 
 }
 

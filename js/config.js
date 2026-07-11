@@ -4,7 +4,7 @@
  */
 export let wedding = {
     // --- Thông tin chung ---
-    weddingId: "concept-3",
+    weddingId: "wedding-cp-3",
     date: "2026-09-12",
     location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
