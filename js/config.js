@@ -11,7 +11,7 @@ export let wedding = {
 
     theme: {
         // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop
-        concept: "concept-3",
+        concept: "concept-1",
         primaryColor: "#8fb8a8",
         concepts: {
             "concept-1": {
@@ -91,7 +91,7 @@ export let wedding = {
         wish: "NHẮN GỬI YÊU THƯƠNG",
         gift: {
             title: "HỘP MỪNG CƯỚI",
-            description: "Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi. Nếu muốn gửi lời chúc theo một cách đặc biệt hơn, hãy mở hộp quà nhỏ dưới đây.",
+            description: "",
             openLabel: "Mở hộp quà"
         },
         countdown: {
@@ -105,11 +105,25 @@ export let wedding = {
         },
         thanks: {
             title: "XIN CHÂN THÀNH CẢM ƠN",
-            paragraphs: [
-                "Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc đối với gia đình chúng tôi.",
-                "Rất mong được đón tiếp Quý khách trong ngày trọng đại của chúng tôi."
-            ]
+            paragraphs: []
         }
+    },
+
+    // --- Mô tả nhỏ dưới tiêu đề từng section, để trống nếu không dùng ---
+    sectionSubtitles: {
+        saveDate: "",
+        about: "",
+        timeline: "",
+        gallery: "Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chả sợ lạc đường",
+        wish: "Cảm ơn bạn rất nhiều vì đã gửi những lời chúc mừng tốt đẹp nhất đến đám cưới của chúng tôi",
+        gift: "Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi. Nếu muốn gửi lời chúc theo một cách đặc biệt hơn, hãy mở hộp quà nhỏ dưới đây.",
+        countdown: "",
+        thanks: [
+            "Cảm ơn bạn đã dành tình cảm cho vợ chồng mình.",
+            "Chúng mình biết các bạn đều đang rất bận, bận với công việc, với cuộc sống và với cả gia đình bạn.",
+            "Nhưng thực sự sẽ rất tuyệt vời nếu như ngày Hạnh Phúc của chúng mình có thêm sự góp mặt của bạn và người thương. Vợ chồng mình rất hi vọng sẽ có mặt bạn trong ngày quan trọng này để chứng kiến và chia sẻ niềm hạnh phúc này cùng chúng mình.",
+            "Một lần nữa, chân thành cảm ơn tất cả các bạn"
+        ]
     },
 
     // --- Form lời chúc ---

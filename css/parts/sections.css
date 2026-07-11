@@ -104,6 +104,7 @@
     font-size: .23rem;
     line-height: 1.25;
     text-align: center;
+    white-space: pre-line;
 }
 
 .invitation-menu__item:hover {
@@ -512,6 +513,8 @@
 }
 
 .timeline-card {
+
+    position: relative;
 
     background: white;
 
@@ -1590,4 +1593,65 @@
     font-size: .42rem;
     opacity: .7;
     color: var(--primary-color);
+}
+
+.timeline-side-badge {
+    position: absolute;
+    top: .28rem;
+    left: .28rem;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.55rem;
+    padding: .12rem .24rem;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(var(--primary-rgb), .92);
+    box-shadow: 0 10px 22px rgba(var(--primary-rgb), .28);
+    font-size: .22rem;
+    font-weight: 800;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.section-subtitle {
+    width: min(100%, 7.2rem);
+    margin: -.52rem auto .72rem;
+    color: #666;
+    font-size: max(16px, .28rem);
+    font-weight: 400;
+    line-height: 1.75;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.section-subtitle[hidden] {
+    display: none;
+}
+
+.save-date .section-subtitle {
+    margin-top: -.16rem;
+    margin-bottom: .38rem;
+}
+
+.gift .section-subtitle {
+    margin-bottom: .22rem;
+}
+
+.countdown .section-subtitle {
+    color: rgba(255, 255, 255, .88);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .22);
+}
+
+.thanks .section-subtitle {
+    margin-top: -.22rem;
+    margin-bottom: .42rem;
+}
+
+.wish input,
+.wish textarea {
+    font-size: max(16px, .28rem);
 }

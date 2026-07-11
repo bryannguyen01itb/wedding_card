@@ -844,3 +844,22 @@ body.concept-3 .music-player:hover {
         font-size: .66rem;
     }
 }
+
+body.concept-3 .timeline-side-badge {
+    top: .28rem;
+    left: .28rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--sunset-coral), var(--sunset-lavender));
+    box-shadow: 0 12px 24px rgba(var(--sunset-coral-rgb), .22);
+}
+
+body.concept-3 .section-subtitle {
+    color: var(--sunset-muted);
+    font-family: "Quicksand", Arial, sans-serif;
+    font-weight: 500;
+}
+
+body.concept-3 .countdown .section-subtitle {
+    color: var(--sunset-muted);
+    text-shadow: none;
+}

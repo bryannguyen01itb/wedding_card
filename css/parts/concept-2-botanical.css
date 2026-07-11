@@ -973,3 +973,27 @@ height: 3rem;
 }
 
 }
+
+body.concept-2 .timeline-side-badge {
+    top: .38rem;
+    left: .38rem;
+    color: var(--botanical-ink);
+    background: rgba(var(--botanical-paper-rgb), .9);
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
+    box-shadow: 0 10px 22px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body.concept-2 .timeline-card:nth-child(even) .timeline-side-badge {
+    left: auto;
+    right: .38rem;
+}
+
+body.concept-2 .section-subtitle {
+    color: var(--botanical-muted);
+    font-family: "Lora", Georgia, serif;
+}
+
+body.concept-2 .countdown .section-subtitle {
+    color: rgba(var(--botanical-ink-rgb), .78);
+    text-shadow: none;
+}

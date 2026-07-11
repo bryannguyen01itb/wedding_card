@@ -3,8 +3,8 @@ import { createEl } from "../utils/dom.js";
 import { formatEventTime } from "../utils/date.js";
 
 const TIMELINE_ORDER = [
-    { role: "bride", person: "bride" },
-    { role: "groom", person: "groom" }
+    { role: "bride", person: "bride", side: "NHÀ GÁI" },
+    { role: "groom", person: "groom", side: "NHÀ TRAI" }
 ];
 
 function createTimelineEvent(title, time) {
@@ -18,8 +18,9 @@ function createTimelineEvent(title, time) {
     return event;
 }
 
-function createTimelineCard(event, label) {
+function createTimelineCard(event, label, side) {
     const card = createEl("div", "timeline-card");
+    card.appendChild(createEl("div", "timeline-side-badge", side));
 
     const img = document.createElement("img");
     img.src = wedding.ceremony.image;
@@ -54,9 +55,9 @@ export function renderTimeline() {
     const container = document.getElementById("timelineCards");
     if (!container) return;
 
-    TIMELINE_ORDER.forEach(({ role, person }) => {
+    TIMELINE_ORDER.forEach(({ role, person, side }) => {
         container.appendChild(
-            createTimelineCard(wedding.ceremony[role], wedding[person].nickname)
+            createTimelineCard(wedding.ceremony[role], wedding[person].nickname, side)
         );
     });
 }
