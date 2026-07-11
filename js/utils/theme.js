@@ -114,7 +114,6 @@ function applyConcept(concept) {
     const activeConcept = normalizeConcept(concept);
     document.body.classList.remove("concept-1", "concept-2", "concept-3");
     document.body.classList.add(activeConcept);
-    document.body.classList.remove("concept-loading");
     document.body.dataset.concept = activeConcept;
     return activeConcept;
 }

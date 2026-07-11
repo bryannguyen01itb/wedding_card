@@ -23,4 +23,8 @@ export function renderContent() {
     renderGallery(wedding.gallery, wedding.date);
     renderGift();
     renderWishForm();
+
+    requestAnimationFrame(() => {
+        document.body.classList.remove("concept-loading");
+    });
 }

@@ -43,6 +43,17 @@ body.modal-open {
     overflow: hidden;
 }
 
+body.concept-loading .container {
+    opacity: 0;
+    visibility: hidden;
+}
+
+body:not(.concept-loading) .container {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .28s ease;
+}
+
 img {
     display: block;
     width: 100%;

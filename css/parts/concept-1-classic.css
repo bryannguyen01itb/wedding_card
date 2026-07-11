@@ -91,7 +91,7 @@ body.concept-1 .card.open .card__open {
 }
 
 body.concept-1 .cover__click {
-    top: 0;
+    bottom: 0;
     left: 50%;
     bottom: .96rem;
     z-index: 4;

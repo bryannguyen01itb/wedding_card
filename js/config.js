@@ -11,7 +11,7 @@ export let wedding = {
 
     theme: {
         // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop
-        concept: "concept-1",
+        concept: "concept-3",
         primaryColor: "#8fb8a8",
         concepts: {
             "concept-1": {
