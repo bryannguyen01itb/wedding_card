@@ -8,11 +8,13 @@ import { initCountdown } from "./features/countdown.js";
 import { initGift } from "./features/gift.js";
 import { initWish } from "./features/wish.js";
 import { initHeaderMenu } from "./features/headerMenu.js";
+import { updateLinkPreview } from "./utils/meta.js";
 
 async function bootstrap() {
     await loadWeddingConfig();
 
     // 1. Render nội dung từ config đã tải
+    updateLinkPreview();
     renderContent();
 
     // 2. Khởi tạo tính năng tương tác

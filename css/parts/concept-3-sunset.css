@@ -148,17 +148,22 @@ body.concept-3 .cover .card::after {
 
 body.concept-3 .card__close,
 body.concept-3 .card__open {
+    display: none;
     opacity: 0;
     pointer-events: none;
 }
 
+body.concept-3 .card.open .card__close,
+body.concept-3 .card.open .card__open {
+    display: none;
+    opacity: 0;
+}
+
 body.concept-3 .cover__click {
-    top: auto;
-    left: .36rem;
-    bottom: .4rem;
-    width: 1.15rem;
-    opacity: .52;
-    filter: saturate(.85);
+    bottom: 0;
+    width: .92rem;
+    opacity: .86;
+    filter: none;
 }
 
 body.concept-3 .cover .cover__footer {
@@ -317,10 +322,6 @@ body.concept-3 .heart {
 body.concept-3 .info {
     margin-top: .3rem;
     padding: .22rem .34rem;
-    border-radius: .3rem;
-    background: rgba(var(--sunset-paper-rgb), .76);
-    box-shadow: 0 12px 28px rgba(var(--sunset-ink-rgb), .12);
-    backdrop-filter: blur(8px);
 }
 
 body.concept-3 .date__time,
@@ -331,14 +332,14 @@ body.concept-3 .location {
 
 body.concept-3 .date__time {
     margin-top: 0;
-    font-size: .25rem;
+    font-size: .3rem;
     font-weight: 900;
     letter-spacing: .15rem;
 }
 
 body.concept-3 .location {
     color: var(--sunset-muted);
-    font-size: .2rem;
+    font-size: .3rem;
 }
 
 body.concept-3 .save-date,
@@ -541,19 +542,19 @@ body.concept-3 .timeline-card > img {
 }
 
 body.concept-3 .timeline-content {
-    padding: .34rem .3rem .42rem;
+    padding: .3rem .28rem .38rem;
 }
 
 body.concept-3 .timeline-events {
     display: grid;
     grid-template-columns: 1fr;
-    gap: .18rem;
+    gap: .14rem;
 }
 
 body.concept-3 .timeline-event {
-    padding: .22rem .24rem;
-    border-radius: .28rem;
-    background: linear-gradient(135deg, rgba(var(--sunset-lemon-rgb), .42), rgba(var(--sunset-sky-rgb), .22));
+    padding: .18rem .22rem;
+    border-radius: .22rem;
+    background: linear-gradient(135deg, rgba(var(--sunset-lemon-rgb), .34), rgba(var(--sunset-sky-rgb), .18));
 }
 
 body.concept-3 .timeline-event + .timeline-event {
@@ -562,8 +563,10 @@ body.concept-3 .timeline-event + .timeline-event {
 
 body.concept-3 .timeline-name {
     color: var(--sunset-ink);
-    font-family: "DM Serif Display", Georgia, serif;
-    font-size: .32rem;
+    font-family: "Quicksand", Arial, sans-serif;
+    font-size: .25rem;
+    font-weight: 800;
+    letter-spacing: .02rem;
     text-align: left;
     text-transform: uppercase;
 }
@@ -576,10 +579,12 @@ body.concept-3 .timeline-address {
 
 body.concept-3 .timeline-row i {
     color: var(--sunset-coral);
+    font-size: .26rem;
 }
 
 body.concept-3 .timeline-row span {
     color: var(--sunset-muted);
+    font-size: .23rem;
 }
 
 body.concept-3 .timeline-address {
@@ -806,6 +811,17 @@ body.concept-3 .thanks-sign {
     font-family: "Great Vibes", cursive;;
     font-size: .48rem;
     text-transform: uppercase;
+}
+
+body.concept-3 .floating-gift {
+    color: var(--sunset-coral);
+    border-color: rgba(var(--sunset-coral-rgb), .18);
+    box-shadow: 0 12px 28px rgba(var(--sunset-coral-rgb), .18);
+}
+
+body.concept-3 .floating-gift:hover {
+    color: #fff;
+    background: var(--sunset-coral);
 }
 
 body.concept-3 .music-player {

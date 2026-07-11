@@ -4,20 +4,24 @@
  */
 export let wedding = {
     // --- Thông tin chung ---
-    weddingId: "demo-wedding-2026",
+    weddingId: "concept-3",
     date: "2026-09-12",
     location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
 
     theme: {
         // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop
-        concept: "concept-3",
+        concept: "concept-1",
         primaryColor: "#8fb8a8",
         concepts: {
             "concept-1": {
                 images: {
                     background: "img/bg.jpeg",
+                    cover: "img/anh_1.jpg",
                     countdown: "img/anh_2.jpg"
+                },
+                cover: {
+                    openLabel: "Mở thiệp"
                 }
             },
             "concept-2": {

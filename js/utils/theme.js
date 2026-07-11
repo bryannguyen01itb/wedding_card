@@ -114,13 +114,16 @@ function applyConcept(concept) {
     const activeConcept = normalizeConcept(concept);
     document.body.classList.remove("concept-1", "concept-2", "concept-3");
     document.body.classList.add(activeConcept);
+    document.body.classList.remove("concept-loading");
     document.body.dataset.concept = activeConcept;
     return activeConcept;
 }
 
-function applyConceptOneConfig(config, rootStyle) {
+function applyConceptOneConfig(config, rootStyle, bodyStyle) {
     setImageVar(rootStyle, "--site-background-image", config?.images?.background);
     setImageVar(rootStyle, "--countdown-image", config?.images?.countdown);
+    setImageVar(bodyStyle, "--concept-cover-image", config?.images?.cover);
+    setVar(bodyStyle, "--concept-cover-label", toCssString(config?.cover?.openLabel || "Mở thiệp"));
 }
 
 function setColorVar(target, name, value) {
@@ -196,5 +199,5 @@ export function applyTheme(theme = {}) {
         return;
     }
 
-    applyConceptOneConfig(conceptConfig, rootStyle);
+    applyConceptOneConfig(conceptConfig, rootStyle, bodyStyle);
 }

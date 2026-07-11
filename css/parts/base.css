@@ -85,6 +85,55 @@ body::after {
     background: #fff;
 }
 
+/* ================= Floating Actions ================= */
+
+.floating-gift {
+    position: fixed;
+    right: .4rem;
+    bottom: 1.92rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--primary-color);
+    border: 1px solid rgba(var(--primary-rgb), .2);
+    box-shadow: 0 8px 22px rgba(var(--primary-rgb), .22);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(28px, 22px) scale(.75);
+    transition:
+        opacity .55s ease .08s,
+        visibility .55s ease .08s,
+        transform .7s cubic-bezier(.22, 1, .36, 1) .08s,
+        box-shadow .25s ease,
+        background .25s ease,
+        color .25s ease;
+    z-index: 9999;
+}
+
+.floating-gift.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(0, 0) scale(1);
+}
+
+.floating-gift i {
+    font-size: .48rem;
+    line-height: 1;
+}
+
+.floating-gift:hover {
+    color: #fff;
+    background: var(--primary-color);
+    box-shadow: 0 10px 26px rgba(var(--primary-rgb), .38);
+}
+
 /* ================= Music ================= */
 
 .music-player {

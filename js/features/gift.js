@@ -1,5 +1,11 @@
 import { bindClick } from "../utils/dom.js";
 
+const floatingGiftButton = document.getElementById("floatingGiftBtn");
+
+export function showGiftButton() {
+    floatingGiftButton?.classList.add("show");
+}
+
 export function initGift() {
     const modal = document.getElementById("giftModal");
 
@@ -15,6 +21,7 @@ export function initGift() {
     }
 
     bindClick(document.getElementById("openGiftBox"), () => setOpen(true));
+    bindClick(floatingGiftButton, () => setOpen(true));
     bindClick(document.getElementById("closeGiftBox"), () => setOpen(false));
     bindClick(document.getElementById("closeGiftBackdrop"), () => setOpen(false));
 

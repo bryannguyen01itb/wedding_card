@@ -4,7 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy wedding</title>
+    <title>THƯ MỜI CƯỚI CHÚ RỂ & CÔ DÂU</title>
+    <meta name="description" content="Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="THƯ MỜI CƯỚI CHÚ RỂ & CÔ DÂU">
+    <meta property="og:description" content="Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.">
+    <meta property="og:image" content="img/anh_1.jpg">
+    <meta property="og:url" content="">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="THƯ MỜI CƯỚI CHÚ RỂ & CÔ DÂU">
+    <meta name="twitter:description" content="Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.">
+    <meta name="twitter:image" content="img/anh_1.jpg">
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +22,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
 
-<body>
+<body class="concept-loading">
     <audio id="bgMusic" loop preload="auto"></audio>
+    <button class="floating-gift" id="floatingGiftBtn" type="button" aria-label="Mở hộp mừng cưới">
+        <i class="bi bi-gift-fill" aria-hidden="true"></i>
+    </button>
+
     <button class="music-player" id="musicBtn" type="button" aria-label="Phát hoặc tạm dừng nhạc">
         <span class="music-equalizer" aria-hidden="true">
             <span></span>
@@ -27,9 +41,6 @@
         <div class="cover">
             <div class="cover__headline" id="coverHeadline"></div>
             <div class="card" id="openCard">
-                <img class="card__close" src="img/card_wedding.png">
-
-                <img class="card__open" src="img/card_wedding_open.png">
                 <div class="cover__click">
                     <img src="img/click.png" alt="">
                 </div>

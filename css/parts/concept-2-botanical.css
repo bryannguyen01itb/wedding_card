@@ -152,13 +152,15 @@ content: var(--concept-cover-label, "open invitation");
 
 body.concept-2 .card__close,
 body.concept-2 .card__open {
-opacity: 0;
+    display: none;
+    opacity: 0;
     pointer-events: none;
 }
 
 body.concept-2 .card.open .card__close,
 body.concept-2 .card.open .card__open {
-opacity: 0;
+    display: none;
+    opacity: 0;
 }
 
 body.concept-2 .cover__click {
@@ -166,9 +168,9 @@ top: auto;
     left: auto;
     right: .46rem;
     bottom: .42rem;
-    width: 1.2rem;
-    opacity: .55;
-    filter: saturate(.6);
+    width: .92rem;
+    opacity: .86;
+    filter: none;
 }
 
 body.concept-2 .cover .cover__footer {
@@ -347,7 +349,7 @@ color: var(--botanical-ink);
 
 body.concept-2 .date__time {
 margin-top: 0;
-    font-size: .25rem;
+    font-size: .3rem;
     font-weight: 900;
     letter-spacing: .16rem;
 }
@@ -355,7 +357,7 @@ margin-top: 0;
 body.concept-2 .location {
 margin-top: .08rem;
     color: var(--botanical-muted);
-    font-size: .2rem;
+    font-size: .3rem;
     letter-spacing: .08rem;
 }
 
@@ -444,7 +446,7 @@ color: var(--botanical-leaf);
 
 body.concept-2 .dot {
 color: var(--botanical-rose);
-    opacity: .8;
+    opacity: .86;
 }
 
 body.concept-2 .calendar {
@@ -494,9 +496,11 @@ padding: .05rem .34rem .2rem;
 body.concept-2 .person {
 display: grid;
     grid-template-columns: 3rem 1fr;
+    grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: .32rem;
     align-items: center;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
     margin-bottom: .48rem;
     padding: .22rem;
     border-radius: .34rem;
@@ -506,22 +510,24 @@ display: grid;
 
 body.concept-2 .person:nth-of-type(even) {
 grid-template-columns: 1fr 3rem;
-    text-align: right;
+    text-align: center;
     background: linear-gradient(135deg, rgba(var(--botanical-cream-rgb), .74), #fff);
 }
 
 body.concept-2 .person:nth-of-type(even) img {
 grid-column: 2;
-    grid-row: 1 / span 4;
+    grid-row: 1 / -1;
 }
 
 body.concept-2 .person:nth-of-type(even) .person-name,
 body.concept-2 .person:nth-of-type(even) .parent {
 grid-column: 1;
+    justify-self: center;
 }
 
 body.concept-2 .person img {
-grid-row: 1 / span 4;
+grid-row: 1 / -1;
+    align-self: center;
     width: 3rem;
     height: 3rem;
     border-radius: .28rem;
@@ -531,6 +537,9 @@ grid-row: 1 / span 4;
 }
 
 body.concept-2 .person-name {
+    grid-row: 2;
+    align-self: end;
+    justify-self: center;
 margin-top: 0;
     color: var(--botanical-leaf);
     font-family: "Lora", Georgia, serif;
@@ -540,8 +549,17 @@ margin-top: 0;
 }
 
 body.concept-2 .parent {
+    justify-self: center;
 color: var(--botanical-muted);
     font-size: .23rem;
+}
+
+body.concept-2 .person .parent:nth-of-type(2) {
+    grid-row: 3;
+}
+
+body.concept-2 .person .parent:nth-of-type(3) {
+    grid-row: 4;
 }
 
 body.concept-2 .timeline {
@@ -896,6 +914,17 @@ body.concept-2 .thanks-sign {
 color: var(--botanical-ink);
     font-family: "Parisienne", "Great Vibes", cursive;
     font-size: .58rem;
+}
+
+body.concept-2 .floating-gift {
+    color: var(--botanical-leaf);
+    border-color: rgba(var(--botanical-leaf-rgb), .2);
+    box-shadow: 0 12px 28px rgba(var(--botanical-leaf-rgb), .18);
+}
+
+body.concept-2 .floating-gift:hover {
+    color: #fff;
+    background: var(--botanical-leaf);
 }
 
 body.concept-2 .music-player {

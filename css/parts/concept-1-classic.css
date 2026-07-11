@@ -1,0 +1,154 @@
+/* Concept 1: Classic Photo Card */
+body.concept-1 {
+    font-family: "Lora", Georgia, serif;
+    color: #2f3431;
+}
+
+body.concept-1 .cover {
+    position: relative;
+    justify-content: center;
+    gap: .18rem;
+    padding: .58rem .46rem .5rem;
+    color: #2f3431;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(var(--primary-rgb), .18), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.72));
+}
+
+body.concept-1 .cover::before {
+    content: "";
+    position: absolute;
+    inset: .38rem;
+    border: 1px solid rgba(var(--primary-rgb), .22);
+    border-radius: .48rem;
+    pointer-events: none;
+}
+
+body.concept-1 .cover .cover__headline {
+    position: relative;
+    z-index: 2;
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: .2rem;
+    font-weight: 800;
+    letter-spacing: .16rem;
+    color: var(--primary-color);
+    text-transform: uppercase;
+}
+
+body.concept-1 .cover .card {
+    position: relative;
+    z-index: 2;
+    width: min(6.2rem, 78vw);
+    height: 7.2rem;
+    margin: .22rem auto .1rem;
+    padding: 0;
+    border-radius: .36rem;
+    overflow: hidden;
+    background:
+        linear-gradient(to bottom, rgba(255,255,255,.06), rgba(0,0,0,.18)),
+        var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat;
+    box-shadow: 0 24px 56px rgba(42, 48, 45, .18);
+}
+
+body.concept-1 .cover .card::before {
+    content: "";
+    position: absolute;
+    inset: .16rem;
+    border: 1px solid rgba(255,255,255,.72);
+    border-radius: .26rem;
+    z-index: 2;
+}
+
+body.concept-1 .cover .card::after {
+    content: var(--concept-cover-label, "Mở thiệp");
+    position: absolute;
+    left: 50%;
+    bottom: .34rem;
+    z-index: 3;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - .7rem);
+    padding: .13rem .34rem;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(var(--primary-rgb), .9);
+    box-shadow: 0 12px 24px rgba(var(--primary-rgb), .25);
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: .2rem;
+    font-weight: 800;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+}
+
+body.concept-1 .card__close,
+body.concept-1 .card__open,
+body.concept-1 .card.open .card__close,
+body.concept-1 .card.open .card__open {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.concept-1 .cover__click {
+    top: 0;
+    left: 50%;
+    bottom: .96rem;
+    z-index: 4;
+    width: .92rem;
+    transform: translateX(-50%);
+    opacity: .88;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,.18));
+}
+
+body.concept-1 .cover .cover__footer {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    grid-template-columns: 1fr auto 1fr;
+    gap: .18rem;
+    padding: 0 .08rem;
+}
+
+body.concept-1 .cover .cover__footer .man_name,
+body.concept-1 .cover .cover__footer .women_name {
+    font-family: "Great Vibes", cursive;
+    font-size: .72rem;
+    line-height: 1.18;
+    color: #2f3431;
+}
+
+body.concept-1 .cover .cover__footer .heartbeat {
+    width: .7rem;
+    height: .7rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--primary-color);
+    font-size: .34rem;
+    box-shadow: 0 12px 24px rgba(var(--primary-rgb), .24);
+}
+
+body.concept-1 .cover .cover__date {
+    position: relative;
+    z-index: 2;
+    margin-top: .04rem;
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: .25rem;
+    font-weight: 800;
+    letter-spacing: .16rem;
+    color: rgba(47,52,49,.72);
+}
+
+@media (max-width: 360px) {
+    body.concept-1 .cover .card {
+        width: min(5.75rem, 78vw);
+        height: 6.75rem;
+    }
+
+    body.concept-1 .cover .cover__footer .man_name,
+    body.concept-1 .cover .cover__footer .women_name {
+        font-size: .58rem;
+    }
+}
