@@ -180,6 +180,53 @@ Mở:
 http://localhost:8080
 ```
 
+
+## Trang admin online có đăng nhập
+
+Trang admin online nằm ở thư mục `admin/`. Sau khi deploy lên GitHub Pages hoặc Cloudflare Pages, đường dẫn sẽ là:
+
+```txt
+https://ten-domain-cua-ban/admin/
+```
+
+Tài khoản và mật khẩu không lưu trong code. Chúng được Firebase Authentication quản lý.
+
+Cách thiết lập lần đầu:
+
+1. Vào Firebase Console.
+2. Mở `Authentication`.
+3. Chọn `Sign-in method`.
+4. Bật `Email/Password`.
+5. Vào tab `Users`, tạo tài khoản admin cho bạn.
+6. Vào `Authentication > Settings > Authorized domains`, thêm domain deploy nếu cần, ví dụ `bryannguyen01itb.github.io` hoặc domain Cloudflare Pages.
+7. Vào Firestore Rules và giới hạn quyền sửa config cho email admin.
+
+Rules gợi ý:
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "email-cua-ban@gmail.com";
+    }
+
+    match /weddings/{weddingId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      match /wishes/{wishId} {
+        allow read, create: if true;
+        allow update, delete: if isAdmin();
+      }
+    }
+  }
+}
+```
+
+Nếu muốn thêm lớp kiểm tra ngay trên giao diện admin, mở `admin/admin.js` và thêm email vào `ADMIN_EMAILS`. Lưu ý: đây chỉ là lớp kiểm tra giao diện, bảo mật thật vẫn là Firestore Rules.
+
 ## Trang nhập config local
 
 Dùng trang này khi muốn tạo/sửa config khách mà không cần sửa `js/config.js` rồi chạy lệnh upload thủ công. Trang admin chỉ chạy trên máy bạn và dùng `scripts/serviceAccountKey.json` để ghi Firebase, không nên deploy trang này cho khách.
