@@ -120,3 +120,19 @@
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
 }
+
+.section-subtitle.scroll-reveal {
+    transform: translate3d(0, 24px, 0);
+}
+
+.section-subtitle.scroll-reveal.is-visible {
+    transform: translate3d(0, 0, 0);
+}
+
+.about-portrait.scroll-reveal {
+    transform: translate3d(0, 42px, 0) scale(.985);
+}
+
+.about-portrait.scroll-reveal.is-visible {
+    transform: translate3d(0, 0, 0) scale(1);
+}

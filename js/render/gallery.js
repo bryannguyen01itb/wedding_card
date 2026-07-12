@@ -8,12 +8,18 @@ const DEFAULT_INTRO = {
     sideText: "SAVE THE DATE"
 };
 
-function normalizePhoto(item) {
-    if (typeof item === "string") {
-        return { src: item, alt: "" };
-    }
+const GALLERY_LAYOUT_CLASSES = [
+    "gallery-poster--few",
+    "gallery-poster--medium",
+    "gallery-poster--full",
+    "gallery-poster--many",
+    "gallery-poster--fixed"
+];
 
-    return item;
+const FIXED_GALLERY_PHOTO_LIMIT = 7;
+
+function normalizePhoto(item) {
+    return typeof item === "string" ? { src: item, alt: "" } : item;
 }
 
 function normalizeGalleryConfig(config) {
@@ -34,12 +40,17 @@ function normalizeGalleryConfig(config) {
 
 function createIntroBlock(intro, weddingDate) {
     const introBlock = createEl("div", "gallery-intro gallery-item");
+    const introParts = [
+        ["div", "gallery-intro__eyebrow", intro.eyebrow],
+        ["div", "gallery-intro__script", intro.script],
+        ["div", "gallery-intro__title", intro.title],
+        ["span", "gallery-intro__line"],
+        ["div", "gallery-intro__date", formatDate(weddingDate)]
+    ];
 
-    introBlock.appendChild(createEl("div", "gallery-intro__eyebrow", intro.eyebrow));
-    introBlock.appendChild(createEl("div", "gallery-intro__script", intro.script));
-    introBlock.appendChild(createEl("div", "gallery-intro__title", intro.title));
-    introBlock.appendChild(createEl("span", "gallery-intro__line"));
-    introBlock.appendChild(createEl("div", "gallery-intro__date", formatDate(weddingDate)));
+    introParts.forEach(([tag, className, text]) => {
+        introBlock.appendChild(createEl(tag, className, text));
+    });
 
     return introBlock;
 }
@@ -64,37 +75,32 @@ function createGalleryPhoto(photo, index) {
     return frame;
 }
 
+function addGalleryDecorations(grid, sideText) {
+    grid.appendChild(createEl("div", "gallery-side-text", sideText));
+    grid.appendChild(createEl("span", "gallery-fan gallery-fan--top"));
+    grid.appendChild(createEl("span", "gallery-fan gallery-fan--bottom"));
+}
+
 export function renderGallery(config, weddingDate) {
     const grid = document.querySelector(".gallery-grid");
     if (!grid) return;
 
     const { intro, photos } = normalizeGalleryConfig(config);
     const fixedConcept = document.body.classList.contains("concept-4");
-    const allVisiblePhotos = photos.filter(photo => photo?.src);
-    const visiblePhotos = fixedConcept ? allVisiblePhotos.slice(0, 7) : allVisiblePhotos;
+    const validPhotos = photos.filter(photo => photo?.src);
+    const visiblePhotos = fixedConcept
+        ? validPhotos.slice(0, FIXED_GALLERY_PHOTO_LIMIT)
+        : validPhotos;
     const layoutClass = getGalleryLayout(visiblePhotos.length, fixedConcept);
 
     grid.textContent = "";
-    grid.classList.remove(
-        "gallery-poster--few",
-        "gallery-poster--medium",
-        "gallery-poster--full",
-        "gallery-poster--many",
-        "gallery-poster--fixed"
-    );
+    grid.classList.remove(...GALLERY_LAYOUT_CLASSES);
     grid.classList.add("gallery-poster", layoutClass);
-
     grid.appendChild(createIntroBlock(intro, weddingDate));
 
     visiblePhotos.forEach((photo, index) => {
         grid.appendChild(createGalleryPhoto(photo, index));
     });
 
-    const sideText = createEl("div", "gallery-side-text", intro.sideText);
-    const fanTop = createEl("span", "gallery-fan gallery-fan--top");
-    const fanBottom = createEl("span", "gallery-fan gallery-fan--bottom");
-
-    grid.appendChild(sideText);
-    grid.appendChild(fanTop);
-    grid.appendChild(fanBottom);
+    addGalleryDecorations(grid, intro.sideText);
 }

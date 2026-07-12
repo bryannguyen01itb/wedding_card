@@ -25,6 +25,26 @@ Thiệp mời cưới dạng trang web tĩnh, tối ưu cho mobile hiện đại
 └── music/                  # Nhạc nền
 ```
 
+## Bản đồ file khi cần sửa nhanh
+
+| Muốn sửa | File nên mở trước | Ghi chú |
+|----------|-------------------|---------|
+| Thông tin khách, ngày cưới, màu, ảnh, nhạc | `js/config.js` hoặc Firestore `weddings/{weddingId}` | Đây là nơi sửa nhiều nhất |
+| Load config Firebase theo `?wedding=` | `js/services/weddingData.js` | Có merge config local + Firebase |
+| Màu chủ đạo, concept, ảnh nền concept | `js/utils/theme.js` | Chỉ xử lý biến CSS và class `concept-*` |
+| Header/menu/bìa/poster | `js/render/cover.js`, `js/features/cover.js` | Render nằm trong `render`, tương tác nằm trong `features` |
+| Save date, title/subtitle section | `js/render/sections.js` | Text lấy từ `sections` và `sectionSubtitles` |
+| About/cô dâu chú rể | `js/render/about.js`, `css/parts/concept-*.css` | Layout concept nằm trong CSS concept |
+| Timeline/lịch trình/chỉ đường | `js/render/timeline.js` | Dữ liệu lấy từ `ceremony` |
+| Gallery | `js/render/gallery.js`, `css/parts/sections.css`, `css/parts/concept-4-mehappy.css` | Concept 4 đang cố định 7 ảnh |
+| Lời chúc/xác nhận tham dự | `js/features/wish.js`, `js/render/wish.js` | Dữ liệu lưu trong `weddings/{weddingId}/wishes` |
+| Hộp quà/QR | `js/render/gift.js`, `js/features/gift.js` | QR lấy từ `gift.groom` và `gift.bride` |
+| Animation khi cuộn | `js/features/scrollReveal.js`, `css/parts/animations.css` | Thêm selector reveal ở `SECTION_REVEAL_SELECTORS` |
+| CSS dùng chung | `css/parts/base.css`, `css/parts/sections.css` | Tránh sửa concept nếu muốn áp dụng cho tất cả |
+| CSS riêng từng concept | `css/parts/concept-1-classic.css` ... `concept-4-mehappy.css` | Sửa riêng giao diện từng concept |
+
+Quy ước dễ nhớ: file trong `js/render/` chỉ dựng HTML từ config, file trong `js/features/` xử lý hành động của người dùng, file trong `css/parts/concept-*` chỉ nên chứa giao diện riêng của từng concept.
+
 ## Chỉnh sửa nội dung
 
 Mở `js/config.js`. Đây là file cần sửa nhiều nhất khi làm thiệp cho khách.
@@ -159,6 +179,31 @@ Mở:
 ```txt
 http://localhost:8080
 ```
+
+## Trang nhập config local
+
+Dùng trang này khi muốn tạo/sửa config khách mà không cần sửa `js/config.js` rồi chạy lệnh upload thủ công. Trang admin chỉ chạy trên máy bạn và dùng `scripts/serviceAccountKey.json` để ghi Firebase, không nên deploy trang này cho khách.
+
+```bash
+npm run admin
+```
+
+Mở:
+
+```txt
+http://localhost:5050
+```
+
+Cách dùng nhanh:
+
+1. Nhập `weddingId`, ví dụ `nam-linh-2026`.
+2. Bấm `Tải` để lấy config cũ nếu đã có, hoặc dùng form mẫu nếu là khách mới.
+3. Dán link ảnh/nhạc vào các ô tương ứng. Link có thể là Cloudinary, GitHub Release, hoặc đường dẫn local như `img/anh_1.jpg`.
+4. Chọn concept, màu chủ đạo, ngày cưới, thông tin cô dâu chú rể.
+5. Bấm `Lưu Firebase`.
+6. Bấm link thiệp trong khung trên cùng để xem thử.
+
+Màu mặc định cho form mới là vàng đất hơi cam: `#c9974f`.
 
 ## Deploy
 

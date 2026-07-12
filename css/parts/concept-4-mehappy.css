@@ -963,103 +963,180 @@ body.concept-4 .music-player {
     }
 }
 
-/* Quick polish fixes for concept 4 */
+/* Final concept 4 overrides */
+body.concept-4 {
+    --na01-gold: var(--primary-color);
+    --na01-blush: var(--primary-color);
+}
+
 body.concept-4 .poster {
-    min-height: 11.8rem;
-    background: linear-gradient(180deg, #fffdf8 0%, #fbf4ea 100%);
+    min-height: 100svh;
+    height: 100svh;
+    background: #111;
+}
+
+body.concept-4 .poster::before,
+body.concept-4 .poster::after {
+    left: 50% !important;
+    right: auto !important;
+    width: min(7rem, calc(100% - .9rem));
+    transform: translateX(-50%);
+    display: block;
+    box-sizing: border-box;
+    color: #fff !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    pointer-events: none;
+    text-shadow:
+        0 2px 3px rgba(0, 0, 0, .85),
+        0 8px 22px rgba(0, 0, 0, .56),
+        0 0 18px rgba(var(--primary-rgb), .28) !important;
+    -webkit-text-stroke: .25px rgba(0, 0, 0, .25);
 }
 
 body.concept-4 .poster::before {
-    top: .42rem;
-    color: var(--na01-gold);
-    font-size: .3rem;
-    font-weight: 600;
-    text-shadow: none;
+    inset: auto auto auto 50% !important;
+    top: .52rem !important;
+    font-family: "Lora", Georgia, serif;
+    font-size: .28rem;
+    font-weight: 700;
+    letter-spacing: .08rem;
 }
 
 body.concept-4 .poster::after {
-    top: 1.02rem;
-    color: var(--na01-blush);
-    font-size: .52rem;
-    text-shadow: none;
+    inset: auto auto auto 50% !important;
+    top: .98rem !important;
+    font-size: .54rem;
 }
 
 body.concept-4 .poster img {
-    top: 1.82rem !important;
-    left: 50% !important;
-    right: auto !important;
-    width: min(7.2rem, calc(100% - .7rem)) !important;
-    height: 5.45rem !important;
-    transform: translateX(-50%) !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
     object-fit: cover;
     opacity: 1;
-    filter: brightness(.95) saturate(.98);
+    filter: brightness(.98) saturate(1.04) !important;
+    box-shadow: none;
 }
 
-body.concept-4 .poster img + * {
-    position: relative;
+body.concept-4 .poster .wave {
+    display: none !important;
 }
 
 body.concept-4 .poster-content {
-    top: 7.72rem !important;
+    top: auto !important;
+    bottom: .58rem !important;
     width: 100%;
-    padding: 0 .52rem;
+    padding: 0 .48rem;
+    color: #fff;
+}
+
+body.concept-4 .text_1,
+body.concept-4 .text_2,
+body.concept-4 .poster .heart,
+body.concept-4 .date__time,
+body.concept-4 .location {
+    color: #fff;
+    text-shadow: 0 8px 24px rgba(0,0,0,.42);
 }
 
 body.concept-4 .text_1,
 body.concept-4 .text_2 {
-    color: var(--na01-gold);
-    font-size: .76rem;
-    text-shadow: none;
+    font-size: .82rem;
 }
 
-body.concept-4 .poster .heart {
-    color: var(--na01-gold);
-    font-size: .3rem;
+body.concept-4 .poster .info {
+    width: fit-content;
+    max-width: calc(100% - .9rem);
+    margin: .36rem auto 0;
+    padding: .14rem .3rem .16rem;
+    border: 1px solid rgba(255, 255, 255, .44);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .28);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
-body.concept-4 .date__time,
-body.concept-4 .location {
-    color: var(--na01-gold);
-    font-weight: 600;
+body.concept-4 .poster .date__time,
+body.concept-4 .poster .location {
+    color: #fff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, .6) !important;
+}
+
+body.concept-4 .poster .date__time {
+    margin-top: .06rem;
+    font-size: .26rem;
+}
+
+body.concept-4 .poster .location {
+    margin-top: .06rem;
+    font-size: .22rem;
 }
 
 body.concept-4 .section-title,
 body.concept-4 .about-title,
 body.concept-4 .save-title,
 body.concept-4 .thanks-title {
-    color: var(--na01-gold);
-    font-family: "DM Serif Display", "Lora", Georgia, serif;
-    font-size: .66rem;
-    line-height: 1.14;
-    text-shadow: none;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .54rem !important;
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: .03rem;
+    text-transform: uppercase;
 }
 
-body.concept-4 .save-title {
-    font-size: .42rem;
+body.concept-4 .section-title::after,
+body.concept-4 .about-title::after,
+body.concept-4 .save-title::after,
+body.concept-4 .thanks-title::after {
+    background: rgba(var(--primary-rgb), .42);
 }
 
-body.concept-4 .calendar .active {
+body.concept-4 .calendar .active,
+body.concept-4 .days .active,
+body.concept-4 #calendarDays .active {
     position: relative;
     color: #fff !important;
     background: transparent !important;
+    border: 0 !important;
+    outline: 0 !important;
     box-shadow: none !important;
+    z-index: 1;
 }
 
-body.concept-4 .calendar .active::before {
-    inset: 50% auto auto 50%;
-    width: .82rem;
-    height: .82rem;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    border-radius: 0;
-    background: #e56f8c !important;
-    box-shadow: none !important;
-}
-
-body.concept-4 .calendar .active::after {
+body.concept-4 .calendar .active::before,
+body.concept-4 .days .active::before,
+body.concept-4 #calendarDays .active::before {
+    content: "\\F415" !important;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1.02rem;
+    height: 1.02rem;
+    transform: translate(-50%, -50%) !important;
+    display: grid;
+    place-items: center;
+    color: var(--primary-color);
     background: transparent !important;
     border: 0 !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
+    font-family: "bootstrap-icons" !important;
+    font-size: 1rem;
+    line-height: 1;
+    z-index: -1;
+}
+
+body.concept-4 .calendar .active::after,
+body.concept-4 .days .active::after,
+body.concept-4 #calendarDays .active::after {
+    display: none !important;
+    content: none !important;
 }
 
 body.concept-4 .about-portrait {
@@ -1110,76 +1187,175 @@ body.concept-4 .wish .side-card input:checked + .side-content span {
     color: #fff !important;
 }
 
-body.concept-4 .gallery-grid {
+body.concept-4 .countdown {
+    background-image: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) !important;
+    background-position: center !important;
+    background-size: cover !important;
+}
+
+body.concept-4 .countdown::before {
+    background: inherit !important;
+    filter: blur(3px) brightness(.88);
+    transform: scale(1.08);
+}
+
+body.concept-4 .countdown::after {
+    background: rgba(0,0,0,.38) !important;
+}
+
+body.concept-4 .countdown > * {
+    position: relative;
+    z-index: 5;
+}
+
+body.concept-4 .gallery {
+    padding-left: .28rem !important;
+    padding-right: .28rem !important;
+    overflow: hidden;
+}
+
+body.concept-4 .gallery-poster--fixed.gallery-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: .86rem;
-    gap: .1rem;
-    min-height: auto;
-    padding: .28rem .22rem .72rem;
-    background: #fffdf8;
+    grid-template-columns: repeat(8, 1fr) !important;
+    grid-auto-rows: .74rem !important;
+    gap: .08rem !important;
+    min-height: 12.4rem;
+    padding: .08rem 0 .08rem !important;
+    background: #fffdf8 !important;
 }
 
 body.concept-4 .gallery-intro {
-    top: .56rem;
-    left: .56rem;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    grid-column: 1 / span 3 !important;
+    grid-row: 1 / span 3 !important;
+    display: grid !important;
+    align-content: center;
+    justify-items: center;
+    min-height: 0 !important;
+    padding: .16rem .1rem !important;
+    background: rgba(var(--primary-rgb), .1) !important;
+    border: 1px solid rgba(var(--primary-rgb), .2) !important;
+    box-shadow: none !important;
+    text-align: center;
+}
+
+body.concept-4 .gallery-intro::after {
+    display: none !important;
+}
+
+body.concept-4 .gallery-intro__script,
+body.concept-4 .gallery-intro__title,
+body.concept-4 .gallery-intro__eyebrow,
+body.concept-4 .gallery-intro__date {
+    color: var(--primary-color) !important;
+    text-shadow: none !important;
+}
+
+body.concept-4 .gallery-intro__eyebrow,
+body.concept-4 .gallery-intro__date {
+    font-size: .15rem !important;
+    letter-spacing: .04rem;
+}
+
+body.concept-4 .gallery-intro__script {
+    font-size: .5rem !important;
+    line-height: .8;
+}
+
+body.concept-4 .gallery-intro__title {
+    font-size: .42rem !important;
+    line-height: 1;
 }
 
 body.concept-4 .gallery-frame {
     position: relative;
-    border: .08rem solid #fff !important;
-    box-shadow: 0 10px 26px rgba(60,45,35,.14) !important;
+    border: .045rem solid #fff !important;
+    background: #fff;
+    box-shadow: 0 10px 22px rgba(58, 46, 34, .14) !important;
+}
+
+body.concept-4 .gallery-frame img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
 }
 
 body.concept-4 .gallery-frame--1 {
-    grid-column: 1 / span 2 !important;
-    grid-row: 1 / span 2 !important;
-    min-height: 0;
+    grid-column: 4 / span 5 !important;
+    grid-row: 1 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--2 {
-    grid-column: 3 / span 2 !important;
-    grid-row: 1 / span 2 !important;
+    grid-column: 1 / span 3 !important;
+    grid-row: 4 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--3 {
-    grid-column: 1 / span 3 !important;
-    grid-row: 3 / span 4 !important;
+    grid-column: 4 / span 3 !important;
+    grid-row: 5 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--4 {
-    grid-column: 4 / span 3 !important;
-    grid-row: 2 / span 4 !important;
+    grid-column: 7 / span 2 !important;
+    grid-row: 5 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--5 {
-    grid-column: 1 / span 3 !important;
-    grid-row: 7 / span 4 !important;
+    grid-column: 1 / span 4 !important;
+    grid-row: 8 / span 5 !important;
 }
 
 body.concept-4 .gallery-frame--6 {
-    grid-column: 4 / span 3 !important;
-    grid-row: 6 / span 5 !important;
+    grid-column: 5 / span 4 !important;
+    grid-row: 9 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--7 {
     grid-column: 1 / -1 !important;
-    grid-row: 11 / span 7 !important;
+    grid-row: 13 / span 6 !important;
 }
 
-body.concept-4 .gallery-frame:nth-of-type(n+9) {
-    display: none;
+body.concept-4 .gallery-poster--fixed.gallery-grid::before,
+body.concept-4 .gallery-poster--fixed.gallery-grid::after {
+    display: grid !important;
+    place-items: center;
+    min-height: 0;
+    box-shadow: 0 10px 22px rgba(58, 46, 34, .14);
 }
 
-body.concept-4 .gallery-frame--1::after {
-    display: none;
+body.concept-4 .gallery-poster--fixed.gallery-grid::before {
+    content: "Love";
+    grid-column: 7 / span 2;
+    grid-row: 9 / span 2;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), .9), rgba(var(--primary-rgb), .58)) !important;
+    border: .045rem solid #fff;
+    font-family: "Great Vibes", cursive;
+    font-size: .5rem;
+    line-height: 1;
 }
 
-body.concept-4 .gallery-side-text {
-    grid-column: 1 / -1;
-    grid-row: 18 / span 2;
-    align-self: center;
-    padding: .2rem .3rem 0;
+body.concept-4 .gallery-poster--fixed.gallery-grid::after {
+    content: "Story";
+    grid-column: 5 / span 2;
+    grid-row: 4 / span 1;
+    color: rgba(var(--primary-rgb), .95);
+    background: rgba(255, 255, 255, .88) !important;
+    border: .045rem solid #fff;
+    font-family: "Lora", Georgia, serif;
+    font-size: .2rem;
+    font-weight: 700;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+body.concept-4 .gallery-side-text,
+body.concept-4 .gallery-fan {
+    display: none !important;
 }
 
 body.concept-4 .thanks {
@@ -1204,183 +1380,6 @@ body.concept-4 .thanks .section-subtitle {
     line-height: 1.78;
 }
 
-/* Final concept 4 corrections */
-body.concept-4 {
-    --na01-gold: var(--primary-color);
-    --na01-blush: var(--primary-color);
-}
-
-body.concept-4 .poster {
-    min-height: 100svh;
-    height: 100svh;
-    background: #111;
-}
-
-body.concept-4 .poster::before,
-body.concept-4 .poster::after {
-    color: #fff;
-    text-shadow: 0 8px 24px rgba(0,0,0,.38);
-}
-
-body.concept-4 .poster::before {
-    top: .46rem;
-    font-family: "Lora", Georgia, serif;
-    font-size: .28rem;
-    letter-spacing: .08rem;
-}
-
-body.concept-4 .poster::after {
-    top: 1rem;
-    font-size: .54rem;
-}
-
-body.concept-4 .poster img {
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    transform: none !important;
-    object-fit: cover;
-    opacity: 1;
-    filter: brightness(.82) saturate(1.02);
-    box-shadow: none;
-}
-
-body.concept-4 .poster .wave {
-    display: none !important;
-}
-
-body.concept-4 .poster-content {
-    top: auto !important;
-    bottom: .72rem;
-    width: 100%;
-    padding: 0 .48rem;
-    color: #fff;
-}
-
-body.concept-4 .text_1,
-body.concept-4 .text_2,
-body.concept-4 .poster .heart,
-body.concept-4 .date__time,
-body.concept-4 .location {
-    color: #fff;
-    text-shadow: 0 8px 24px rgba(0,0,0,.42);
-}
-
-body.concept-4 .text_1,
-body.concept-4 .text_2 {
-    font-size: .82rem;
-}
-
-body.concept-4 .section-title,
-body.concept-4 .about-title,
-body.concept-4 .save-title,
-body.concept-4 .thanks-title {
-    font-family: "Lora", Georgia, serif !important;
-    font-size: .54rem !important;
-    font-weight: 600;
-    line-height: 1.22;
-    letter-spacing: .03rem;
-    text-transform: uppercase;
-}
-
-body.concept-4 .section-title::after,
-body.concept-4 .about-title::after,
-body.concept-4 .save-title::after,
-body.concept-4 .thanks-title::after {
-    background: rgba(var(--primary-rgb), .42);
-}
-
-body.concept-4 .calendar .active,
-body.concept-4 .days .active,
-body.concept-4 #calendarDays .active {
-    position: relative;
-    color: #fff !important;
-    background: transparent !important;
-    border: 0 !important;
-    outline: 0 !important;
-    box-shadow: none !important;
-    z-index: 1;
-}
-
-body.concept-4 .calendar .active::before,
-body.concept-4 .days .active::before,
-body.concept-4 #calendarDays .active::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: .74rem;
-    height: .74rem;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    background: var(--primary-color) !important;
-    border: 0 !important;
-    border-radius: .08rem .08rem 0 .08rem !important;
-    box-shadow: none !important;
-    z-index: -1;
-}
-
-body.concept-4 .calendar .active::after,
-body.concept-4 .days .active::after,
-body.concept-4 #calendarDays .active::after {
-    display: none !important;
-    content: none !important;
-}
-
-body.concept-4 .countdown {
-    background-image: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) !important;
-    background-position: center !important;
-    background-size: cover !important;
-}
-
-body.concept-4 .countdown::before {
-    background: inherit !important;
-    filter: blur(3px) brightness(.88);
-    transform: scale(1.08);
-}
-
-body.concept-4 .countdown::after {
-    background: rgba(0,0,0,.38) !important;
-}
-
-body.concept-4 .countdown > * {
-    position: relative;
-    z-index: 5;
-}
-
-body.concept-4 .gallery-poster--fixed.gallery-grid {
-    display: grid;
-}
-
-@media (max-width: 360px) {
-    body.concept-4 .section-title,
-    body.concept-4 .about-title,
-    body.concept-4 .save-title,
-    body.concept-4 .thanks-title {
-        font-size: .46rem !important;
-    }
-}
-
-body.concept-4 .calendar .active::before,
-body.concept-4 .days .active::before,
-body.concept-4 #calendarDays .active::before {
-    content: "\F415" !important;
-    left: 50%;
-    top: 50%;
-    width: 1.02rem;
-    height: 1.02rem;
-    transform: translate(-50%, -50%) !important;
-    display: grid;
-    place-items: center;
-    color: var(--primary-color);
-    background: transparent !important;
-    border-radius: 0 !important;
-    font-family: "bootstrap-icons" !important;
-    font-size: 1rem;
-    line-height: 1;
-    z-index: -1;
-}
-
-/* Concept 4 final visual fixes */
 body.concept-4 .music-player {
     background: rgba(255, 255, 255, .96) !important;
     color: var(--primary-color) !important;
@@ -1396,163 +1395,11 @@ body.concept-4 .music-player.playing .music-equalizer span {
     animation: musicBeat .78s ease-in-out infinite;
 }
 
-body.concept-4 .poster img {
-    filter: brightness(.98) saturate(1.04) !important;
-}
-
-body.concept-4 .poster-content {
-    bottom: .58rem !important;
-}
-
-body.concept-4 .poster .info {
-    width: fit-content;
-    max-width: calc(100% - .9rem);
-    margin: .36rem auto 0;
-    padding: .14rem .3rem .16rem;
-    border: 1px solid rgba(255, 255, 255, .44);
-    border-radius: 999px;
-    background: rgba(0, 0, 0, .28);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
-body.concept-4 .poster .date__time,
-body.concept-4 .poster .location {
-    color: #fff !important;
-    font-weight: 700 !important;
-    text-shadow: 0 3px 10px rgba(0, 0, 0, .6) !important;
-}
-
-body.concept-4 .poster .date__time {
-    margin-top: .06rem;
-    font-size: .26rem;
-}
-
-body.concept-4 .poster .location {
-    margin-top: .06rem;
-    font-size: .22rem;
-}
-
-body.concept-4 .gallery {
-    padding-left: .28rem !important;
-    padding-right: .28rem !important;
-}
-
-body.concept-4 .gallery-poster--fixed.gallery-grid {
-    grid-template-columns: repeat(6, 1fr) !important;
-    grid-auto-rows: .82rem !important;
-    gap: .1rem !important;
-    padding: .18rem 0 .22rem !important;
-    background: transparent !important;
-}
-
-body.concept-4 .gallery-intro {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    grid-column: 1 / -1 !important;
-    grid-row: 1 / span 2 !important;
-    display: grid !important;
-    align-content: center;
-    justify-items: center;
-    min-height: 0 !important;
-    padding: .2rem .28rem !important;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    text-align: center;
-}
-
-body.concept-4 .gallery-intro__script,
-body.concept-4 .gallery-intro__title,
-body.concept-4 .gallery-intro__eyebrow,
-body.concept-4 .gallery-intro__date {
-    color: var(--primary-color) !important;
-    text-shadow: none !important;
-}
-
-body.concept-4 .gallery-intro__script {
-    font-size: .52rem !important;
-    line-height: .8;
-}
-
-body.concept-4 .gallery-intro__title {
-    font-size: .5rem !important;
-    line-height: 1;
-}
-
-body.concept-4 .gallery-intro__line {
-    width: .82rem;
-    margin: .1rem auto;
-    background: rgba(var(--primary-rgb), .38) !important;
-}
-
-body.concept-4 .gallery-frame {
-    border: .07rem solid #fff !important;
-    box-shadow: 0 10px 26px rgba(60, 45, 35, .12) !important;
-}
-
-body.concept-4 .gallery-frame img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-}
-
-body.concept-4 .gallery-frame--1 {
-    grid-column: 1 / span 2 !important;
-    grid-row: 3 / span 2 !important;
-}
-
-body.concept-4 .gallery-frame--2 {
-    grid-column: 3 / span 4 !important;
-    grid-row: 3 / span 2 !important;
-}
-
-body.concept-4 .gallery-frame--3 {
-    grid-column: 1 / span 3 !important;
-    grid-row: 5 / span 4 !important;
-}
-
-body.concept-4 .gallery-frame--4 {
-    grid-column: 4 / span 3 !important;
-    grid-row: 5 / span 4 !important;
-}
-
-body.concept-4 .gallery-frame--5 {
-    grid-column: 1 / span 3 !important;
-    grid-row: 9 / span 4 !important;
-}
-
-body.concept-4 .gallery-frame--6 {
-    grid-column: 4 / span 3 !important;
-    grid-row: 9 / span 4 !important;
-}
-
-body.concept-4 .gallery-frame--7 {
-    grid-column: 1 / -1 !important;
-    grid-row: 13 / span 6 !important;
-}
-
-body.concept-4 .gallery-side-text,
-body.concept-4 .gallery-fan {
-    display: none !important;
-}
-
-/* Concept 4: keep poster labels, remove inherited poster overlays */
-body.concept-4 .poster::before,
-body.concept-4 .poster::after {
-    background: transparent !important;
-    pointer-events: none;
-}
-
-body.concept-4 .poster::before {
-    inset: auto .68rem auto .68rem !important;
-    top: .46rem !important;
-}
-
-body.concept-4 .poster::after {
-    inset: auto 0 auto 0 !important;
-    top: 1rem !important;
+@media (max-width: 360px) {
+    body.concept-4 .section-title,
+    body.concept-4 .about-title,
+    body.concept-4 .save-title,
+    body.concept-4 .thanks-title {
+        font-size: .46rem !important;
+    }
 }

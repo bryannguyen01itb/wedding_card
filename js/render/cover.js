@@ -1,46 +1,42 @@
 import { wedding } from "../config.js";
-import { setText, setSrc, setSplitName } from "../utils/dom.js";
+import { setText, setSrc, setSplitName, createEl } from "../utils/dom.js";
 import { formatDate } from "../utils/date.js";
 
-const MENU_ITEMS = [
-    { target: "saveDateSection", label: () => wedding.sections.saveDate },
-    { target: "aboutSection", label: () => wedding.sections.about },
-    { target: "timelineSection", label: () => wedding.sections.timeline },
-    { target: "gallerySection", label: () => wedding.sections.gallery },
-    { target: "wishSection", label: () => wedding.sections.wish },
-    { target: "giftSection", label: () => wedding.sections.gift.title },
-    { target: "countdownSection", label: () => wedding.sections.countdown.title },
-    { target: "thanksSection", label: () => wedding.sections.thanks.title }
+const MENU_SECTIONS = [
+    ["saveDateSection", () => wedding.sections.saveDate],
+    ["aboutSection", () => wedding.sections.about],
+    ["timelineSection", () => wedding.sections.timeline],
+    ["gallerySection", () => wedding.sections.gallery],
+    ["wishSection", () => wedding.sections.wish],
+    ["giftSection", () => wedding.sections.gift.title],
+    ["countdownSection", () => wedding.sections.countdown.title],
+    ["thanksSection", () => wedding.sections.thanks.title]
 ];
 
 function createMenuButton() {
-    const button = document.createElement("button");
-    button.className = "invitation-menu__toggle";
+    const button = createEl("button", "invitation-menu__toggle");
     button.type = "button";
     button.id = "invitationMenuToggle";
     button.setAttribute("aria-label", "Mở menu");
     button.setAttribute("aria-expanded", "false");
-
-    const icon = document.createElement("i");
-    icon.className = "bi bi-list";
-    button.appendChild(icon);
-
+    button.appendChild(Object.assign(document.createElement("i"), { className: "bi bi-list" }));
     return button;
 }
 
+function createMenuItem(target, label) {
+    const item = createEl("button", "invitation-menu__item", label);
+    item.type = "button";
+    item.dataset.target = target;
+    return item;
+}
+
 function createMenuPanel() {
-    const panel = document.createElement("nav");
-    panel.className = "invitation-menu";
+    const panel = createEl("nav", "invitation-menu");
     panel.id = "invitationMenu";
     panel.setAttribute("aria-label", "Menu điều hướng thiệp cưới");
 
-    MENU_ITEMS.forEach(item => {
-        const link = document.createElement("button");
-        link.className = "invitation-menu__item";
-        link.type = "button";
-        link.dataset.target = item.target;
-        link.textContent = item.label();
-        panel.appendChild(link);
+    MENU_SECTIONS.forEach(([target, getLabel]) => {
+        panel.appendChild(createMenuItem(target, getLabel()));
     });
 
     return panel;
@@ -53,10 +49,7 @@ export function renderHeader() {
     header.textContent = "";
     header.appendChild(createMenuButton());
     header.appendChild(createMenuPanel());
-    header.appendChild(Object.assign(document.createElement("div"), {
-        className: "invitation__logo",
-        textContent: wedding.header.logo
-    }));
+    header.appendChild(createEl("div", "invitation__logo", wedding.header.logo));
 }
 
 export function renderCover() {

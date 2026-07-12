@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "upload:config": "node scripts/upload-wedding-config.mjs"
+    "upload:config": "node scripts/upload-wedding-config.mjs",
+    "admin": "node scripts/admin-server.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0"

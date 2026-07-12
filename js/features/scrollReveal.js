@@ -1,26 +1,49 @@
-const REVEAL_SELECTOR = [
-    ".save-date .animate-item",
-    ".section-divider",
-    ".about .about-title",
-    ".about .person",
-    ".timeline .section-title",
-    ".timeline .timeline-card",
-    ".gallery .section-title",
-    ".wish .section-title",
-    ".wish .wish-form",
-    ".wish .wish-list",
-    ".wish .load-more",
-    ".gift .section-title",
-    ".gift .gift-desc",
-    ".gift .gift-box",
-    ".countdown .section-title",
-    ".countdown .count-item",
-    ".thanks .thanks-heart",
-    ".thanks .thanks-title",
-    ".thanks .thanks-content",
-    ".thanks .thanks-sign"
-].join(",");
+const SECTION_REVEAL_SELECTORS = {
+    saveDate: [".save-date .animate-item"],
+    divider: [".section-divider"],
+    about: [
+        ".about .about-title",
+        ".about .section-subtitle:not([hidden])",
+        ".about .about-portrait",
+        ".about .person"
+    ],
+    timeline: [
+        ".timeline .section-title",
+        ".timeline .section-subtitle:not([hidden])",
+        ".timeline .timeline-card"
+    ],
+    gallery: [
+        ".gallery .section-title",
+        ".gallery .section-subtitle:not([hidden])"
+    ],
+    wish: [
+        ".wish .section-title",
+        ".wish .section-subtitle:not([hidden])",
+        ".wish .wish-form",
+        ".wish .wish-list",
+        ".wish .load-more"
+    ],
+    gift: [
+        ".gift .section-title",
+        ".gift .section-subtitle:not([hidden])",
+        ".gift .gift-desc",
+        ".gift .gift-box"
+    ],
+    countdown: [
+        ".countdown .section-title",
+        ".countdown .section-subtitle:not([hidden])",
+        ".countdown .count-item"
+    ],
+    thanks: [
+        ".thanks .thanks-heart",
+        ".thanks .thanks-title",
+        ".thanks .section-subtitle:not([hidden])",
+        ".thanks .thanks-content",
+        ".thanks .thanks-sign"
+    ]
+};
 
+const REVEAL_SELECTOR = Object.values(SECTION_REVEAL_SELECTORS).flat().join(",");
 const SECTION_STAGGER = 55;
 const GALLERY_STAGGER = 60;
 const REVEAL_RATIO = 0.82;
@@ -64,23 +87,28 @@ function observeOnce(items, options) {
     requestAnimationFrame(() => revealVisible(items));
 }
 
-export function initScrollReveal() {
-    const items = document.querySelectorAll(REVEAL_SELECTOR);
-
+function prepareRevealItems(items, className, delayVar, delayStep, delayCycle) {
     items.forEach((item, index) => {
-        item.classList.add("scroll-reveal");
-        item.style.setProperty("--reveal-delay", `${Math.min(index % 3, 2) * SECTION_STAGGER}ms`);
+        item.classList.add(className);
+        item.style.setProperty(delayVar, `${Math.min(index % delayCycle, delayCycle - 1) * delayStep}ms`);
     });
+}
 
-    observeOnce(items, { threshold: 0.12, rootMargin: ROOT_MARGIN });
-
-    const galleryItems = document.querySelectorAll(".gallery-item");
-
-    galleryItems.forEach((item, index) => {
+function prepareGalleryItems(items) {
+    items.forEach((item, index) => {
         const direction = index === 0 || index % 2 === 1 ? "from-left" : "from-right";
         item.classList.add("gallery-reveal", direction);
         item.style.setProperty("--gallery-delay", `${Math.min(index % 4, 3) * GALLERY_STAGGER}ms`);
     });
+}
 
+export function initScrollReveal() {
+    const sectionItems = document.querySelectorAll(REVEAL_SELECTOR);
+    const galleryItems = document.querySelectorAll(".gallery-item");
+
+    prepareRevealItems(sectionItems, "scroll-reveal", "--reveal-delay", SECTION_STAGGER, 3);
+    observeOnce(sectionItems, { threshold: 0.12, rootMargin: ROOT_MARGIN });
+
+    prepareGalleryItems(galleryItems);
     observeOnce(galleryItems, { threshold: 0.18, rootMargin: ROOT_MARGIN });
 }
