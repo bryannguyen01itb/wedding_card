@@ -2,7 +2,7 @@ import { wedding as fallbackWedding } from "../js/config.js";
 import { db } from "../js/firebase.js";
 
 const DEFAULT_PRIMARY = "#c9974f";
-const DEFAULT_CONCEPT = "concept-4";
+const DEFAULT_MEDIA_CONCEPT = "concept-1";
 const GALLERY_SIZE = 7;
 // Có thể điền email admin ở đây để ẩn UI nếu đăng nhập nhầm tài khoản.
 // Bảo mật thật vẫn phải nằm ở Firestore Rules.
@@ -27,6 +27,7 @@ const galleryFields = document.getElementById("galleryFields");
 
 let currentConfig = createDefaultConfig();
 let hasLoadedInitialConfig = false;
+let activeMediaConcept = DEFAULT_MEDIA_CONCEPT;
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -51,19 +52,18 @@ function mergeConfig(base, override) {
 function createDefaultConfig() {
     return mergeConfig(clone(fallbackWedding), {
         theme: {
-            concept: DEFAULT_CONCEPT,
             primaryColor: DEFAULT_PRIMARY
         }
     });
 }
 
-function getActiveConcept(config = currentConfig) {
-    return config?.theme?.concept || DEFAULT_CONCEPT;
+function getActiveMediaConcept() {
+    return activeMediaConcept;
 }
 
 function resolveActivePath(path, config = currentConfig) {
     if (!path.includes(".active.")) return path;
-    return path.replace(".active.", `.${getActiveConcept(config)}.`);
+    return path.replace(".active.", `.${getActiveMediaConcept()}.`);
 }
 
 function getByPath(source, path) {
@@ -151,7 +151,6 @@ function fillForm(config) {
         field.value = Array.isArray(value) ? value.join("\n") : value ?? "";
     });
 
-    form.elements["theme.concept"].value = getActiveConcept(currentConfig);
     syncColorInputs(currentConfig.theme?.primaryColor || DEFAULT_PRIMARY);
     loadInput.value = currentConfig.weddingId || loadInput.value;
     updatePreviewLink(currentConfig.weddingId);
@@ -295,8 +294,9 @@ function initEvents() {
     form.addEventListener("submit", saveConfig);
     resetBtn.addEventListener("click", () => loadConfigById(""));
     form.elements["weddingId"].addEventListener("input", event => updatePreviewLink(event.target.value.trim()));
-    form.elements["theme.concept"].addEventListener("change", () => {
+    document.getElementById("mediaConcept")?.addEventListener("change", event => {
         currentConfig = readForm();
+        activeMediaConcept = event.target.value || DEFAULT_MEDIA_CONCEPT;
         fillForm(currentConfig);
     });
     form.elements["theme.primaryColor"].addEventListener("input", event => syncColorInputs(event.target.value));

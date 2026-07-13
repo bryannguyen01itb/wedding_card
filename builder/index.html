@@ -15,16 +15,73 @@
         <section class="builder-panel">
             <div class="builder-heading">
                 <h1>Khách tự chọn giao diện thiệp</h1>
+                <span>Khách chọn giao diện và nhập thông tin chữ. Ảnh, nhạc, maps admin sẽ hoàn thiện sau.</span>
+            </div>
             <form id="builderForm" class="builder-form">
                 <section class="card">
-                    <h2>Thông tin để tạo thiệp</h2>
+                    <h2>Thông tin chính</h2>
                     <div class="grid two">
-                        <label>Tên chú rể (không cần họ tên đầy đủ)<input name="groomNickname" value="HUNG" required></label>
-                        <label>Tên cô dâu (không cần họ tên đầy đủ)<input name="brideNickname" value="HANG" required></label>
+                        <label>Nickname chú rể<input name="groomNickname" value="HUNG" required></label>
+                        <label>Nickname cô dâu<input name="brideNickname" value="HANG" required></label>
                         <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
+                        <label>Tỉnh/Thành phố<input name="locationProvince" value="Hải Phòng" placeholder="vd: Hải Phòng"></label>
                         <label>Màu sắc thiệp<input name="primaryColor" type="color" value="#c9974f"></label>
+                        <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
                     </div>
-                    <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
+                </section>
+
+                <section class="card">
+                    <h2>Thông tin cô dâu & chú rể</h2>
+                    <div class="split-builder">
+                        <div class="mini-card">
+                            <h3>Chú rể</h3>
+                            <label>Họ tên đầy đủ<input name="groomFullName" value="NGUYỄN VĂN A"></label>
+                            <label>Con ông<input name="groomFather" value="Ông Nguyễn Văn C"></label>
+                            <label>Và bà<input name="groomMother" value="Bà Trần Thị D"></label>
+                        </div>
+                        <div class="mini-card">
+                            <h3>Cô dâu</h3>
+                            <label>Họ tên đầy đủ<input name="brideFullName" value="TRẦN THỊ B"></label>
+                            <label>Con ông<input name="brideFather" value="Ông Trần Văn E"></label>
+                            <label>Và bà<input name="brideMother" value="Bà Nguyễn Thị F"></label>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Lịch tổ chức</h2>
+                    <div class="split-builder">
+                        <div class="mini-card">
+                            <h3>Nhà gái</h3>
+                            <label>Giờ lễ Vu Quy<input name="brideCeremonyTime" type="time" value="10:00"></label>
+                            <div class="grid two compact-grid">
+                                <label>Ngày bữa cơm<input name="brideMealDate" type="date" value="2026-09-11"></label>
+                                <label>Giờ bữa cơm<input name="brideMealTime" type="time" value="17:00"></label>
+                            </div>
+                        </div>
+                        <div class="mini-card">
+                            <h3>Nhà trai</h3>
+                            <label>Giờ lễ Thành Hôn<input name="groomCeremonyTime" type="time" value="17:00"></label>
+                            <div class="grid two compact-grid">
+                                <label>Ngày bữa cơm<input name="groomMealDate" type="date" value="2026-09-12"></label>
+                                <label>Giờ bữa cơm<input name="groomMealTime" type="time" value="16:00"></label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Subtitle từng phần</h2>
+                    <p class="hint">Chỉ nhập dòng mô tả nhỏ dưới tiêu đề. Để trống thì thiệp tự ẩn như cũ.</p>
+                    <div class="grid two">
+                        <label>Đôi nét về chúng tôi<textarea name="subtitleAbout" data-default="Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương." rows="2">Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương.</textarea></label>
+                        <label>Lịch trình<textarea name="subtitleTimeline" data-default="Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui." rows="2">Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui.</textarea></label>
+                        <label>Album ảnh cưới<textarea name="subtitleGallery" data-default="Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường." rows="2">Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường.</textarea></label>
+                        <label>Nhắn gửi yêu thương<textarea name="subtitleWish" data-default="Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể." rows="2">Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể.</textarea></label>
+                        <label>Hộp mừng cưới<textarea name="subtitleGift" data-default="Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi." rows="2">Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.</textarea></label>
+                        <label>Đếm ngược<textarea name="subtitleCountdown" data-default="Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà." rows="2">Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà.</textarea></label>
+                        <label>Lời cảm ơn<textarea name="subtitleThanks" data-default="Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi." rows="3">Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi.</textarea></label>
+                    </div>
                 </section>
 
                 <section class="card">
@@ -51,13 +108,13 @@
 
                 <div class="actions">
                     <button type="button" id="previewBtn"><i class="bi bi-eye-fill"></i> Xem preview</button>
-                    <button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Luu Firebase</button>
+                    <button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button>
                 </div>
                 <p id="status" class="status"></p>
                 <div id="resultLinks" class="result-links" hidden>
-                    <p>Đã lưu thành công. Gui cho khach 2 link nay:</p>
-                    <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link xem thiep</a>
-                    <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sua lai mau</a>
+                    <p>Đã lưu thành công. Gửi cho khách link xem thiệp và link sửa thiệp bên dưới.</p>
+                    <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link xem thiệp</a>
+                    <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sửa thiệp</a>
                 </div>
             </form>
         </section>
@@ -75,17 +132,16 @@
         <section class="save-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
             <button class="save-modal__close" type="button" data-close-modal aria-label="Dong popup"><i class="bi bi-x-lg"></i></button>
             <div class="save-modal__icon"><i class="bi bi-check-lg"></i></div>
-            <p class="save-modal__eyebrow">Da luu Firebase thanh cong</p>
-            <h2 id="saveModalTitle">Vui long luu lai link sua thiep</h2>
-            <p class="save-modal__desc">Link sua lai mau la link gui cho khach giu. Sau nay muon doi block, mau hoac font thi mo dung link nay de sua tiep.</p>
+            <p class="save-modal__eyebrow">Đã lưu thông tin thành công</p>
+            <h2 id="saveModalTitle">Vui lòng lưu lại link thiệp</h2>
             <div class="save-modal__links">
                 <div class="save-modal__link-card">
-                    <span>Link xem thiep</span>
+                    <span>Link xem thiệp</span>
                     <a id="modalInvitationLink" href="#" target="_blank" rel="noopener noreferrer"></a>
                     <button id="copyInvitationLink" type="button"><i class="bi bi-copy"></i> Copy</button>
                 </div>
                 <div class="save-modal__link-card save-modal__link-card--important">
-                    <span>Link sua lai mau</span>
+                    <span>Link sửa thiệp</span>
                     <a id="modalEditLink" href="#" target="_blank" rel="noopener noreferrer"></a>
                     <button id="copyEditLink" type="button"><i class="bi bi-copy"></i> Copy</button>
                 </div>

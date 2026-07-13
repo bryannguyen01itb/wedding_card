@@ -16,7 +16,6 @@ const modalEditLink = document.getElementById("modalEditLink");
 const copyInvitationLink = document.getElementById("copyInvitationLink");
 const copyEditLink = document.getElementById("copyEditLink");
 
-const BASE_CONCEPT = "concept-1";
 const WEDDING_QUERY_KEY = "wedding";
 
 let editingWeddingId = "";
@@ -44,6 +43,63 @@ function getYear(date) {
     return String(date || new Date().getFullYear()).slice(0, 4);
 }
 
+function formatDisplayDate(dateValue) {
+    const [year, month, day] = String(dateValue || "").split("-");
+    if (!year || !month || !day) {
+        return "";
+    }
+
+    return `${day.padStart(2, "0")}.${month.padStart(2, "0")}.${year}`;
+}
+
+function toDateInputValue(dateValue) {
+    const value = String(dateValue || "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
+
+    const [day, month, year] = value.split(/[./-]/);
+    if (!day || !month || !year) {
+        return "";
+    }
+
+    return `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+function formatMealTime(dateValue, timeValue) {
+    const time = String(timeValue || "").trim();
+    const date = formatDisplayDate(dateValue);
+
+    return [time, date].filter(Boolean).join(" • ");
+}
+
+function splitMealTime(value) {
+    const [time = "", date = ""] = String(value || "").split("•").map(part => part.trim());
+    return {
+        time,
+        date: toDateInputValue(date)
+    };
+}
+
+function normalizeLocationProvince(value) {
+    const province = String(value || "")
+        .replace(/,?\s*vi[eệ]t\s*nam\s*$/i, "")
+        .trim()
+        .toLocaleUpperCase("vi-VN");
+
+    return province ? `${province}, VIỆT NAM` : fallbackWedding.location;
+}
+
+function getProvinceFromLocation(value) {
+    return String(value || "")
+        .replace(/,?\s*VIỆT\s*NAM\s*$/i, "")
+        .trim();
+}
+
+function readText(data, name) {
+    return String(data.get(name) || "").trim();
+}
+
 function buildWeddingId(data) {
     return [
         slugify(data.get("groomNickname")),
@@ -59,7 +115,7 @@ function getWeddingIdFromUrl() {
 
 function setControlValue(name, value) {
     const field = form.elements[name];
-    if (field && value !== undefined && value !== null && value !== "") {
+    if (field && value !== undefined && value !== null) {
         field.value = value;
     }
 }
@@ -163,7 +219,6 @@ function readBuilderTheme() {
         weddingId,
         date: data.get("date") || fallbackWedding.date,
         theme: {
-            concept: BASE_CONCEPT,
             primaryColor: data.get("primaryColor") || "#c9974f",
             blocks: {
                 cover: data.get("blockCover"),
@@ -183,33 +238,106 @@ function readBuilderTheme() {
     };
 }
 
-function createPreviewConfig() {
-    const builderTheme = readBuilderTheme();
-    const config = clone(fallbackWedding);
-
-    config.weddingId = builderTheme.weddingId;
-    config.date = builderTheme.date;
-    config.theme = {
-        ...(config.theme || {}),
-        ...builderTheme.theme
-    };
-
-    return config;
-}
-
-function createSavePayload() {
+function createCustomerConfig() {
     const data = new FormData(form);
     const builderTheme = readBuilderTheme();
+    const groomNickname = readText(data, "groomNickname");
+    const brideNickname = readText(data, "brideNickname");
 
     return {
         weddingId: builderTheme.weddingId,
         date: builderTheme.date,
+        location: normalizeLocationProvince(data.get("locationProvince")),
         theme: builderTheme.theme,
+        groom: {
+            nickname: groomNickname,
+            fullName: readText(data, "groomFullName"),
+            father: readText(data, "groomFather"),
+            mother: readText(data, "groomMother")
+        },
+        bride: {
+            nickname: brideNickname,
+            fullName: readText(data, "brideFullName"),
+            father: readText(data, "brideFather"),
+            mother: readText(data, "brideMother")
+        },
+        sectionSubtitles: {
+            about: readText(data, "subtitleAbout"),
+            timeline: readText(data, "subtitleTimeline"),
+            gallery: readText(data, "subtitleGallery"),
+            wish: readText(data, "subtitleWish"),
+            gift: readText(data, "subtitleGift"),
+            countdown: readText(data, "subtitleCountdown"),
+            thanks: readText(data, "subtitleThanks")
+        },
+        ceremony: {
+            bride: {
+                time: readText(data, "brideCeremonyTime"),
+                meal: {
+                    time: formatMealTime(data.get("brideMealDate"), data.get("brideMealTime"))
+                }
+            },
+            groom: {
+                time: readText(data, "groomCeremonyTime"),
+                meal: {
+                    time: formatMealTime(data.get("groomMealDate"), data.get("groomMealTime"))
+                }
+            }
+        },
         builder: {
-            groomNickname: data.get("groomNickname") || "",
-            brideNickname: data.get("brideNickname") || ""
+            groomNickname,
+            brideNickname
         }
     };
+}
+
+function createPreviewConfig() {
+    const config = clone(fallbackWedding);
+    const customerConfig = createCustomerConfig();
+
+    return {
+        ...config,
+        ...customerConfig,
+        theme: {
+            ...(config.theme || {}),
+            ...(customerConfig.theme || {})
+        },
+        groom: {
+            ...(config.groom || {}),
+            ...(customerConfig.groom || {})
+        },
+        bride: {
+            ...(config.bride || {}),
+            ...(customerConfig.bride || {})
+        },
+        sectionSubtitles: {
+            ...(config.sectionSubtitles || {}),
+            ...(customerConfig.sectionSubtitles || {})
+        },
+        ceremony: {
+            ...(config.ceremony || {}),
+            bride: {
+                ...(config.ceremony?.bride || {}),
+                ...(customerConfig.ceremony?.bride || {}),
+                meal: {
+                    ...(config.ceremony?.bride?.meal || {}),
+                    ...(customerConfig.ceremony?.bride?.meal || {})
+                }
+            },
+            groom: {
+                ...(config.ceremony?.groom || {}),
+                ...(customerConfig.ceremony?.groom || {}),
+                meal: {
+                    ...(config.ceremony?.groom?.meal || {}),
+                    ...(customerConfig.ceremony?.groom?.meal || {})
+                }
+            }
+        }
+    };
+}
+
+function createSavePayload() {
+    return createCustomerConfig();
 }
 
 function fillBuilderForm(config = {}) {
@@ -221,9 +349,16 @@ function fillBuilderForm(config = {}) {
     editingWeddingId = config.weddingId || editingWeddingId;
     weddingIdInput.value = editingWeddingId;
 
-    setControlValue("groomNickname", builder.groomNickname);
-    setControlValue("brideNickname", builder.brideNickname);
+    setControlValue("groomNickname", builder.groomNickname || config.groom?.nickname);
+    setControlValue("brideNickname", builder.brideNickname || config.bride?.nickname);
+    setControlValue("groomFullName", config.groom?.fullName);
+    setControlValue("groomFather", config.groom?.father);
+    setControlValue("groomMother", config.groom?.mother);
+    setControlValue("brideFullName", config.bride?.fullName);
+    setControlValue("brideFather", config.bride?.father);
+    setControlValue("brideMother", config.bride?.mother);
     setControlValue("date", config.date);
+    setControlValue("locationProvince", getProvinceFromLocation(config.location));
     setControlValue("primaryColor", theme.primaryColor);
     setControlValue("blockCover", blocks.cover);
     setControlValue("blockPoster", blocks.poster);
@@ -235,6 +370,24 @@ function fillBuilderForm(config = {}) {
     setControlValue("blockDivider", blocks.divider);
     setControlValue("fontBody", fonts.body);
     setControlValue("fontNickname", fonts.nickname);
+
+    const subtitles = config.sectionSubtitles || {};
+    setControlValue("subtitleAbout", subtitles.about);
+    setControlValue("subtitleTimeline", subtitles.timeline);
+    setControlValue("subtitleGallery", subtitles.gallery);
+    setControlValue("subtitleWish", subtitles.wish);
+    setControlValue("subtitleGift", subtitles.gift);
+    setControlValue("subtitleCountdown", subtitles.countdown);
+    setControlValue("subtitleThanks", Array.isArray(subtitles.thanks) ? subtitles.thanks.join("\n") : subtitles.thanks);
+
+    const brideMeal = splitMealTime(config.ceremony?.bride?.meal?.time);
+    const groomMeal = splitMealTime(config.ceremony?.groom?.meal?.time);
+    setControlValue("brideCeremonyTime", config.ceremony?.bride?.time);
+    setControlValue("groomCeremonyTime", config.ceremony?.groom?.time);
+    setControlValue("brideMealDate", brideMeal.date);
+    setControlValue("brideMealTime", brideMeal.time);
+    setControlValue("groomMealDate", groomMeal.date);
+    setControlValue("groomMealTime", groomMeal.time);
 }
 
 async function loadConfigForEdit() {

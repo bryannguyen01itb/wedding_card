@@ -45,13 +45,12 @@
 
         <form id="adminForm" class="admin-form is-hidden">
             <section class="panel">
-                <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, concept, màu chủ đạo và nhạc.</p></div></div>
+                <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>
                 <div class="grid two">
                     <label>Wedding ID<input name="weddingId" required></label>
                     <label>Ngày cưới<input name="date" type="date" required></label>
                     <label>Địa điểm<input name="location"></label>
                     <label>Logo header<input name="header.logo"></label>
-                    <label>Concept<select name="theme.concept"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
                     <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
                     <label class="span-2">Link nhạc<input name="music" placeholder="https://...mp3 hoặc music/1_doi.mp3"></label>
                 </div>
@@ -64,10 +63,11 @@
                     <label>Ảnh preview gửi link<input name="preview.image"></label>
                     <label>Ảnh about<input name="aboutCard.image"></label>
                     <label>Ảnh timeline<input name="ceremony.image"></label>
-                    <label>Ảnh nền concept<input name="theme.concepts.active.images.background"></label>
-                    <label>Ảnh cover concept<input name="theme.concepts.active.images.cover"></label>
-                    <label>Ảnh countdown concept<input name="theme.concepts.active.images.countdown"></label>
-                    <label>Nút mở cover<input name="theme.concepts.active.cover.openLabel"></label>
+                    <label>Nhóm ảnh block<select id="mediaConcept"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                    <label>Ảnh nền block<input name="theme.concepts.active.images.background"></label>
+                    <label>Ảnh cover block<input name="theme.concepts.active.images.cover"></label>
+                    <label>Ảnh countdown block<input name="theme.concepts.active.images.countdown"></label>
+                    <label>Nút mở cover block<input name="theme.concepts.active.cover.openLabel"></label>
                 </div>
             </section>
 

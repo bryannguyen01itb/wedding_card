@@ -1,21 +1,26 @@
 # CSS structure
 
-CSS is intentionally split into two layers:
+CSS hiện được chia thành 2 lớp chính:
 
-1. `parts/` contains the original site styles and full concept styles.
-2. `blocks/` contains the safer long-term overrides used by the block builder.
+1. `parts/` chứa style nền, style concept 1 cố định và một số file legacy cần giữ để tương thích.
+2. `blocks/` chứa CSS chính cho block builder. Khi sửa layout từng block, ưu tiên sửa trong thư mục này.
 
-Import order matters and is controlled by `style.css`:
+Thứ tự import nằm trong `style.css`:
 
 ```txt
-base/common parts
-concept-1..4 full styles
-block-concepts.css     legacy concept extraction
-block-builder.css      font classes + shared block fixes
-blocks/index.css       final maintained block CSS
+parts/base.css
+parts/cover.css
+parts/sections.css
+parts/countdown-thanks.css
+parts/animations.css
+parts/concept-1-classic.css      base cố định cho wish/gift/thanks
+parts/gift-polish.css
+parts/block-concepts.css         lớp chuyển tiếp từ concept cũ sang block
+parts/block-builder.css          font classes + shared block fixes
+blocks/index.css                 CSS block đang được bảo trì chính
 ```
 
-When fixing a block, prefer these files first:
+Khi cần sửa block, ưu tiên các file này:
 
 | Block | File |
 | --- | --- |
@@ -23,6 +28,12 @@ When fixing a block, prefer these files first:
 | About | `blocks/about-blocks.css` |
 | Timeline | `blocks/timeline-blocks.css` |
 | Countdown | `blocks/countdown-blocks.css` |
-| Shared title/background/subtitle | `blocks/theme-unifier.css` |
+| Tiêu đề, subtitle, nền chung | `blocks/theme-unifier.css` |
 
-Avoid editing `block-concepts.css` unless you are intentionally migrating old concept CSS.
+Ghi chú quan trọng:
+
+- `theme.concept` không còn dùng nữa.
+- Các section khách chọn sẽ lấy giao diện từ `theme.blocks`.
+- `wish`, `gift`, `thanks` dùng style cố định theo concept 1 để tổng thể không bị lẫn màu/lẫn bố cục.
+- `theme.concepts` vẫn còn cần để lưu media riêng cho từng block concept, ví dụ ảnh cover và ảnh countdown của concept 1-4.
+- Tránh sửa `parts/block-concepts.css` nếu không có nhu cầu migrate CSS cũ, vì file này đang là lớp tương thích cho các block đã tách.

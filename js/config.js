@@ -10,9 +10,8 @@ export let wedding = {
     music: "music/1_doi.mp3",
 
     theme: {
-        // concept chỉ còn là nền mặc định cho các phần cố định như wish/gift/thanks.
-        // Các section chính sẽ lấy giao diện theo theme.blocks bên dưới.
-        concept: "concept-1",
+        // Các section chính lấy giao diện theo theme.blocks.
+        // Wish/gift/thanks dùng style cố định concept 1 để thiệp luôn thống nhất.
         primaryColor: "#8fb8a8",
         blocks: {
             cover: "concept-1",

@@ -99,27 +99,6 @@
     transform: translateX(-50%) translateY(.03rem);
 }
 
-body.concept-2 .gift-box__body,
-body.concept-2 .gift-box__lid,
-body.concept-3 .gift-box__body,
-body.concept-3 .gift-box__lid {
-    background: linear-gradient(135deg, rgba(var(--primary-rgb), .78), var(--primary-color));
-}
-
-body.concept-2 .gift-box__ribbon,
-body.concept-2 .gift-box__ribbon::before,
-body.concept-2 .gift-box__ribbon::after,
-body.concept-3 .gift-box__ribbon,
-body.concept-3 .gift-box__ribbon::before,
-body.concept-3 .gift-box__ribbon::after {
-    background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.38));
-    border-color: rgba(var(--primary-rgb), .34);
-}
-
-body.concept-2 .gift-box__text,
-body.concept-3 .gift-box__text {
-    color: var(--primary-color);
-}
 
 .gift-modal__content {
     border: 1px solid rgba(var(--primary-rgb), .16);

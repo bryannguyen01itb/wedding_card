@@ -7,6 +7,7 @@ const CONCEPT_ALIASES = {
 };
 
 const CONCEPT_CLASSES = ["concept-1", "concept-2", "concept-3", "concept-4"];
+const FIXED_BASE_CONCEPT = "concept-1";
 const BUILDER_BLOCK_PREFIXES = [
     "block-cover-",
     "block-poster-",
@@ -171,12 +172,11 @@ function setColorVar(target, name, value) {
     setVar(target, name + "-rgb", rgb.r + ", " + rgb.g + ", " + rgb.b);
 }
 
-function applyConceptClass(concept) {
-    const activeConcept = normalizeConcept(concept);
+function applyConceptClass() {
     document.body.classList.remove(...CONCEPT_CLASSES);
-    document.body.classList.add(activeConcept);
-    document.body.dataset.concept = activeConcept;
-    return activeConcept;
+    document.body.classList.add(FIXED_BASE_CONCEPT);
+    document.body.dataset.concept = FIXED_BASE_CONCEPT;
+    return FIXED_BASE_CONCEPT;
 }
 
 function normalizeToken(value, fallback = "default") {
@@ -297,7 +297,7 @@ export function applyTheme(theme = {}) {
     const rgb = hexToRgb(primaryColor);
     const rootStyle = document.documentElement.style;
     const bodyStyle = document.body.style;
-    const activeConcept = applyConceptClass(themeConfig?.concept);
+    const activeConcept = applyConceptClass();
     const conceptConfig = themeConfig?.concepts?.[activeConcept] || {};
 
     rootStyle.setProperty("--primary-color", primaryColor);
