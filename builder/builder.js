@@ -32,6 +32,16 @@ function removeVietnamese(value) {
         .replace(/Đ/g, "D");
 }
 
+
+function getDisplayName(value) {
+    const words = String(value || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    return words[words.length - 1] || "";
+}
+
 function slugify(value) {
     return removeVietnamese(value)
         .toLowerCase()
@@ -102,8 +112,8 @@ function readText(data, name) {
 
 function buildWeddingId(data) {
     return [
-        slugify(data.get("groomNickname")),
-        slugify(data.get("brideNickname")),
+        slugify(getDisplayName(data.get("groomNickname"))),
+        slugify(getDisplayName(data.get("brideNickname"))),
         getYear(data.get("date"))
     ].filter(Boolean).join("-");
 }

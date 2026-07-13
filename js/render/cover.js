@@ -2,6 +2,29 @@ import { wedding } from "../config.js";
 import { setText, setSrc, setSplitName, createEl } from "../utils/dom.js";
 import { formatDate } from "../utils/date.js";
 
+
+function getInitial(value) {
+    const words = String(value || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+    const displayName = words[words.length - 1] || "";
+
+    return displayName.charAt(0).toLocaleUpperCase("vi-VN");
+}
+
+function getAutoLogo() {
+    const groomInitial = getInitial(wedding.groom?.nickname);
+    const brideInitial = getInitial(wedding.bride?.nickname);
+    return [groomInitial, brideInitial].filter(Boolean).join(" & ");
+}
+
+function getHeaderLogo() {
+    const configuredLogo = String(wedding.header?.logo || "").trim();
+    const shouldAutoLogo = !configuredLogo || configuredLogo === "C & C";
+    return shouldAutoLogo ? getAutoLogo() || configuredLogo : configuredLogo;
+}
+
 const MENU_SECTIONS = [
     ["saveDateSection", () => wedding.sections.saveDate],
     ["aboutSection", () => wedding.sections.about],
@@ -49,7 +72,7 @@ export function renderHeader() {
     header.textContent = "";
     header.appendChild(createMenuButton());
     header.appendChild(createMenuPanel());
-    header.appendChild(createEl("div", "invitation__logo", wedding.header.logo));
+    header.appendChild(createEl("div", "invitation__logo", getHeaderLogo()));
 }
 
 export function renderCover() {

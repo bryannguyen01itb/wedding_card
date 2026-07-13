@@ -43,7 +43,7 @@ body.block-cover-concept-1 .cover::after,
 
 body.block-cover-concept-1 .cover .cover__headline,
 .cover.block-skin-concept-1 .cover__headline {
-    color: #8f8768 !important;
+    color: var(--primary-color) !important;
     font-family: "Lora", Georgia, serif !important;
     font-size: .34rem !important;
     letter-spacing: .12rem !important;
@@ -523,7 +523,7 @@ body.block-cover-concept-4 .cover .cover__footer .women_name,
 body.block-cover-concept-4 .cover .cover__footer .heartbeat,
 .cover.block-skin-concept-4 .cover__footer .heartbeat {
     color: #fff !important;
-    background: var(--na01-gold, #928362) !important;
+    background: var(--primary-color) !important;
 }
 
 body.block-cover-concept-4 .cover .cover__date,
@@ -596,4 +596,22 @@ body.block-cover-concept-4 .cover .cover__date,
 body.block-cover-concept-4 .cover .card,
 .cover.block-skin-concept-4 .card {
     bottom: .82rem !important;
+}
+
+/* Primary color sync for cover blocks. */
+body.block-cover-concept-1 .cover .cover__headline,
+.cover.block-skin-concept-1 .cover__headline,
+body.block-cover-concept-4 .cover .cover__headline,
+.cover.block-skin-concept-4 .cover__headline {
+    color: var(--primary-color) !important;
+}
+
+body.block-cover-concept-4 .cover .cover__footer .heartbeat,
+.cover.block-skin-concept-4 .cover__footer .heartbeat {
+    background: var(--primary-color) !important;
+}
+
+body.block-cover-concept-4 .cover::after,
+.cover.block-skin-concept-4::after {
+    color: var(--primary-color) !important;
 }
