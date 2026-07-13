@@ -270,11 +270,7 @@ Thu tu CSS trong `css/style.css` rat quan trong. Cac file sau duoc import cuoi d
 ```txt
 css/parts/block-concepts.css
 css/parts/block-builder.css
-css/blocks/cover-blocks.css
-css/blocks/about-blocks.css
-css/blocks/timeline-blocks.css
-css/blocks/countdown-blocks.css
-css/blocks/theme-unifier.css
+css/blocks/index.css     import toan bo CSS block duoc bao tri
 ```
 
 Quy uoc sua CSS:
@@ -288,7 +284,7 @@ Quy uoc sua CSS:
 | Nen trang, title/subtitle chung | `css/blocks/theme-unifier.css` |
 | CSS concept cu | `css/parts/concept-*.css` |
 
-Khong nen xoa manh CSS cu trong `css/parts/block-builder.css` va `css/parts/block-concepts.css` neu chua test toan bo Firebase, vi co the con config cu dang tham chieu class cu.
+Khong nen xoa manh CSS cu trong `css/parts/block-builder.css` va `css/parts/block-concepts.css` neu chua test toan bo Firebase, vi co the con config cu dang tham chieu class cu. Xem them `css/README.md` de nam thu tu cascade.
 
 ## Gallery
 

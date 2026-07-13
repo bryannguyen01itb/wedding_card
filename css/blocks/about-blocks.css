@@ -242,3 +242,16 @@ body .about.block-skin-concept-4 .about-portrait__text strong {
     text-align: center !important;
     word-break: keep-all !important;
 }
+
+/* Soft depth for concept 3 about cards on the shared white background. */
+.about.block-skin-concept-3 .person,
+body .about.block-skin-concept-3 .person {
+    border: 1px solid rgba(var(--primary-rgb), .08) !important;
+    box-shadow: 0 .22rem .62rem rgba(54, 43, 32, .1) !important;
+}
+
+.about.block-skin-concept-3 .person img,
+body .about.block-skin-concept-3 .person img {
+    box-shadow: 0 .16rem .42rem rgba(54, 43, 32, .12) !important;
+}
+
