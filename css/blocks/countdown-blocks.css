@@ -203,3 +203,25 @@ body.block-countdown-concept-4 .countdown .count-item span,
     color: inherit !important;
     text-shadow: none !important;
 }
+
+/* Keep countdown subtitle readable on photo backgrounds across all block choices. */
+body[class*="block-"] .countdown .section-subtitle,
+body.block-countdown-concept-1 .countdown .section-subtitle,
+.countdown.block-skin-concept-1 .section-subtitle,
+body.block-countdown-concept-2 .countdown .section-subtitle,
+.countdown.block-skin-concept-2 .section-subtitle,
+body.block-countdown-concept-3 .countdown .section-subtitle,
+.countdown.block-skin-concept-3 .section-subtitle,
+body.block-countdown-concept-4 .countdown .section-subtitle,
+.countdown.block-skin-concept-4 .section-subtitle {
+    display: block !important;
+    max-width: 6.5rem !important;
+    margin: .16rem auto .42rem !important;
+    padding: .08rem .22rem !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    line-height: 1.55 !important;
+    text-shadow: 0 .04rem .1rem rgba(0, 0, 0, .95), 0 .1rem .28rem rgba(0, 0, 0, .78), 0 0 .04rem rgba(0, 0, 0, .9) !important;
+    backdrop-filter: blur(2px) !important;
+}
