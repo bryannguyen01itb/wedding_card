@@ -314,3 +314,23 @@ button.small {
     padding: 0 14px;
     font-size: 13px;
 }
+
+/* Admin layout fixes */
+.hero-card {
+    min-width: 0;
+}
+
+.hero-card p,
+#previewLink {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+#previewLink {
+    display: inline-block;
+}
+
+.sticky-actions {
+    padding: 16px 0 calc(18px + env(safe-area-inset-bottom));
+}

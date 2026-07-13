@@ -86,7 +86,9 @@ export function renderGallery(config, weddingDate) {
     if (!grid) return;
 
     const { intro, photos } = normalizeGalleryConfig(config);
-    const fixedConcept = document.body.classList.contains("concept-4");
+    const fixedConcept = document.body.classList.contains("concept-2")
+        || document.body.classList.contains("concept-3")
+        || document.body.classList.contains("concept-4");
     const validPhotos = photos.filter(photo => photo?.src);
     const visiblePhotos = fixedConcept
         ? validPhotos.slice(0, FIXED_GALLERY_PHOTO_LIMIT)

@@ -1112,13 +1112,15 @@ body.concept-4 #calendarDays .active {
 body.concept-4 .calendar .active::before,
 body.concept-4 .days .active::before,
 body.concept-4 #calendarDays .active::before {
-    content: "\\F415" !important;
+    content: "\F415" !important;
     position: absolute;
     left: 50%;
     top: 50%;
     width: 1.02rem;
     height: 1.02rem;
-    transform: translate(-50%, -50%) !important;
+    transform: translate(-50%, -48%) scale(1);
+    animation: calendarHeartBeat 1.15s ease-in-out infinite;
+    transform-origin: center;
     display: grid;
     place-items: center;
     color: var(--primary-color);
@@ -1209,73 +1211,52 @@ body.concept-4 .countdown > * {
 }
 
 body.concept-4 .gallery {
-    padding-left: .28rem !important;
-    padding-right: .28rem !important;
+    padding: .82rem .2rem 1.18rem !important;
     overflow: hidden;
+    background: #fffdf8;
+}
+
+
+body.concept-4 .gallery .section-title,
+body.concept-4 .gallery .section-subtitle {
+    display: block !important;
+}
+
+body.concept-4 .gallery .section-title {
+    margin-bottom: .16rem;
+}
+
+body.concept-4 .gallery .section-subtitle {
+    margin: 0 auto .38rem;
+    color: rgba(var(--primary-rgb), .82);
+}
+
+body.concept-4 .gallery-frame--1,
+body.concept-4 .gallery-frame--5 {
+    border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
 }
 
 body.concept-4 .gallery-poster--fixed.gallery-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr) !important;
-    grid-auto-rows: .74rem !important;
-    gap: .08rem !important;
-    min-height: 12.4rem;
-    padding: .08rem 0 .08rem !important;
+    grid-template-columns: repeat(12, 1fr) !important;
+    grid-auto-rows: .42rem !important;
+    gap: .1rem !important;
+    min-height: 17rem;
+    padding: .08rem !important;
     background: #fffdf8 !important;
-}
-
-body.concept-4 .gallery-intro {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    grid-column: 1 / span 3 !important;
-    grid-row: 1 / span 3 !important;
-    display: grid !important;
-    align-content: center;
-    justify-items: center;
-    min-height: 0 !important;
-    padding: .16rem .1rem !important;
-    background: rgba(var(--primary-rgb), .1) !important;
-    border: 1px solid rgba(var(--primary-rgb), .2) !important;
-    box-shadow: none !important;
-    text-align: center;
-}
-
-body.concept-4 .gallery-intro::after {
-    display: none !important;
-}
-
-body.concept-4 .gallery-intro__script,
-body.concept-4 .gallery-intro__title,
-body.concept-4 .gallery-intro__eyebrow,
-body.concept-4 .gallery-intro__date {
-    color: var(--primary-color) !important;
-    text-shadow: none !important;
-}
-
-body.concept-4 .gallery-intro__eyebrow,
-body.concept-4 .gallery-intro__date {
-    font-size: .15rem !important;
-    letter-spacing: .04rem;
-}
-
-body.concept-4 .gallery-intro__script {
-    font-size: .5rem !important;
-    line-height: .8;
-}
-
-body.concept-4 .gallery-intro__title {
-    font-size: .42rem !important;
-    line-height: 1;
+    border-radius: .22rem;
+    border: 0;
 }
 
 body.concept-4 .gallery-frame {
     position: relative;
+    z-index: 1;
+    margin: 0;
+    overflow: hidden;
     border: .045rem solid #fff !important;
     background: #fff;
-    box-shadow: 0 10px 22px rgba(58, 46, 34, .14) !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
 }
 
 body.concept-4 .gallery-frame img {
@@ -1285,72 +1266,147 @@ body.concept-4 .gallery-frame img {
 }
 
 body.concept-4 .gallery-frame--1 {
-    grid-column: 4 / span 5 !important;
-    grid-row: 1 / span 4 !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 1 / span 6 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
+}
+
+body.concept-4 .gallery-intro {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 2;
+    grid-column: 1 / -1 !important;
+    grid-row: 7 / span 2 !important;
+    display: grid !important;
+    align-content: center;
+    justify-items: center;
+    min-height: 0 !important;
+    padding: .04rem .28rem !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: center;
+}
+
+body.concept-4 .gallery-intro::after {
+    display: none !important;
+}
+
+body.concept-4 .gallery-intro__eyebrow,
+body.concept-4 .gallery-intro__line,
+body.concept-4 .gallery-intro__date {
+    display: none !important;
+}
+
+body.concept-4 .gallery-intro__script {
+    color: #322c28 !important;
+    font-family: "Great Vibes", cursive;
+    font-size: .54rem !important;
+    line-height: .76;
+    text-shadow: none !important;
+}
+
+body.concept-4 .gallery-intro__title {
+    margin-top: .04rem;
+    color: var(--primary-color) !important;
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem !important;
+    font-weight: 700;
+    letter-spacing: .12rem;
+    line-height: 1;
+    text-shadow: none !important;
+    text-transform: uppercase;
+}
+
+body.concept-4 .gallery-frame--2,
+body.concept-4 .gallery-frame--3,
+body.concept-4 .gallery-frame--4 {
+    grid-row: 9 / span 6 !important;
 }
 
 body.concept-4 .gallery-frame--2 {
-    grid-column: 1 / span 3 !important;
-    grid-row: 4 / span 4 !important;
+    grid-column: 2 / span 3 !important;
 }
 
 body.concept-4 .gallery-frame--3 {
-    grid-column: 4 / span 3 !important;
-    grid-row: 5 / span 4 !important;
+    grid-column: 5 / span 4 !important;
 }
 
 body.concept-4 .gallery-frame--4 {
-    grid-column: 7 / span 2 !important;
-    grid-row: 5 / span 4 !important;
+    grid-column: 9 / span 3 !important;
+}
+
+body.concept-4 .gallery-poster--fixed.gallery-grid::before {
+    content: "IT MUST\A BE HEAVEN";
+    grid-column: 1 / span 5;
+    grid-row: 17 / span 4;
+    z-index: 2;
+    align-self: center;
+    white-space: pre-line;
+    color: #222;
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    font-family: "Lora", Georgia, serif;
+    font-size: .36rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: .02rem;
+    text-align: center;
+}
+
+body.concept-4 .gallery-poster--fixed.gallery-grid::after {
+    content: "Cent\A chemins\A sont tous vers toi";
+    grid-column: 7 / -1;
+    grid-row: 27 / span 5;
+    z-index: 3;
+    align-self: center;
+    white-space: pre-line;
+    color: #fff;
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    font-family: "Great Vibes", cursive;
+    font-size: .58rem;
+    font-weight: 400;
+    line-height: .86;
+    text-align: center;
+    text-shadow: 0 5px 18px rgba(0, 0, 0, .32);
 }
 
 body.concept-4 .gallery-frame--5 {
-    grid-column: 1 / span 4 !important;
-    grid-row: 8 / span 5 !important;
+    grid-column: 2 / span 4 !important;
+    grid-row: 22 / span 9 !important;
+    border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
 }
 
 body.concept-4 .gallery-frame--6 {
     grid-column: 5 / span 4 !important;
-    grid-row: 9 / span 4 !important;
+    grid-row: 17 / span 12 !important;
+    z-index: 2;
 }
 
 body.concept-4 .gallery-frame--7 {
-    grid-column: 1 / -1 !important;
-    grid-row: 13 / span 6 !important;
+    grid-column: 9 / span 3 !important;
+    grid-row: 20 / span 8 !important;
+    z-index: 2;
 }
 
-body.concept-4 .gallery-poster--fixed.gallery-grid::before,
-body.concept-4 .gallery-poster--fixed.gallery-grid::after {
-    display: grid !important;
-    place-items: center;
-    min-height: 0;
-    box-shadow: 0 10px 22px rgba(58, 46, 34, .14);
-}
-
-body.concept-4 .gallery-poster--fixed.gallery-grid::before {
-    content: "Love";
-    grid-column: 7 / span 2;
-    grid-row: 9 / span 2;
-    color: #fff;
-    background: linear-gradient(135deg, rgba(var(--primary-rgb), .9), rgba(var(--primary-rgb), .58)) !important;
-    border: .045rem solid #fff;
-    font-family: "Great Vibes", cursive;
-    font-size: .5rem;
-    line-height: 1;
-}
-
-body.concept-4 .gallery-poster--fixed.gallery-grid::after {
-    content: "Story";
-    grid-column: 5 / span 2;
-    grid-row: 4 / span 1;
-    color: rgba(var(--primary-rgb), .95);
-    background: rgba(255, 255, 255, .88) !important;
-    border: .045rem solid #fff;
-    font-family: "Lora", Georgia, serif;
-    font-size: .2rem;
-    font-weight: 700;
-    letter-spacing: .04rem;
-    text-transform: uppercase;
+body.concept-4 .gallery-frame--5::before,
+body.concept-4 .gallery-frame--6::before,
+body.concept-4 .gallery-frame--7::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .16));
+    pointer-events: none;
 }
 
 body.concept-4 .gallery-side-text,

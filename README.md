@@ -227,31 +227,6 @@ service cloud.firestore {
 
 Nếu muốn thêm lớp kiểm tra ngay trên giao diện admin, mở `admin/admin.js` và thêm email vào `ADMIN_EMAILS`. Lưu ý: đây chỉ là lớp kiểm tra giao diện, bảo mật thật vẫn là Firestore Rules.
 
-## Trang nhập config local
-
-Dùng trang này khi muốn tạo/sửa config khách mà không cần sửa `js/config.js` rồi chạy lệnh upload thủ công. Trang admin chỉ chạy trên máy bạn và dùng `scripts/serviceAccountKey.json` để ghi Firebase, không nên deploy trang này cho khách.
-
-```bash
-npm run admin
-```
-
-Mở:
-
-```txt
-http://localhost:5050
-```
-
-Cách dùng nhanh:
-
-1. Nhập `weddingId`, ví dụ `nam-linh-2026`.
-2. Bấm `Tải` để lấy config cũ nếu đã có, hoặc dùng form mẫu nếu là khách mới.
-3. Dán link ảnh/nhạc vào các ô tương ứng. Link có thể là Cloudinary, GitHub Release, hoặc đường dẫn local như `img/anh_1.jpg`.
-4. Chọn concept, màu chủ đạo, ngày cưới, thông tin cô dâu chú rể.
-5. Bấm `Lưu Firebase`.
-6. Bấm link thiệp trong khung trên cùng để xem thử.
-
-Màu mặc định cho form mới là vàng đất hơi cam: `#c9974f`.
-
 ## Deploy
 
 Có thể upload toàn bộ thư mục lên hosting tĩnh như Cloudflare Pages, GitHub Pages, Netlify, Vercel hoặc Firebase Hosting.

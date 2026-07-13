@@ -202,7 +202,7 @@ width: .78rem;
     border-radius: 50%;
     color: #fff;
     background: var(--botanical-rose);
-    font-size: .36rem;
+    font-size: .3rem;
     box-shadow: 0 10px 22px rgba(var(--botanical-rose-rgb), .28);
 }
 
@@ -996,4 +996,200 @@ body.concept-2 .section-subtitle {
 body.concept-2 .countdown .section-subtitle {
     color: rgba(var(--botanical-ink-rgb), .78);
     text-shadow: none;
+}
+
+/* Concept 2 editorial gallery */
+body.concept-2 .gallery {
+    padding: .72rem .22rem 1.1rem;
+    background: #fbfaf6;
+}
+
+body.concept-2 .gallery-poster--fixed.gallery-grid {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: .12rem;
+    padding: .18rem !important;
+    border: 0;
+    border-radius: .18rem;
+    background: #fff;
+    box-shadow: none;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    overflow: hidden;
+    border: .045rem solid #fff;
+    border-radius: 0;
+    background: #f4f1ec;
+    box-shadow: 0 14px 30px rgba(var(--botanical-ink-rgb), .08);
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.04) contrast(1.02) brightness(1.01);
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--1 {
+    order: 1;
+    flex: 0 0 100%;
+    aspect-ratio: 3 / 2;
+    min-height: 0 !important;
+    height: auto !important;
+    border: .055rem solid #fff;
+    box-shadow: 0 16px 34px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--1::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .2), transparent 44%, rgba(0, 0, 0, .14));
+    pointer-events: none;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro {
+    order: 2;
+    margin-top: .8rem;
+    position: relative !important;
+    inset: auto !important;
+    flex: 0 0 calc(27% - .08rem);
+    display: grid !important;
+    align-content: center;
+    justify-items: start;
+    min-height: 1.42rem;
+    padding: .08rem .04rem .04rem .08rem;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro__eyebrow {
+    color: rgba(var(--botanical-ink-rgb), .58);
+    font-family: "Lora", Georgia, serif;
+    font-size: .1rem;
+    letter-spacing: .06rem;
+    text-transform: uppercase;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro__script {
+    margin-top: .08rem;
+    color: var(--botanical-ink);
+    font-family: "Parisienne", "Great Vibes", cursive;
+    font-size: .36rem;
+    line-height: .8;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro__title {
+    margin-top: .04rem;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .16rem;
+    font-weight: 600;
+    letter-spacing: .03rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro__line {
+    width: .7rem;
+    height: 1px;
+    margin: .12rem 0 .08rem;
+    background: rgba(var(--botanical-ink-rgb), .24);
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-intro__date {
+    color: rgba(var(--botanical-ink-rgb), .52);
+    font-family: "Lora", Georgia, serif;
+    font-size: .1rem;
+    font-weight: 600;
+    letter-spacing: .05rem;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--3 {
+    order: 3;
+    margin-top: .8rem;
+    flex: 0 0 calc(46% - .08rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body.concept-2 .gallery-poster--fixed.gallery-grid::before {
+    content: "109\A PHOTOS";
+    order: 4;
+    margin-top: .8rem;
+    flex: 0 0 calc(27% - .08rem);
+    display: grid;
+    place-items: center;
+    min-height: 1.42rem;
+    white-space: pre-line;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .16rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: center;
+    letter-spacing: .03rem;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--2 {
+    order: 5;
+    flex: 0 0 calc(27% - .08rem);
+    aspect-ratio: 2 / 3;
+    height: auto !important;
+    transform: translateY(-1.2rem);
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--4 {
+    order: 6;
+    flex: 0 0 calc(46% - .08rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--5 {
+    order: 7;
+    flex: 0 0 calc(27% - .08rem);
+    aspect-ratio: 1 / 1.2;
+    height: auto !important;
+    transform: translateY(-.5rem);
+}
+
+body.concept-2 .gallery-poster--fixed.gallery-grid::after {
+    content: "SAFE OF DATE";
+    order: 8;
+    flex: 0 0 100%;
+    display: block;
+    margin: 0 0 .34rem 0;
+    color: rgba(var(--botanical-ink-rgb), .45);
+    font-family: "Lora", Georgia, serif;
+    font-size: .18rem;
+    font-weight: 700;
+    letter-spacing: .12rem;
+    text-align: center;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--6 {
+    order: 9;
+    flex: 0 0 calc(50% - .06rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-frame--7 {
+    order: 10;
+    flex: 0 0 calc(50% - .06rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body.concept-2 .gallery-poster--fixed .gallery-side-text,
+body.concept-2 .gallery-poster--fixed .gallery-fan {
+    display: none !important;
 }

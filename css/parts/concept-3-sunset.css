@@ -413,7 +413,7 @@ body.concept-3 .save-date {
 }
 
 body.concept-3 .save-title {
-    font-size: .34rem;
+    font-size: .28rem;
 }
 
 body.concept-3 .month-year {
@@ -652,6 +652,192 @@ body.concept-3 .gallery-frame img {
 body.concept-3 .gallery-fan {
     opacity: .18;
     background: repeating-conic-gradient(from -18deg, rgba(var(--sunset-coral-rgb), .5) 0deg 2deg, transparent 2deg 10deg);
+}
+
+
+body.concept-3 .gallery-poster--fixed.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr) !important;
+    grid-auto-rows: .42rem !important;
+    gap: .16rem !important;
+    min-height: 17.6rem;
+    padding: .12rem .1rem .52rem !important;
+    border: 0;
+    border-radius: 0;
+    background: #f8eddf !important;
+    box-shadow: none;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: .04rem solid rgba(255, 255, 255, .86);
+    border-radius: 0;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(.92) contrast(1.02) brightness(.96);
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--1 {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 / span 5 !important;
+    border: .02rem solid #fff;
+    border-radius: .01rem;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--1::after,
+body.concept-3 .gallery-poster--fixed .gallery-frame--5::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .14), rgba(0, 0, 0, .28));
+    pointer-events: none;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro {
+    position: relative !important;
+    inset: auto !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 6 / span 2 !important;
+    display: grid !important;
+    align-content: center;
+    justify-items: center;
+    min-height: 0;
+    padding: .04rem .42rem .02rem;
+    border: 0;
+    border-radius: 0;
+    background: #f8eddf;
+    box-shadow: none;
+    text-align: center;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__eyebrow {
+    display: none;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__script {
+    color: #7e5a42;
+    font-family: "Great Vibes", cursive;
+    font-size: .32rem;
+    line-height: .9;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__title {
+    max-width: 5.8rem;
+    color: #2c251f;
+    font-family: "Lora", Georgia, serif;
+    font-size: .32rem;
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: .01rem;
+    text-transform: none;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__title::before {
+    content: "TIMELESS Elegance";
+    display: block;
+    color: #7e5a42;
+    font-family: "Lora", Georgia, serif;
+    font-size: .34rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__line {
+    width: 1.05rem;
+    height: 1px;
+    margin: .08rem auto .04rem;
+    background: rgba(44, 37, 31, .28);
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-intro__date {
+    color: rgba(44, 37, 31, .54);
+    font-size: .15rem;
+    font-weight: 700;
+    letter-spacing: .08rem;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--2,
+body.concept-3 .gallery-poster--fixed .gallery-frame--3,
+body.concept-3 .gallery-poster--fixed .gallery-frame--4 {
+    grid-row: 8 / span 5 !important;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--2 {
+    grid-column: 2 / span 3 !important;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--3 {
+    grid-column: 5 / span 4 !important;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--4 {
+    grid-column: 9 / span 3 !important;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--5 {
+    grid-column: 1 / -1 !important;
+    grid-row: 14 / span 6 !important;
+    border: .02rem solid #fff;
+    border-radius: .01rem;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body.concept-3 .gallery-poster--fixed.gallery-grid::before {
+    content: "EXPERTISE and\A ARTISTRY";
+    grid-column: 3 / span 8;
+    grid-row: 16 / span 3;
+    z-index: 3;
+    align-self: center;
+    justify-self: center;
+    white-space: pre-line;
+    color: #fff;
+    font-family: "Lora", Georgia, serif;
+    font-size: .42rem;
+    font-weight: 500;
+    line-height: 1.05;
+    text-align: center;
+    text-shadow: 0 8px 24px rgba(0, 0, 0, .32);
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--6 {
+    grid-column: 2 / span 3 !important;
+    grid-row: 21 / span 5 !important;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-frame--7 {
+    grid-column: 9 / span 3 !important;
+    grid-row: 21 / span 5 !important;
+}
+
+body.concept-3 .gallery-poster--fixed.gallery-grid::after {
+    content: "LET US CAPTURE\A YOUR\A unforgettable\A MOMENTS";
+    grid-column: 5 / span 4;
+    grid-row: 21 / span 5;
+    display: grid;
+    place-items: center;
+    white-space: pre-line;
+    color: #2c251f;
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem;
+    line-height: 1.05;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+body.concept-3 .gallery-poster--fixed .gallery-side-text,
+body.concept-3 .gallery-poster--fixed .gallery-fan {
+    display: none !important;
 }
 
 body.concept-3 .wish {
