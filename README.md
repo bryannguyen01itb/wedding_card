@@ -1,207 +1,177 @@
-# Thiệp Cưới Online
+# Wedding Card Builder
 
-Thiệp mời cưới dạng trang web tĩnh, tối ưu cho mobile hiện đại với khung hiển thị tối đa 480px. Nội dung chính được cấu hình trong `js/config.js` để dễ thay thông tin cho từng cặp đôi.
+Du an thiep cuoi online dang chay theo huong 1 codebase dung cho nhieu thiep. Moi thiep duoc tach bang `weddingId`, cau hinh nam tren Firebase Firestore hoac fallback trong `js/config.js`.
 
-## Cấu trúc dự án
+Trang chinh toi uu cho mobile voi khung toi da 480px. Khach co the chon bo cuc tung block trong `builder/`, con ban dung `admin/` de sua thong tin chi tiet nhu anh, nhac, timeline, QR, gallery.
+
+## Cac trang trong du an
+
+| Trang | Duong dan local | Muc dich |
+| --- | --- | --- |
+| Thiep cuoi | `index.html?wedding=wedding-cp-4` | Link gui cho khach moi xem thiep |
+| Builder | `builder/index.html` | Khach chon mau, font va block giao dien |
+| Admin | `admin/index.html` | Ban dang nhap va sua config chi tiet tren Firebase |
+
+Sau khi deploy GitHub Pages/Cloudflare Pages, duong dan se tuong tu:
 
 ```txt
-├── index.html              # Trang chính
+https://domain-cua-ban/?wedding=wedding-cp-4
+https://domain-cua-ban/builder/
+https://domain-cua-ban/admin/
+```
+
+## Cau truc thu muc
+
+```txt
+├── index.html                  # Trang thiep cuoi
+├── builder/                    # Trang cho khach chon block giao dien
+├── admin/                      # Trang admin sua config Firebase
+├── functions/                  # Cloudflare Pages Function cho link preview/meta
 ├── css/
-│   ├── style.css           # Import tất cả CSS
-│   └── parts/              # CSS theo từng phần
-│       ├── base.css        # Reset, biến màu, layout, nút nhạc
-│       ├── cover.css       # Màn hình bìa thiệp
-│       ├── sections.css    # Header, save date, about, timeline, gallery, wish, gift
-│       ├── countdown-thanks.css
-│       └── animations.css  # Hiệu ứng scroll/keyframes
+│   ├── style.css               # File import CSS tong
+│   ├── parts/                  # CSS nen, section, animation, concept goc
+│   └── blocks/                 # CSS block rieng cho builder concept 1-4
 ├── js/
-│   ├── app.js              # Entry point, khởi tạo toàn bộ app
-│   ├── config.js           # Chỉnh sửa nội dung thiệp tại đây
-│   ├── firebase.js         # Cấu hình Firebase
-│   ├── utils/              # Hàm tiện ích dùng chung
-│   ├── render/             # Render nội dung từ config vào DOM
-│   └── features/           # Logic tương tác từng tính năng
-├── img/                    # Ảnh cưới, ảnh bìa, QR code
-└── music/                  # Nhạc nền
+│   ├── app.js                  # Entry point cua thiep
+│   ├── config.js               # Config fallback/local
+│   ├── firebase.js             # Firebase client config
+│   ├── services/               # Load config tu URL/Firebase/localStorage preview
+│   ├── render/                 # Do config vao HTML
+│   ├── features/               # Tuong tac: cover, music, wish, gift, scroll...
+│   └── utils/                  # Date, DOM, theme, meta
+├── img/                        # Anh fallback trong code
+├── music/                      # Nhac fallback trong code
+├── scripts/                    # Script upload config len Firebase
+└── README.md
 ```
 
-## Bản đồ file khi cần sửa nhanh
+## Luong hoat dong
 
-| Muốn sửa | File nên mở trước | Ghi chú |
-|----------|-------------------|---------|
-| Thông tin khách, ngày cưới, màu, ảnh, nhạc | `js/config.js` hoặc Firestore `weddings/{weddingId}` | Đây là nơi sửa nhiều nhất |
-| Load config Firebase theo `?wedding=` | `js/services/weddingData.js` | Có merge config local + Firebase |
-| Màu chủ đạo, concept, ảnh nền concept | `js/utils/theme.js` | Chỉ xử lý biến CSS và class `concept-*` |
-| Header/menu/bìa/poster | `js/render/cover.js`, `js/features/cover.js` | Render nằm trong `render`, tương tác nằm trong `features` |
-| Save date, title/subtitle section | `js/render/sections.js` | Text lấy từ `sections` và `sectionSubtitles` |
-| About/cô dâu chú rể | `js/render/about.js`, `css/parts/concept-*.css` | Layout concept nằm trong CSS concept |
-| Timeline/lịch trình/chỉ đường | `js/render/timeline.js` | Dữ liệu lấy từ `ceremony` |
-| Gallery | `js/render/gallery.js`, `css/parts/sections.css`, `css/parts/concept-4-mehappy.css` | Concept 4 đang cố định 7 ảnh |
-| Lời chúc/xác nhận tham dự | `js/features/wish.js`, `js/render/wish.js` | Dữ liệu lưu trong `weddings/{weddingId}/wishes` |
-| Hộp quà/QR | `js/render/gift.js`, `js/features/gift.js` | QR lấy từ `gift.groom` và `gift.bride` |
-| Animation khi cuộn | `js/features/scrollReveal.js`, `css/parts/animations.css` | Thêm selector reveal ở `SECTION_REVEAL_SELECTORS` |
-| CSS dùng chung | `css/parts/base.css`, `css/parts/sections.css` | Tránh sửa concept nếu muốn áp dụng cho tất cả |
-| CSS riêng từng concept | `css/parts/concept-1-classic.css` ... `concept-4-mehappy.css` | Sửa riêng giao diện từng concept |
-
-Quy ước dễ nhớ: file trong `js/render/` chỉ dựng HTML từ config, file trong `js/features/` xử lý hành động của người dùng, file trong `css/parts/concept-*` chỉ nên chứa giao diện riêng của từng concept.
-
-## Chỉnh sửa nội dung
-
-Mở `js/config.js`. Đây là file cần sửa nhiều nhất khi làm thiệp cho khách.
-
-| Trường | Mô tả |
-|--------|-------|
-| `weddingId` | Mã riêng của từng thiệp, dùng để tách dữ liệu Firebase |
-| `date` | Ngày cưới, dạng `YYYY-MM-DD` |
-| `location` | Địa điểm hiển thị ở poster đầu thiệp |
-| `music` | Đường dẫn file nhạc nền |
-| `theme.primaryColor` | Màu chủ đạo dùng chung toàn thiệp |
-| `header.logo` | Chữ logo trên header, ví dụ `C & C` |
-| `cover` / `poster` | Nội dung bìa thiệp và ảnh poster |
-| `groom` / `bride` | Thông tin chú rể/cô dâu |
-| `sections` | Tiêu đề và nội dung chữ từng section |
-| `wish` | Nội dung form lời chúc, xác nhận tham dự |
-| `ceremony` | Lịch trình, địa chỉ và link chỉ đường |
-| `gallery` | Album ảnh cưới |
-| `gift` | QR và thông tin tài khoản mừng cưới |
-
-## Đổi màu chủ đạo
-
-Sửa một chỗ trong `js/config.js`:
-
-```js
-theme: {
-    primaryColor: "#8fb8a8"
-}
+```txt
+Mo link thiep
+  -> doc ?wedding=<id>
+  -> tai config tu Firestore weddings/{weddingId}
+  -> neu preview builder thi doc localStorage
+  -> render noi dung
+  -> apply theme.blocks de gan CSS tung block
+  -> click cover de vao invitation
+  -> loi chuc luu vao weddings/{weddingId}/wishes
 ```
 
-Các nút, icon, divider, timeline, gallery, gift box... sẽ tự lấy màu này.
+Neu khong co `?wedding=...`, trang se dung fallback trong `js/config.js`.
 
-## Đổi ngày cưới
+## Firebase / Firestore
 
-Sửa:
+Du an dung 1 collection chung:
 
-```js
-date: "2026-09-12"
+```txt
+weddings/{weddingId}
+weddings/{weddingId}/wishes/{wishId}
 ```
 
-Ngày này được dùng cho poster, lịch, countdown và phần lễ chính trong timeline.
+Moi khach la 1 document rieng trong `weddings`. Vi du:
 
-Lưu ý: thời gian bữa cơm thân mật hiện đang cấu hình riêng trong `ceremony.bride.meal.time` và `ceremony.groom.meal.time`, ví dụ:
-
-```js
-meal: {
-    title: "BỮA CƠM THÂN MẬT",
-    time: "17:00 • 11.09.2026"
-}
+```txt
+weddings/hung-hang-2026
+weddings/nam-linh-2026
+weddings/wedding-cp-4
 ```
 
-## Đổi lịch trình và chỉ đường
+Link thiep:
 
-Trong `ceremony`, mỗi bên có:
-
-```js
-address: "Nhà gái - Thôn ABC, Xã DEF, Hải Phòng",
-mapUrl: "https://maps.app.goo.gl/..."
+```txt
+https://domain-cua-ban/?wedding=hung-hang-2026
 ```
 
-- `address`: địa chỉ hiển thị trên thiệp.
-- `mapUrl`: link Google Maps, bấm nút "Chỉ đường" sẽ mở link này.
+### weddingId
 
-## Đổi gallery ảnh
+Builder tao `weddingId` tu ten thuong goi chu re, co dau va nam:
 
-Sửa trong `gallery.photos`:
+```txt
+hung-hang-2026
+```
+
+Ten nay chi dung de tao id. Nickname hien thi tren thiep van nam trong config chi tiet do admin sua.
+
+## Config quan trong
+
+File fallback nam tai `js/config.js`. Khi Firebase co document, du lieu Firebase se duoc merge voi fallback nay.
+
+Cac nhom config hay sua:
+
+| Nhom | Y nghia |
+| --- | --- |
+| `weddingId` | Ma rieng cua thiep |
+| `date` | Ngay cuoi dang `YYYY-MM-DD` |
+| `location` | Dia diem hien o poster |
+| `music` | Link nhac local/GitHub Release/Cloudinary |
+| `preview.image` | Anh preview khi gui link |
+| `theme.primaryColor` | Mau chu dao |
+| `theme.blocks` | Block giao dien tung section |
+| `theme.fonts` | Font tong quat va font ten rieng |
+| `theme.concepts[*].images` | Anh rieng cho cover/countdown theo concept |
+| `groom`, `bride` | Thong tin co dau chu re |
+| `aboutCard` | Anh/text phan about concept 1/4 |
+| `sections` | Tieu de section |
+| `sectionSubtitles` | Mo ta nho duoi tieu de |
+| `ceremony` | Timeline, dia chi, link chi duong |
+| `gallery.photos` | 7 anh album chinh |
+| `gift` | QR va thong tin ngan hang |
+
+## Builder cho khach
+
+Trang `builder/` chi cho khach chon nhung thu co ban:
+
+- ten thuong goi de tao `weddingId`
+- ngay cuoi
+- mau chu dao
+- block giao dien cho cover, poster, save date, about, timeline, gallery, countdown, divider
+- font tong quat
+- font ten rieng
+
+Builder luu len Firebase theo dang merge:
 
 ```js
-gallery: {
-    intro: {
-        eyebrow: "WELCOME TO OUR",
-        script: "love",
-        title: "STORY",
-        sideText: "SAVE THE DATE"
+{
+  weddingId: "hung-hang-2026",
+  date: "2026-09-12",
+  theme: {
+    concept: "concept-1",
+    primaryColor: "#c9974f",
+    blocks: {
+      cover: "concept-4",
+      poster: "concept-2",
+      saveDate: "concept-1",
+      about: "concept-3",
+      timeline: "concept-4",
+      gallery: "concept-2",
+      countdown: "concept-1",
+      divider: "concept-4"
     },
-    photos: [
-        { src: "img/anh_1.jpg", alt: "Ảnh cưới 1" },
-        { src: "img/anh_2.jpg", alt: "Ảnh cưới 2" },
-        { src: "img/anh_3.jpeg", alt: "Ảnh cưới 3" }
-    ]
-}
-```
-
-Gallery tự đổi bố cục theo số lượng ảnh:
-
-| Số ảnh | Bố cục |
-|--------|--------|
-| 1-5 ảnh | Layout rút gọn, không để trống nhiều |
-| 6-7 ảnh | Layout poster vừa |
-| 8-9 ảnh | Layout poster đầy đủ |
-| 10+ ảnh | Layout album/grid, hiển thị toàn bộ ảnh |
-
-Chỉ cần thêm/bớt dòng trong `photos`, không cần sửa JS/CSS.
-
-## Đổi QR mừng cưới
-
-Sửa trong `gift`:
-
-```js
-gift: {
-    groom: {
-        qr: "img/qr_groom.jpeg",
-        bank: "Vietcombank",
-        accountName: "NGUYỄN VĂN A",
-        accountNumber: "0123456789"
-    },
-    bride: {
-        qr: "img/qr_bride.jpg",
-        bank: "Techcombank",
-        accountName: "TRẦN THỊ B",
-        accountNumber: "9876543210"
+    fonts: {
+      body: "quicksand",
+      nickname: "great-vibes"
     }
+  }
 }
 ```
 
-Đảm bảo file QR thật nằm trong thư mục `img/` và đường dẫn `qr` viết đúng tên file.
+Nhung thong tin chi tiet con lai admin se sua sau.
 
-## Chạy local
+## Admin
 
-Nên chạy qua HTTP server. Không nên mở trực tiếp bằng `file://`, vì ES modules và một số tính năng trình duyệt có thể lỗi.
+Trang `admin/` dung Firebase Authentication. Tai khoan mat khau khong nam trong code.
 
-```bash
-# Python
-python3 -m http.server 8080
+Thiet lap lan dau:
 
-# hoặc Node.js
-npx serve .
-```
+1. Vao Firebase Console.
+2. Mo `Authentication`.
+3. Bat `Email/Password`.
+4. Tao user admin trong tab `Users`.
+5. Them domain deploy vao `Authentication > Settings > Authorized domains` neu can.
+6. Dat Firestore Rules de chi admin duoc sua config.
 
-Mở:
-
-```txt
-http://localhost:8080
-```
-
-
-## Trang admin online có đăng nhập
-
-Trang admin online nằm ở thư mục `admin/`. Sau khi deploy lên GitHub Pages hoặc Cloudflare Pages, đường dẫn sẽ là:
-
-```txt
-https://ten-domain-cua-ban/admin/
-```
-
-Tài khoản và mật khẩu không lưu trong code. Chúng được Firebase Authentication quản lý.
-
-Cách thiết lập lần đầu:
-
-1. Vào Firebase Console.
-2. Mở `Authentication`.
-3. Chọn `Sign-in method`.
-4. Bật `Email/Password`.
-5. Vào tab `Users`, tạo tài khoản admin cho bạn.
-6. Vào `Authentication > Settings > Authorized domains`, thêm domain deploy nếu cần, ví dụ `bryannguyen01itb.github.io` hoặc domain Cloudflare Pages.
-7. Vào Firestore Rules và giới hạn quyền sửa config cho email admin.
-
-Rules gợi ý:
+Rules goi y:
 
 ```js
 rules_version = '2';
@@ -225,208 +195,152 @@ service cloud.firestore {
 }
 ```
 
-Nếu muốn thêm lớp kiểm tra ngay trên giao diện admin, mở `admin/admin.js` và thêm email vào `ADMIN_EMAILS`. Lưu ý: đây chỉ là lớp kiểm tra giao diện, bảo mật thật vẫn là Firestore Rules.
+`ADMIN_EMAILS` trong `admin/admin.js` chi la lop chan giao dien. Bao mat that van phai nam o Firestore Rules.
 
-## Deploy
+## Upload config bang script
 
-Có thể upload toàn bộ thư mục lên hosting tĩnh như Cloudflare Pages, GitHub Pages, Netlify, Vercel hoặc Firebase Hosting.
+Dung khi muon day nhanh `js/config.js` len Firebase.
 
-Sau khi deploy, nên kiểm tra trên:
-
-- iPhone/Safari
-- Android/Chrome
-- màn nhỏ khoảng 360px
-- màn phổ biến 390-430px
-
-## Firebase config và lời chúc
-
-Cấu hình Firebase nằm trong `js/firebase.js`.
-
-Mỗi thiệp cần có một `weddingId` riêng. Quy ước đặt `weddingId`:
-
-- viết chữ thường
-- không dấu
-- không khoảng trắng
-- dùng dấu `-`
-- không trùng với thiệp khác
-
-Ví dụ:
-
-```txt
-nam-linh-2026
-cuong-chi-2026
-minh-anh-hp-2026
-```
-
-### Cấu trúc Firestore
-
-Dùng một collection chung:
-
-```txt
-weddings
-```
-
-Mỗi khách là một document:
-
-```txt
-weddings/{weddingId}
-```
-
-Ví dụ:
-
-```txt
-weddings/nam-linh-2026
-weddings/cuong-chi-2026
-```
-
-Document `weddings/{weddingId}` chứa toàn bộ config thiệp, ví dụ các field:
-
-```js
-{
-  weddingId: "nam-linh-2026",
-  date: "2026-09-12",
-  location: "HẢI PHÒNG, VIỆT NAM",
-  music: "music/1_doi.mp3",
-  theme: { primaryColor: "#8fb8a8" },
-  header: { logo: "N & L" },
-  cover: { headline: "TRÂN TRỌNG KÍNH MỜI" },
-  poster: { image: "img/anh_1.jpg" },
-  groom: { ... },
-  bride: { ... },
-  sections: { ... },
-  wish: { ... },
-  ceremony: { ... },
-  gallery: { ... },
-  gift: { ... }
-}
-```
-
-Lời chúc được lưu trong subcollection riêng của từng thiệp:
-
-```txt
-weddings/{weddingId}/wishes/{wishId}
-```
-
-Nhờ vậy nhiều thiệp dùng chung một Firebase project vẫn không bị lẫn lời chúc.
-
-### Link Cloudflare
-
-Một Cloudflare Pages project có thể dùng cho nhiều thiệp bằng query `?wedding=`:
-
-```txt
-https://your-project.pages.dev/?wedding=nam-linh-2026
-https://your-project.pages.dev/?wedding=cuong-chi-2026
-```
-
-Khi không có `?wedding=...`, hoặc Firebase không tìm thấy document, app sẽ dùng config fallback trong `js/config.js`.
-
-### Firestore rules mẫu
-
-```txt
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /weddings/{weddingId} {
-      allow read: if true;
-
-      match /wishes/{wishId} {
-        allow read: if true;
-        allow create: if true;
-      }
-    }
-  }
-}
-```
-
-Rules trên cho phép mọi người đọc config/lời chúc và gửi lời chúc. Việc tạo/sửa config nên làm trong Firebase Console hoặc admin nội bộ của bạn, không public form sửa config cho khách khi chưa có đăng nhập/phân quyền.
-
-### Upload config lên Firebase bằng script
-
-Không nên nhập tay toàn bộ config trong Firebase Console vì rất lâu và dễ sai. Dự án có script để upload trực tiếp `js/config.js` lên Firestore.
-
-Cài dependency một lần:
+Cai dependency:
 
 ```bash
 npm install
 ```
 
-Tạo service account key:
+Tao service account key:
 
-1. Vào Firebase Console.
-2. Project settings.
-3. Service accounts.
-4. Generate new private key.
-5. Tải file JSON về.
-6. Đổi tên thành `serviceAccountKey.json`.
-7. Đặt vào thư mục `scripts/`.
+1. Firebase Console -> Project settings.
+2. Service accounts.
+3. Generate new private key.
+4. Doi ten file thanh `serviceAccountKey.json`.
+5. Dat vao `scripts/serviceAccountKey.json`.
 
-Đường dẫn sẽ là:
+File nay da nam trong `.gitignore`, khong commit len GitHub.
 
-```txt
-scripts/serviceAccountKey.json
-```
-
-File này đã được ignore trong `.gitignore`, không được commit lên GitHub.
-
-Sau đó sửa `js/config.js`, đảm bảo có `weddingId` đúng:
-
-```js
-weddingId: "nam-linh-2026"
-```
-
-Chạy lệnh upload:
+Upload:
 
 ```bash
 npm run upload:config
 ```
 
-Script sẽ ghi config vào:
-
-```txt
-weddings/{weddingId}
-```
-
-Ví dụ:
-
-```txt
-weddings/nam-linh-2026
-```
-
-Mặc định script sẽ ghi đè document config để Firebase khớp với `js/config.js`. Nếu muốn merge với dữ liệu cũ, chạy:
+Upload dang merge:
 
 ```bash
 npm run upload:config -- --merge
 ```
 
-Nếu muốn dùng file config khác:
+Dung file config khac:
 
 ```bash
 npm run upload:config -- --config=js/config.js
 ```
 
-Sau khi upload, mở link Cloudflare:
+## Anh va nhac
+
+Code hien tai chap nhan ca 3 kieu duong dan:
 
 ```txt
-https://your-project.pages.dev/?wedding=nam-linh-2026
+img/anh_1.jpg
+music/1_doi.mp3
+https://res.cloudinary.com/.../image/upload/...
+https://res.cloudinary.com/.../video/upload/...mp3
+https://github.com/.../releases/download/.../file.mp3
 ```
 
-## Lưu ý tương thích
+Khuyen nghi lau dai:
 
-Dự án dùng ES modules:
+- Anh: Cloudinary de toi uu hien thi nhanh hon.
+- Nhac: Cloudinary hoac GitHub Release deu duoc; neu GitHub Release tren mobile bi yeu cau tai ve thi chuyen sang Cloudinary.
+- Link preview nen dung anh ngang ti le gan 1200x630.
 
-```html
-<script type="module" src="js/app.js"></script>
-```
+## Link preview
 
-Vì vậy thiệp phù hợp với trình duyệt điện thoại hiện đại. Các máy quá cũ như iPhone 5/Safari cũ có thể không chạy đầy đủ JS, dẫn tới thiếu ảnh/text hoặc không mở được thiệp.
+Anh va title khi gui Zalo/Facebook/Telegram lay tu:
 
-Nếu cần hỗ trợ thiết bị rất cũ, nên cân nhắc thêm bước build bằng Vite/Babel và polyfill. Nếu không bắt buộc, nên giữ trải nghiệm hiện tại để thiệp đẹp và mượt trên thiết bị phổ biến.
+- `preview.image`
+- nickname co dau/chu re trong config
+- Cloudflare Pages Function trong `functions/[[path]].js`
 
-## Luồng hoạt động
+Neu doi anh preview cho tung thiep, sua `preview.image` trong config/Firebase.
+
+## CSS va block concept
+
+Thu tu CSS trong `css/style.css` rat quan trong. Cac file sau duoc import cuoi de ghi de concept goc:
 
 ```txt
-Bìa thiệp → Click mở → Poster + nhạc nền
-         → Scroll → Các section hiện dần
-         → Lời chúc → Firebase Firestore
-         → Hộp mừng cưới → Modal QR
+css/parts/block-concepts.css
+css/parts/block-builder.css
+css/blocks/cover-blocks.css
+css/blocks/about-blocks.css
+css/blocks/timeline-blocks.css
+css/blocks/countdown-blocks.css
+css/blocks/theme-unifier.css
 ```
+
+Quy uoc sua CSS:
+
+| Muon sua | File nen sua |
+| --- | --- |
+| Cover tung concept | `css/blocks/cover-blocks.css` |
+| About concept 2/3 | `css/blocks/about-blocks.css` |
+| Timeline concept 4 | `css/blocks/timeline-blocks.css` |
+| Countdown tung concept | `css/blocks/countdown-blocks.css` |
+| Nen trang, title/subtitle chung | `css/blocks/theme-unifier.css` |
+| CSS concept cu | `css/parts/concept-*.css` |
+
+Khong nen xoa manh CSS cu trong `css/parts/block-builder.css` va `css/parts/block-concepts.css` neu chua test toan bo Firebase, vi co the con config cu dang tham chieu class cu.
+
+## Gallery
+
+Hien tai gallery chot theo huong 7 anh cho cac concept. Sua anh trong:
+
+```js
+gallery: {
+  photos: [
+    { src: "img/anh_3.jpeg", alt: "Ảnh cưới 1" },
+    { src: "img/anh_4.jpeg", alt: "Ảnh cưới 2" }
+  ]
+}
+```
+
+Admin cung chi tao 7 o anh theo `GALLERY_SIZE = 7` trong `admin/admin.js`.
+
+## Chay local
+
+Nen chay qua HTTP server, khong mo truc tiep `file://` neu can test Firebase/module on dinh.
+
+```bash
+python3 -m http.server 8080
+```
+
+Mo:
+
+```txt
+http://localhost:8080/
+http://localhost:8080/builder/
+http://localhost:8080/admin/
+```
+
+## Deploy
+
+Co the deploy len Cloudflare Pages, GitHub Pages, Netlify, Vercel hoac Firebase Hosting.
+
+Sau khi deploy nen test:
+
+- Chrome desktop
+- Safari iPhone that
+- Android Chrome
+- man hinh 360px, 390px, 430px
+- gui link qua Zalo/Telegram/Facebook/Messenger
+
+## Kiem tra nhanh truoc khi deploy
+
+```bash
+npm run check:js
+```
+
+Neu sua CSS block, nen mo builder va test tung block concept 1-4 it nhat 1 lan.
+
+## Luu y thiet bi cu
+
+Du an dung ES modules va Firebase compat SDK. May qua cu nhu iPhone 5/Safari cu co the khong ho tro day du. Neu can ho tro may rat cu, nen them buoc build bang Vite/Babel va polyfill. Neu khong bat buoc, nen giu hien tai de thiep dep va nhe hon tren may pho bien.

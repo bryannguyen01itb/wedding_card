@@ -8,6 +8,9 @@ const weddingIdInput = document.getElementById("weddingId");
 const previewBtn = document.getElementById("previewBtn");
 
 const BASE_CONCEPT = "concept-1";
+const WEDDING_QUERY_KEY = "wedding";
+
+let editingWeddingId = "";
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -40,6 +43,18 @@ function buildWeddingId(data) {
     ].filter(Boolean).join("-");
 }
 
+function getWeddingIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(WEDDING_QUERY_KEY)?.trim() || "";
+}
+
+function setControlValue(name, value) {
+    const field = form.elements[name];
+    if (field && value !== undefined && value !== null && value !== "") {
+        field.value = value;
+    }
+}
+
 function setStatus(message, type = "") {
     statusEl.textContent = message;
     statusEl.dataset.type = type;
@@ -47,7 +62,7 @@ function setStatus(message, type = "") {
 
 function readBuilderTheme() {
     const data = new FormData(form);
-    const weddingId = buildWeddingId(data);
+    const weddingId = editingWeddingId || buildWeddingId(data);
 
     weddingIdInput.value = weddingId;
 
@@ -99,11 +114,63 @@ function createSavePayload() {
     };
 }
 
-function refreshPreview() {
+function fillBuilderForm(config = {}) {
+    const theme = config.theme || {};
+    const blocks = theme.blocks || {};
+    const fonts = theme.fonts || {};
+
+    editingWeddingId = config.weddingId || editingWeddingId;
+    weddingIdInput.value = editingWeddingId;
+
+    setControlValue("date", config.date);
+    setControlValue("primaryColor", theme.primaryColor);
+    setControlValue("blockCover", blocks.cover);
+    setControlValue("blockPoster", blocks.poster);
+    setControlValue("blockSaveDate", blocks.saveDate);
+    setControlValue("blockAbout", blocks.about);
+    setControlValue("blockTimeline", blocks.timeline);
+    setControlValue("blockGallery", blocks.gallery);
+    setControlValue("blockCountdown", blocks.countdown);
+    setControlValue("blockDivider", blocks.divider);
+    setControlValue("fontBody", fonts.body);
+    setControlValue("fontNickname", fonts.nickname);
+}
+
+async function loadConfigForEdit() {
+    const weddingId = getWeddingIdFromUrl();
+
+    if (!weddingId) {
+        refreshPreview();
+        return;
+    }
+
+    editingWeddingId = weddingId;
+    weddingIdInput.value = weddingId;
+    setStatus(`Dang tai cau hinh: ${weddingId}`);
+
+    try {
+        const doc = await db.collection("weddings").doc(weddingId).get();
+        if (doc.exists) {
+            fillBuilderForm({ ...doc.data(), weddingId: doc.id });
+            setStatus(`Dang sua: ${weddingId}`);
+        } else {
+            setStatus(`Chua co cau hinh Firebase cho: ${weddingId}. Co the luu de tao moi.`, "error");
+        }
+    } catch (error) {
+        console.error(error);
+        setStatus("Khong tai duoc cau hinh. Kiem tra Firestore Rules.", "error");
+    }
+
+    refreshPreview(false);
+}
+
+function refreshPreview(updateStatus = true) {
     const config = createPreviewConfig();
     localStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
     frame.src = `../index.html?preview=builder&t=${Date.now()}`;
-    setStatus(`Preview: ${config.weddingId || "chua-co-id"}`);
+    if (updateStatus) {
+        setStatus(`Preview: ${config.weddingId || "chua-co-id"}`);
+    }
 }
 
 async function saveConfig(event) {
@@ -117,6 +184,8 @@ async function saveConfig(event) {
 
     try {
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
+        editingWeddingId = payload.weddingId;
+        weddingIdInput.value = payload.weddingId;
         setStatus(`Da luu Firebase: ${payload.weddingId}`);
         refreshPreview();
     } catch (error) {
@@ -131,4 +200,4 @@ form.addEventListener("input", () => {
 });
 previewBtn.addEventListener("click", refreshPreview);
 form.addEventListener("submit", saveConfig);
-refreshPreview();
+loadConfigForEdit();

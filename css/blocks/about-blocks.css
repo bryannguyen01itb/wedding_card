@@ -209,3 +209,36 @@ body .about.block-skin-concept-2 .person:nth-of-type(even) .person-name,
 body .about.block-skin-concept-2 .person:nth-of-type(even) .parent {
     grid-column: 1 !important;
 }
+
+/* Keep concept 4 First Married text centered and readable on the portrait. */
+.about.block-skin-concept-4 .about-portrait__text,
+body .about.block-skin-concept-4 .about-portrait__text {
+    left: 2rem !important;
+    right: .28rem !important;
+    bottom: .48rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    text-shadow: 0 .08rem .26rem rgba(0, 0, 0, .38) !important;
+}
+
+.about.block-skin-concept-4 .about-portrait__text span,
+body .about.block-skin-concept-4 .about-portrait__text span {
+    margin-bottom: -.06rem !important;
+    font-size: .92rem !important;
+    line-height: .9 !important;
+    color: #fff !important;
+}
+
+.about.block-skin-concept-4 .about-portrait__text strong,
+body .about.block-skin-concept-4 .about-portrait__text strong {
+    max-width: 100% !important;
+    color: #fff !important;
+    font-size: .58rem !important;
+    line-height: 1.05 !important;
+    letter-spacing: .08rem !important;
+    text-align: center !important;
+    word-break: keep-all !important;
+}

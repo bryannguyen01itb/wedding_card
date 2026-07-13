@@ -94,3 +94,15 @@
 .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-address {
     justify-content: flex-end !important;
 }
+
+/* Soft depth for timeline cards when the shared page background is white. */
+.timeline.block-skin-concept-2 .timeline-card,
+.timeline.block-skin-concept-3 .timeline-card {
+    border: 1px solid rgba(var(--primary-rgb), .08) !important;
+    box-shadow: 0 .18rem .52rem rgba(54, 43, 32, .09) !important;
+}
+
+.timeline.block-skin-concept-2 .timeline-event,
+.timeline.block-skin-concept-3 .timeline-event {
+    box-shadow: 0 .12rem .34rem rgba(54, 43, 32, .07) !important;
+}
