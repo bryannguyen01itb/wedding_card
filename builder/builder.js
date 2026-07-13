@@ -283,12 +283,14 @@ function createCustomerConfig() {
         ceremony: {
             bride: {
                 time: readText(data, "brideCeremonyTime"),
+                address: readText(data, "brideAddress"),
                 meal: {
                     time: formatMealTime(data.get("brideMealDate"), data.get("brideMealTime"))
                 }
             },
             groom: {
                 time: readText(data, "groomCeremonyTime"),
+                address: readText(data, "groomAddress"),
                 meal: {
                     time: formatMealTime(data.get("groomMealDate"), data.get("groomMealTime"))
                 }
@@ -367,6 +369,8 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideFullName", config.bride?.fullName);
     setControlValue("brideFather", config.bride?.father);
     setControlValue("brideMother", config.bride?.mother);
+    setControlValue("groomAddress", config.ceremony?.groom?.address);
+    setControlValue("brideAddress", config.ceremony?.bride?.address);
     setControlValue("date", config.date);
     setControlValue("locationProvince", getProvinceFromLocation(config.location));
     setControlValue("primaryColor", theme.primaryColor);
