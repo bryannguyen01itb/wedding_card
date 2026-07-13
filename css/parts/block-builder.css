@@ -21,15 +21,56 @@
 .font-nickname-great-vibes .women_name,
 .font-nickname-great-vibes .text_1,
 .font-nickname-great-vibes .text_2,
-.font-nickname-great-vibes .poster-name {
-    font-family: "Great Vibes", cursive !important;
+.font-nickname-great-vibes .poster-name,
+.font-nickname-great-vibes #thanksGroom,
+.font-nickname-great-vibes #thanksBride,
+.font-nickname-dancing-script .man_name,
+.font-nickname-dancing-script .women_name,
+.font-nickname-dancing-script .text_1,
+.font-nickname-dancing-script .text_2,
+.font-nickname-dancing-script .poster-name,
+.font-nickname-dancing-script #thanksGroom,
+.font-nickname-dancing-script #thanksBride {
+    font-family: "Dancing Script", cursive !important;
+}
+
+.font-nickname-playwrite-vn .man_name,
+.font-nickname-playwrite-vn .women_name,
+.font-nickname-playwrite-vn .text_1,
+.font-nickname-playwrite-vn .text_2,
+.font-nickname-playwrite-vn .poster-name,
+.font-nickname-playwrite-vn #thanksGroom,
+.font-nickname-playwrite-vn #thanksBride {
+    font-family: "Playwrite VN", cursive !important;
+}
+
+.font-nickname-pacifico .man_name,
+.font-nickname-pacifico .women_name,
+.font-nickname-pacifico .text_1,
+.font-nickname-pacifico .text_2,
+.font-nickname-pacifico .poster-name,
+.font-nickname-pacifico #thanksGroom,
+.font-nickname-pacifico #thanksBride {
+    font-family: "Pacifico", cursive !important;
+}
+
+.font-nickname-lobster .man_name,
+.font-nickname-lobster .women_name,
+.font-nickname-lobster .text_1,
+.font-nickname-lobster .text_2,
+.font-nickname-lobster .poster-name,
+.font-nickname-lobster #thanksGroom,
+.font-nickname-lobster #thanksBride {
+    font-family: "Lobster", cursive !important;
 }
 
 .font-nickname-parisienne .man_name,
 .font-nickname-parisienne .women_name,
 .font-nickname-parisienne .text_1,
 .font-nickname-parisienne .text_2,
-.font-nickname-parisienne .poster-name {
+.font-nickname-parisienne .poster-name,
+.font-nickname-parisienne #thanksGroom,
+.font-nickname-parisienne #thanksBride {
     font-family: "Parisienne", cursive !important;
 }
 
@@ -37,7 +78,9 @@
 .font-nickname-lora .women_name,
 .font-nickname-lora .text_1,
 .font-nickname-lora .text_2,
-.font-nickname-lora .poster-name {
+.font-nickname-lora .poster-name,
+.font-nickname-lora #thanksGroom,
+.font-nickname-lora #thanksBride {
     font-family: "Lora", Georgia, serif !important;
     font-style: italic;
 }

@@ -9,6 +9,13 @@ export let wedding = {
     location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
 
+    // --- Thư viện nhạc cho builder ---
+    // Thêm bài mới bằng cách upload mp3 lên Cloudinary, rồi dán secure_url vào đây.
+    musicLibrary: [
+        { title: "Một đời", url: "music/1_doi.mp3" },
+        { title: "Váy cưới", url: "https://res.cloudinary.com/dndcuen0/video/upload/v1783818499/vay_cuoi_bgjp0p.mp3" }
+    ],
+
     theme: {
         // Các section chính lấy giao diện theo theme.blocks.
         // Wish/gift/thanks dùng style cố định concept 1 để thiệp luôn thống nhất.

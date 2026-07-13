@@ -1,6 +1,7 @@
 import { startHeroAnimation } from "./hero.js";
 import { showMusic, playMusic } from "./music.js";
 import { showGiftButton } from "./gift.js";
+import { startInvitationAutoScroll } from "./autoScroll.js";
 
 const INVITATION_PREPARE_DELAY = 260;
 const COVER_FADE_DELAY = 520;
@@ -46,6 +47,7 @@ export function initCover() {
                 invitation.classList.add("show");
                 updateHeader();
                 startHeroAnimation();
+                startInvitationAutoScroll();
             });
         }, INVITATION_PREPARE_DELAY);
 

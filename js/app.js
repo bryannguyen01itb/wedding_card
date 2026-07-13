@@ -1,7 +1,7 @@
 import { loadWeddingConfig } from "./services/weddingData.js";
 import { renderContent } from "./render/index.js";
 import { initCover } from "./features/cover.js";
-import { initMusic } from "./features/music.js";
+import { initMusic, playMusic } from "./features/music.js";
 import { initScrollReveal } from "./features/scrollReveal.js";
 import { initCalendar } from "./features/calendar.js";
 import { initCountdown } from "./features/countdown.js";
@@ -30,6 +30,56 @@ function showWeddingError(error) {
     `;
 }
 
+function restoreBuilderPreviewState() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("preview") !== "builder") return;
+
+    let state = null;
+    try {
+        state = JSON.parse(localStorage.getItem("weddingBuilderPreviewState") || "null");
+    } catch (error) {
+        state = null;
+    }
+
+    if (!state?.opened) return;
+
+    const cover = document.querySelector(".cover");
+    const invitation = document.querySelector(".invitation");
+    const header = document.querySelector(".invitation__header");
+    const musicButton = document.getElementById("musicBtn");
+    const giftButton = document.getElementById("floatingGiftBtn");
+
+    if (cover) {
+        cover.classList.add("is-dismissed");
+        cover.setAttribute("aria-hidden", "true");
+        cover.hidden = true;
+        cover.style.setProperty("display", "none", "important");
+    }
+
+    if (invitation) {
+        invitation.style.display = "block";
+        invitation.classList.add("show");
+    }
+
+    header?.classList.toggle("scrolled", Number(state.scrollY || 0) > 20 || Boolean(state.target));
+    musicButton?.classList.add("show");
+    giftButton?.classList.add("show");
+
+    if (state.target) {
+        window.setTimeout(playMusic, 120);
+    }
+
+    requestAnimationFrame(() => {
+        const targetElement = state.target ? document.querySelector(state.target) : null;
+        if (targetElement) {
+            targetElement.scrollIntoView({ block: "start" });
+            return;
+        }
+
+        window.scrollTo(0, Number(state.scrollY || 0));
+    });
+}
+
 async function bootstrap() {
     try {
         await loadWeddingConfig();
@@ -47,6 +97,7 @@ async function bootstrap() {
         initScrollReveal();
         initGift();
         initWish();
+        restoreBuilderPreviewState();
     } catch (error) {
         showWeddingError(error);
     }

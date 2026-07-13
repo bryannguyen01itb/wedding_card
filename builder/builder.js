@@ -5,6 +5,7 @@ const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
 const statusEl = document.getElementById("status");
 const weddingIdInput = document.getElementById("weddingId");
+const musicSelect = document.getElementById("musicSelect");
 const previewBtn = document.getElementById("previewBtn");
 const saveBtn = document.getElementById("saveBtn");
 const resultLinks = document.getElementById("resultLinks");
@@ -17,8 +18,11 @@ const copyInvitationLink = document.getElementById("copyInvitationLink");
 const copyEditLink = document.getElementById("copyEditLink");
 
 const WEDDING_QUERY_KEY = "wedding";
+const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
 
 let editingWeddingId = "";
+let loadedWeddingConfig = clone(fallbackWedding);
+let remoteMusicLibrary = [];
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -128,6 +132,60 @@ function setControlValue(name, value) {
     if (field && value !== undefined && value !== null) {
         field.value = value;
     }
+}
+
+function getMusicLibrary(config = {}) {
+    const library = Array.isArray(config.musicLibrary) ? config.musicLibrary : [];
+    const fallbackLibrary = Array.isArray(fallbackWedding.musicLibrary) ? fallbackWedding.musicLibrary : [];
+    const combined = [...fallbackLibrary, ...remoteMusicLibrary, ...library];
+    const seen = new Set();
+
+    return combined.filter(item => {
+        const url = String(item?.url || "").trim();
+        if (!url || seen.has(url)) return false;
+        seen.add(url);
+        return true;
+    });
+}
+
+function populateMusicOptions(config = loadedWeddingConfig) {
+    if (!musicSelect) return;
+
+    const currentMusic = config.music || fallbackWedding.music || "";
+    const library = getMusicLibrary(config);
+    const hasCurrentMusic = library.some(item => item.url === currentMusic);
+
+    musicSelect.innerHTML = "";
+
+    library.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.url;
+        option.textContent = item.title || item.name || item.url;
+        musicSelect.appendChild(option);
+    });
+
+    if (currentMusic && !hasCurrentMusic) {
+        const option = document.createElement("option");
+        option.value = currentMusic;
+        option.textContent = "Nhạc hiện tại";
+        musicSelect.prepend(option);
+    }
+
+    musicSelect.value = currentMusic;
+}
+
+async function loadMusicLibrary() {
+    try {
+        const snapshot = await db.collection("musicLibrary").orderBy("title").get();
+        remoteMusicLibrary = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(item => item.active !== false && item.url);
+    } catch (error) {
+        console.warn("Khong tai duoc musicLibrary tu Firebase, dung danh sach mac dinh.", error);
+        remoteMusicLibrary = [];
+    }
+
+    populateMusicOptions(loadedWeddingConfig);
 }
 
 function setStatus(message, type = "") {
@@ -258,6 +316,7 @@ function createCustomerConfig() {
         weddingId: builderTheme.weddingId,
         date: builderTheme.date,
         location: normalizeLocationProvince(data.get("locationProvince")),
+        music: readText(data, "music") || loadedWeddingConfig.music || fallbackWedding.music,
         theme: builderTheme.theme,
         groom: {
             nickname: groomNickname,
@@ -304,7 +363,7 @@ function createCustomerConfig() {
 }
 
 function createPreviewConfig() {
-    const config = clone(fallbackWedding);
+    const config = clone(loadedWeddingConfig || fallbackWedding);
     const customerConfig = createCustomerConfig();
 
     return {
@@ -326,6 +385,7 @@ function createPreviewConfig() {
             ...(config.sectionSubtitles || {}),
             ...(customerConfig.sectionSubtitles || {})
         },
+        musicLibrary: getMusicLibrary(config),
         ceremony: {
             ...(config.ceremony || {}),
             bride: {
@@ -374,6 +434,8 @@ function fillBuilderForm(config = {}) {
     setControlValue("date", config.date);
     setControlValue("locationProvince", getProvinceFromLocation(config.location));
     setControlValue("primaryColor", theme.primaryColor);
+    populateMusicOptions(config);
+    setControlValue("music", config.music);
     setControlValue("blockCover", blocks.cover);
     setControlValue("blockPoster", blocks.poster);
     setControlValue("blockSaveDate", blocks.saveDate);
@@ -419,10 +481,52 @@ async function loadConfigForEdit() {
     try {
         const doc = await db.collection("weddings").doc(weddingId).get();
         if (doc.exists) {
-            fillBuilderForm({ ...doc.data(), weddingId: doc.id });
+            loadedWeddingConfig = {
+                ...clone(fallbackWedding),
+                ...doc.data(),
+                weddingId: doc.id,
+                theme: {
+                    ...(fallbackWedding.theme || {}),
+                    ...(doc.data().theme || {})
+                },
+                groom: {
+                    ...(fallbackWedding.groom || {}),
+                    ...(doc.data().groom || {})
+                },
+                bride: {
+                    ...(fallbackWedding.bride || {}),
+                    ...(doc.data().bride || {})
+                },
+                sectionSubtitles: {
+                    ...(fallbackWedding.sectionSubtitles || {}),
+                    ...(doc.data().sectionSubtitles || {})
+                },
+                ceremony: {
+                    ...(fallbackWedding.ceremony || {}),
+                    ...(doc.data().ceremony || {}),
+                    bride: {
+                        ...(fallbackWedding.ceremony?.bride || {}),
+                        ...(doc.data().ceremony?.bride || {}),
+                        meal: {
+                            ...(fallbackWedding.ceremony?.bride?.meal || {}),
+                            ...(doc.data().ceremony?.bride?.meal || {})
+                        }
+                    },
+                    groom: {
+                        ...(fallbackWedding.ceremony?.groom || {}),
+                        ...(doc.data().ceremony?.groom || {}),
+                        meal: {
+                            ...(fallbackWedding.ceremony?.groom?.meal || {}),
+                            ...(doc.data().ceremony?.groom?.meal || {})
+                        }
+                    }
+                }
+            };
+            fillBuilderForm(loadedWeddingConfig);
             updateResultLinks(weddingId);
             setStatus(`Dang sua: ${weddingId}`);
         } else {
+            loadedWeddingConfig = { ...clone(fallbackWedding), weddingId };
             updateResultLinks(weddingId);
             setStatus(`Chua co cau hinh Firebase cho: ${weddingId}. Co the luu de tao moi.`, "error");
         }
@@ -434,9 +538,85 @@ async function loadConfigForEdit() {
     refreshPreview(false);
 }
 
+function readPreviewState() {
+    try {
+        return JSON.parse(localStorage.getItem(PREVIEW_STATE_KEY) || "null") || { opened: false, scrollY: 0, target: "" };
+    } catch (error) {
+        return { opened: false, scrollY: 0, target: "" };
+    }
+}
+
+function savePreviewState(state) {
+    localStorage.setItem(PREVIEW_STATE_KEY, JSON.stringify({
+        opened: Boolean(state?.opened),
+        scrollY: Math.max(0, Math.round(Number(state?.scrollY || 0))),
+        target: String(state?.target || "")
+    }));
+}
+
+function getPreviewTargetFromField(fieldName) {
+    const targetMap = {
+        blockPoster: ".poster",
+        blockSaveDate: ".save-date",
+        blockAbout: ".about",
+        blockTimeline: ".timeline",
+        blockGallery: ".gallery",
+        blockCountdown: ".countdown",
+        blockDivider: ".section-divider"
+    };
+
+    return targetMap[fieldName] || "";
+}
+
+function getCurrentPreviewState() {
+    const activeField = document.activeElement?.name || "";
+    const target = getPreviewTargetFromField(activeField);
+
+    if (activeField === "blockCover") {
+        return { opened: false, scrollY: 0, target: "" };
+    }
+
+    if (target) {
+        return { opened: true, scrollY: 0, target };
+    }
+
+    return { opened: false, scrollY: 0, target: "" };
+}
+
+function syncPreviewStateFromFrame() {
+    let previewWindow = null;
+    let previewDocument = null;
+
+    try {
+        previewWindow = frame.contentWindow;
+        previewDocument = frame.contentDocument;
+    } catch (error) {
+        return;
+    }
+
+    if (!previewWindow || !previewDocument) return;
+
+    const markOpened = () => savePreviewState({ opened: true, scrollY: previewWindow.scrollY || 0 });
+    const syncScroll = () => {
+        const previousState = readPreviewState();
+        savePreviewState({
+            opened: previousState.opened || previewWindow.scrollY > 20,
+            scrollY: previousWindowSafeScroll(previewWindow, previousState.scrollY)
+        });
+    };
+
+    previewDocument.getElementById("openCard")?.addEventListener("click", markOpened, { once: true });
+    previewWindow.addEventListener("scroll", syncScroll, { passive: true });
+}
+
+function previousWindowSafeScroll(previewWindow, fallbackScrollY) {
+    return Math.max(0, Math.round(Number(previewWindow?.scrollY || fallbackScrollY || 0)));
+}
+
 function refreshPreview(updateStatus = true) {
     const config = createPreviewConfig();
     localStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
+    savePreviewState(getCurrentPreviewState());
     frame.src = `../index.html?preview=builder&t=${Date.now()}`;
     if (updateStatus) {
         setStatus(`Preview: ${config.weddingId || "chua-co-id"}`);
@@ -459,6 +639,7 @@ async function saveConfig(event) {
         }
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
+        loadedWeddingConfig = createPreviewConfig();
         editingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
         syncUrlForEdit(payload.weddingId);
@@ -482,8 +663,12 @@ form.addEventListener("input", () => {
     refreshPreview.timer = window.setTimeout(refreshPreview, 250);
 });
 previewBtn.addEventListener("click", refreshPreview);
+frame.addEventListener("load", syncPreviewStateFromFrame);
 form.addEventListener("submit", saveConfig);
-loadConfigForEdit();
+Promise.all([
+    loadMusicLibrary(),
+    loadConfigForEdit()
+]).then(() => populateMusicOptions(loadedWeddingConfig));
 
 if (saveModal) {
     saveModal.addEventListener("click", event => {
