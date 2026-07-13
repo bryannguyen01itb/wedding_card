@@ -1,0 +1,98 @@
+/* Shared visual glue for mixed block choices.
+   Blocks keep their layout, while the full invitation uses one soft background. */
+body[class*="block-"] .invitation {
+    background: #fff !important;
+}
+
+body[class*="block-"] .save-date,
+body[class*="block-"] .about,
+body[class*="block-"] .timeline,
+body[class*="block-"] .gallery,
+body[class*="block-"] .wish,
+body[class*="block-"] .gift,
+body[class*="block-"] .thanks {
+    background: transparent !important;
+}
+
+body[class*="block-"] .section-divider {
+    background: transparent !important;
+}
+
+/* Unified section headings for mixed block mode. */
+body[class*="block-"] .save-title,
+body[class*="block-"] .about-title,
+body[class*="block-"] .section-title,
+body[class*="block-"] .thanks-title {
+    margin: 0 auto .18rem !important;
+    color: var(--primary-color) !important;
+    font-family: var(--font-heading, "Playfair Display", serif) !important;
+    font-size: .46rem !important;
+    font-weight: 600 !important;
+    line-height: 1.18 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+    text-transform: none !important;
+    text-shadow: none !important;
+}
+
+body[class*="block-"] .save-title::before,
+body[class*="block-"] .about-title::before,
+body[class*="block-"] .section-title::before,
+body[class*="block-"] .thanks-title::before {
+    display: none !important;
+    content: none !important;
+}
+
+body[class*="block-"] .save-title::after,
+body[class*="block-"] .about-title::after,
+body[class*="block-"] .section-title::after,
+body[class*="block-"] .thanks-title::after {
+    content: "" !important;
+    display: block !important;
+    width: .82rem !important;
+    height: 1px !important;
+    margin: .16rem auto 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: rgba(var(--primary-rgb), .45) !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+body[class*="block-"] .section-subtitle,
+body[class*="block-"] .gift-description,
+body[class*="block-"] .thanks-content {
+    color: #6f6a62 !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+    font-size: .24rem !important;
+    font-weight: 400 !important;
+    line-height: 1.7 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+    text-shadow: none !important;
+}
+
+body[class*="block-"] .save-title + .section-subtitle,
+body[class*="block-"] .about-title + .section-subtitle,
+body[class*="block-"] .section-title + .section-subtitle,
+body[class*="block-"] .thanks-title + .section-subtitle {
+    display: block !important;
+    max-width: 7.2rem !important;
+    margin: .18rem auto .38rem !important;
+}
+
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title::before {
+    content: "you're invited to the wedding of" !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 auto .22rem !important;
+    background: transparent !important;
+    color: #8d7c58 !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+    font-size: .2rem !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    letter-spacing: .02rem !important;
+    text-transform: lowercase !important;
+}

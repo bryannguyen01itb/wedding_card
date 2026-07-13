@@ -1,0 +1,823 @@
+/* Builder block overrides: these classes are generated from theme.blocks and theme.fonts. */
+.font-body-quicksand {
+    --font-body: "Quicksand", sans-serif;
+    --font-heading: "Quicksand", sans-serif;
+    font-family: var(--font-body);
+}
+
+.font-body-lora {
+    --font-body: "Lora", Georgia, serif;
+    --font-heading: "Lora", Georgia, serif;
+    font-family: var(--font-body);
+}
+
+.font-body-nunito {
+    --font-body: "Nunito Sans", sans-serif;
+    --font-heading: "Nunito Sans", sans-serif;
+    font-family: var(--font-body);
+}
+
+.font-nickname-great-vibes .man_name,
+.font-nickname-great-vibes .women_name,
+.font-nickname-great-vibes .text_1,
+.font-nickname-great-vibes .text_2,
+.font-nickname-great-vibes .poster-name {
+    font-family: "Great Vibes", cursive !important;
+}
+
+.font-nickname-parisienne .man_name,
+.font-nickname-parisienne .women_name,
+.font-nickname-parisienne .text_1,
+.font-nickname-parisienne .text_2,
+.font-nickname-parisienne .poster-name {
+    font-family: "Parisienne", cursive !important;
+}
+
+.font-nickname-lora .man_name,
+.font-nickname-lora .women_name,
+.font-nickname-lora .text_1,
+.font-nickname-lora .text_2,
+.font-nickname-lora .poster-name {
+    font-family: "Lora", Georgia, serif !important;
+    font-style: italic;
+}
+
+.block-cover-soft .cover {
+    background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.92)), var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover !important;
+}
+
+.block-cover-soft .card {
+    border-radius: .38rem !important;
+    background: rgba(255,255,255,.84) !important;
+    box-shadow: 0 1.1rem 3rem rgba(var(--primary-rgb), .2) !important;
+}
+
+.block-cover-editorial .cover {
+    background: #fbf8f1 !important;
+}
+
+.block-cover-editorial .card {
+    border-radius: .04rem !important;
+    background: var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover !important;
+    box-shadow: 0 .7rem 2rem rgba(0,0,0,.1) !important;
+}
+
+.block-cover-sunset .cover {
+    background: linear-gradient(155deg, rgba(var(--primary-rgb), .2), #fff7ed 58%, #fff) !important;
+}
+
+.block-cover-sunset .card {
+    border-radius: .55rem !important;
+    box-shadow: 0 1rem 3rem rgba(var(--primary-rgb), .24) !important;
+}
+
+.block-poster-soft .poster-content {
+    text-align: center;
+    text-shadow: 0 .08rem .28rem rgba(0,0,0,.24);
+}
+
+.block-poster-editorial .poster-content {
+    letter-spacing: .08rem;
+    text-transform: uppercase;
+    text-shadow: 0 .1rem .4rem rgba(0,0,0,.28);
+}
+
+.block-poster-sunset .poster-content {
+    color: #fff;
+    text-shadow: 0 .1rem .42rem rgba(0,0,0,.34);
+}
+
+.block-save-date-soft .save-date {
+    background: #fffdf8 !important;
+}
+
+.block-save-date-editorial .calendar {
+    border: 1px solid rgba(var(--primary-rgb), .18) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.block-save-date-sunset .save-date {
+    background: linear-gradient(180deg, #fff8ee, rgba(var(--primary-rgb), .12)) !important;
+}
+
+.block-about-first-married .about-card__media,
+.block-about-first-married .about-card__image,
+.block-about-soft .about-card__media,
+.block-about-soft .about-card__image {
+    border-radius: .26rem !important;
+}
+
+.block-about-two-card .about .person,
+.block-about-soft .about .person {
+    border-radius: .28rem !important;
+    background: rgba(255,255,255,.92) !important;
+    box-shadow: 0 .7rem 1.8rem rgba(0,0,0,.08) !important;
+}
+
+.block-about-two-card .about-card__content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .22rem;
+}
+
+.block-timeline-soft .timeline-card {
+    border-radius: .34rem !important;
+    background: #fff !important;
+}
+
+.block-timeline-editorial .timeline-card {
+    border: 1px solid rgba(var(--primary-rgb), .18) !important;
+    border-radius: .06rem !important;
+    box-shadow: none !important;
+}
+
+.block-timeline-sunset .timeline-card {
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), .13), #fff) !important;
+}
+
+.block-gallery-love-story .gallery,
+.block-gallery-journal .gallery,
+.block-gallery-editorial .gallery {
+    background: #fffdf8 !important;
+}
+
+.block-gallery-love-story .gallery-grid,
+.block-gallery-journal .gallery-grid,
+.block-gallery-editorial .gallery-grid {
+    border-radius: .24rem !important;
+}
+
+.block-gallery-editorial .gallery-frame,
+.block-gallery-journal .gallery-frame {
+    border-radius: .02rem !important;
+}
+
+.block-gallery-journal .gallery-grid {
+    background: #fff !important;
+    box-shadow: 0 .55rem 1.6rem rgba(0,0,0,.06) !important;
+}
+
+.block-countdown-soft .countdown {
+    border-radius: .34rem .34rem 0 0;
+    overflow: hidden;
+}
+
+.block-countdown-editorial .countdown {
+    background: #fff !important;
+    color: #3f3025 !important;
+}
+
+.block-countdown-editorial .countdown::before,
+.block-countdown-editorial .countdown::after {
+    display: none !important;
+}
+
+.block-countdown-editorial .count-item {
+    border: 1px solid rgba(var(--primary-rgb), .2) !important;
+    background: transparent !important;
+}
+
+.block-countdown-sunset .countdown {
+    background: linear-gradient(160deg, rgba(var(--primary-rgb), .22), #fff8ef) !important;
+    color: #3f3025 !important;
+}
+
+.block-divider-minimal .section-divider::before,
+.block-divider-minimal .section-divider::after {
+    background: rgba(var(--primary-rgb), .18) !important;
+}
+
+.block-divider-minimal .section-divider span {
+    width: .18rem !important;
+    height: .18rem !important;
+    background: var(--primary-color) !important;
+}
+
+.block-divider-floral .section-divider span {
+    width: .42rem !important;
+    height: .42rem !important;
+    border-radius: 50% 50% 50% 0 !important;
+    transform: rotate(-45deg);
+    background: rgba(var(--primary-rgb), .82) !important;
+}
+
+.wish,
+.gift,
+.thanks {
+    border-radius: .32rem;
+}
+
+
+/* Final block fixes: keep selected section skins from inheriting awkward base concept spacing. */
+.about.block-skin-concept-2,
+.about.block-skin-concept-3,
+.about.block-skin-concept-4,
+.save-date.block-skin-concept-2,
+.save-date.block-skin-concept-3,
+.save-date.block-skin-concept-4 {
+    padding-top: clamp(.5rem, 7vw, .9rem) !important;
+    padding-bottom: clamp(.55rem, 7vw, .95rem) !important;
+}
+
+.timeline.block-skin-concept-4 .section-title,
+.timeline.block-skin-concept-4 .timeline .section-title,
+.timeline.block-skin-concept-4 h2 {
+    font-size: clamp(.3rem, 7vw, .46rem) !important;
+    line-height: 1.16 !important;
+}
+
+
+.about.block-skin-concept-2 .person,
+.about.block-skin-concept-3 .person {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.timeline.block-skin-concept-2 .timeline-card,
+.timeline.block-skin-concept-3 .timeline-card {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.cover.block-skin-concept-2::before,
+.cover.block-skin-concept-2::after,
+.cover.block-skin-concept-3::before,
+.cover.block-skin-concept-3::after,
+.poster.block-skin-concept-2::before,
+.poster.block-skin-concept-2::after,
+.poster.block-skin-concept-3::before,
+.poster.block-skin-concept-3::after,
+.countdown.block-skin-concept-2::before,
+.countdown.block-skin-concept-2::after,
+.countdown.block-skin-concept-3::before,
+.countdown.block-skin-concept-3::after {
+    pointer-events: none;
+}
+
+
+/* Manual stable skins for block concept 2/3. These intentionally override generated aliases. */
+body .cover.block-skin-concept-2,
+body .cover.block-skin-concept-3 {
+    position: relative !important;
+    justify-content: space-between !important;
+    min-height: 100vh !important;
+    padding: .62rem .36rem .55rem !important;
+    color: #fff !important;
+    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.74)), var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat !important;
+}
+
+body .cover.block-skin-concept-2::before,
+body .cover.block-skin-concept-3::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+}
+
+body .cover.block-skin-concept-2::before {
+    background: linear-gradient(180deg, rgba(var(--botanical-leaf-rgb), .08), rgba(255,255,255,.62) 48%, rgba(var(--botanical-cream-rgb), .86)) !important;
+}
+
+body .cover.block-skin-concept-3::before {
+    background: radial-gradient(circle at 18% 12%, rgba(var(--sunset-lemon-rgb), .42), transparent 34%), linear-gradient(180deg, rgba(var(--sunset-coral-rgb), .16), rgba(255,255,255,.62) 55%, rgba(var(--sunset-cream-rgb), .92)) !important;
+}
+
+body .cover.block-skin-concept-2 > *,
+body .cover.block-skin-concept-3 > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+body .cover.block-skin-concept-2 .cover__headline,
+body .cover.block-skin-concept-3 .cover__headline {
+    margin-top: .28rem !important;
+    color: rgba(55, 48, 38, .78) !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .28rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .14rem !important;
+    text-align: center !important;
+}
+
+body .cover.block-skin-concept-2 .card,
+body .cover.block-skin-concept-3 .card {
+    position: relative !important;
+    width: min(6.2rem, 78vw) !important;
+    aspect-ratio: 2 / 3 !important;
+    border: 0 !important;
+    border-radius: .4rem !important;
+    overflow: hidden !important;
+    background: var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat !important;
+    box-shadow: 0 .42rem 1.2rem rgba(45, 36, 28, .18) !important;
+}
+
+body .cover.block-skin-concept-2 .card::before,
+body .cover.block-skin-concept-3 .card::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(180deg, transparent 28%, rgba(0,0,0,.2)) !important;
+}
+
+body .cover.block-skin-concept-2 .card::after,
+body .cover.block-skin-concept-3 .card::after {
+    content: var(--concept-cover-label, "Mở thiệp") !important;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: .34rem !important;
+    transform: translateX(-50%) !important;
+    z-index: 2 !important;
+    white-space: nowrap !important;
+    border-radius: 999px !important;
+    padding: .12rem .28rem !important;
+    color: #fff !important;
+    font: 800 .22rem/1 "Quicksand", sans-serif !important;
+    background: rgba(0,0,0,.34) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+body .cover.block-skin-concept-2 .card__close,
+body .cover.block-skin-concept-2 .card__open,
+body .cover.block-skin-concept-3 .card__close,
+body .cover.block-skin-concept-3 .card__open {
+    display: none !important;
+}
+
+body .cover.block-skin-concept-2 .cover__footer,
+body .cover.block-skin-concept-3 .cover__footer {
+    width: min(100%, 7rem) !important;
+    color: #fff !important;
+    text-shadow: 0 .08rem .28rem rgba(0,0,0,.34) !important;
+}
+
+body .cover.block-skin-concept-2 .cover__footer .man_name,
+body .cover.block-skin-concept-2 .cover__footer .women_name,
+body .cover.block-skin-concept-3 .cover__footer .man_name,
+body .cover.block-skin-concept-3 .cover__footer .women_name {
+    color: #fff !important;
+    font-size: .72rem !important;
+}
+
+body .cover.block-skin-concept-2 .cover__footer .heartbeat {
+    color: var(--botanical-rose) !important;
+}
+
+body .cover.block-skin-concept-3 .cover__footer .heartbeat {
+    color: var(--sunset-lavender) !important;
+}
+
+body .cover.block-skin-concept-2 .cover__date,
+body .cover.block-skin-concept-3 .cover__date {
+    margin-top: .16rem !important;
+    color: rgba(255,255,255,.92) !important;
+    font-size: .28rem !important;
+    font-weight: 800 !important;
+    letter-spacing: .12rem !important;
+    text-shadow: 0 .08rem .24rem rgba(0,0,0,.32) !important;
+}
+
+body .about.block-skin-concept-2,
+body .about.block-skin-concept-3 {
+    clear: both !important;
+    padding: .72rem .34rem .42rem !important;
+    color: var(--botanical-ink) !important;
+}
+
+body .about.block-skin-concept-3 {
+    color: var(--sunset-ink) !important;
+    background: var(--sunset-paper) !important;
+}
+
+body .about.block-skin-concept-2 .about-portrait,
+body .about.block-skin-concept-3 .about-portrait {
+    display: block !important;
+    margin-bottom: .38rem !important;
+}
+
+body .about.block-skin-concept-2 .person,
+body .about.block-skin-concept-3 .person {
+    float: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+}
+
+body .about.block-skin-concept-2 .person img,
+body .about.block-skin-concept-3 .person img {
+    display: block !important;
+}
+
+body .about.block-skin-concept-2 .person {
+    display: grid !important;
+    grid-template-columns: 3rem 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    column-gap: .32rem !important;
+    align-items: center !important;
+    margin-bottom: .46rem !important;
+    padding: .22rem !important;
+    border-radius: .34rem !important;
+    background: linear-gradient(135deg, #fff, rgba(var(--botanical-mint-rgb), .52)) !important;
+    box-shadow: var(--botanical-shadow) !important;
+}
+
+body .about.block-skin-concept-2 .person:nth-of-type(even) {
+    grid-template-columns: 1fr 3rem !important;
+    background: linear-gradient(135deg, rgba(var(--botanical-cream-rgb), .74), #fff) !important;
+}
+
+body .about.block-skin-concept-2 .person img {
+    grid-row: 1 / -1 !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    margin: 0 !important;
+    border-radius: .28rem !important;
+    object-fit: cover !important;
+    box-shadow: 0 14px 26px rgba(var(--botanical-ink-rgb), .15) !important;
+}
+
+body .about.block-skin-concept-2 .person:nth-of-type(even) img {
+    grid-column: 2 !important;
+}
+
+body .about.block-skin-concept-2 .person-name,
+body .about.block-skin-concept-2 .parent {
+    justify-self: center !important;
+    text-align: center !important;
+}
+
+body .about.block-skin-concept-2 .person-name {
+    margin: 0 0 .08rem !important;
+    color: var(--botanical-leaf) !important;
+    font: 600 .38rem/1.25 "Lora", Georgia, serif !important;
+}
+
+body .about.block-skin-concept-2 .person-name::before {
+    display: none !important;
+}
+
+body .about.block-skin-concept-2 .parent {
+    color: var(--botanical-muted) !important;
+    font-size: .23rem !important;
+}
+
+body .about.block-skin-concept-3 .person {
+    position: relative !important;
+    margin-bottom: .48rem !important;
+    padding: .24rem .24rem .36rem !important;
+    border-radius: .48rem !important;
+    overflow: hidden !important;
+    text-align: center !important;
+    background: #fff !important;
+    box-shadow: var(--sunset-shadow) !important;
+}
+
+body .about.block-skin-concept-3 .person::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 auto 0 0 !important;
+    width: .16rem !important;
+    background: linear-gradient(to bottom, var(--sunset-coral), var(--sunset-lavender)) !important;
+}
+
+body .about.block-skin-concept-3 .person:nth-of-type(even)::before {
+    left: auto !important;
+    right: 0 !important;
+    background: linear-gradient(to bottom, var(--sunset-sky), var(--sunset-lemon)) !important;
+}
+
+body .about.block-skin-concept-3 .person img {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+    margin: 0 auto !important;
+    border-radius: 38% 62% 45% 55% / 55% 42% 58% 45% !important;
+    object-fit: cover !important;
+    box-shadow: 0 14px 28px rgba(var(--sunset-ink-rgb), .14) !important;
+}
+
+body .about.block-skin-concept-3 .person-name {
+    margin-top: .28rem !important;
+    color: var(--sunset-coral) !important;
+    font: 800 .36rem/1.25 "Quicksand", Arial, sans-serif !important;
+    text-transform: none !important;
+}
+
+body .about.block-skin-concept-3 .person-name::before {
+    display: none !important;
+}
+
+body .about.block-skin-concept-3 .parent {
+    color: var(--sunset-muted) !important;
+}
+
+body .timeline.block-skin-concept-2 {
+    padding: .72rem .28rem .38rem !important;
+    color: var(--botanical-ink) !important;
+    background: var(--botanical-paper) !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 2.5rem 1fr !important;
+    gap: .22rem !important;
+    width: 100% !important;
+    min-height: 4.05rem !important;
+    margin-bottom: .42rem !important;
+    padding: .22rem !important;
+    border-radius: .42rem !important;
+    overflow: visible !important;
+    background: #fff !important;
+    box-shadow: var(--botanical-shadow) !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
+    grid-template-columns: 1fr 2.5rem !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card > img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 3.65rem !important;
+    border-radius: .3rem !important;
+    object-fit: cover !important;
+    box-shadow: 0 12px 24px rgba(var(--botanical-ink-rgb), .12) !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-event {
+    position: relative !important;
+    padding: .18rem .2rem .18rem .32rem !important;
+    border: 0 !important;
+    border-radius: .24rem !important;
+    background: var(--botanical-mint) !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-name {
+    color: var(--botanical-ink) !important;
+    font: 700 .28rem/1.25 "Lora", Georgia, serif !important;
+    text-align: left !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row,
+body .timeline.block-skin-concept-2 .timeline-address {
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row i {
+    color: var(--botanical-rose) !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row span,
+body .timeline.block-skin-concept-2 .timeline-address {
+    color: var(--botanical-muted) !important;
+    font-size: .23rem !important;
+}
+
+/* Hard isolation layer: stop concept 1 pieces leaking into concept 2/3 block skins. */
+body .about.block-skin-concept-2 .about-portrait,
+body .about.block-skin-concept-3 .about-portrait {
+    display: none !important;
+}
+
+body .about.block-skin-concept-2,
+body .about.block-skin-concept-3 {
+    overflow: hidden !important;
+    clear: both !important;
+}
+
+body .about.block-skin-concept-2::after,
+body .about.block-skin-concept-3::after {
+    content: "" !important;
+    display: block !important;
+    clear: both !important;
+}
+
+body .about.block-skin-concept-2 .person,
+body .about.block-skin-concept-3 .person {
+    float: none !important;
+    clear: both !important;
+}
+
+body .about.block-skin-concept-2 .person-name::before,
+body .about.block-skin-concept-3 .person-name::before {
+    display: none !important;
+    content: none !important;
+}
+
+/* Cover block concept 2/3: independent card cover, no open/close image leakage. */
+body .cover.block-skin-concept-2,
+body .cover.block-skin-concept-3 {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    padding: .58rem .34rem .52rem !important;
+    overflow: hidden !important;
+    background: #fffaf3 !important;
+}
+
+body .cover.block-skin-concept-2::before,
+body .cover.block-skin-concept-3::before,
+body .cover.block-skin-concept-2::after,
+body .cover.block-skin-concept-3::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+}
+
+body .cover.block-skin-concept-2::before {
+    background: linear-gradient(180deg, rgba(var(--botanical-mint-rgb), .45), rgba(255,255,255,.82) 42%, rgba(var(--botanical-cream-rgb), .9)) !important;
+}
+
+body .cover.block-skin-concept-3::before {
+    background: radial-gradient(circle at 18% 14%, rgba(var(--sunset-lemon-rgb), .45), transparent 34%), linear-gradient(180deg, rgba(var(--sunset-coral-rgb), .18), rgba(255,255,255,.78) 48%, rgba(var(--sunset-cream-rgb), .9)) !important;
+}
+
+body .cover.block-skin-concept-2 > *,
+body .cover.block-skin-concept-3 > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+body .cover.block-skin-concept-2 .cover__headline,
+body .cover.block-skin-concept-3 .cover__headline {
+    margin: .2rem 0 .24rem !important;
+    color: rgba(58, 48, 37, .78) !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .28rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .13rem !important;
+    text-align: center !important;
+    text-shadow: none !important;
+}
+
+body .cover.block-skin-concept-2 .card,
+body .cover.block-skin-concept-3 .card {
+    position: relative !important;
+    display: block !important;
+    width: min(6.25rem, 78vw) !important;
+    height: auto !important;
+    aspect-ratio: 2 / 3 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: .03rem solid rgba(255,255,255,.9) !important;
+    border-radius: .42rem !important;
+    overflow: hidden !important;
+    background: var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat !important;
+    box-shadow: 0 .42rem 1.25rem rgba(42, 34, 27, .18) !important;
+    transform: none !important;
+}
+
+body .cover.block-skin-concept-2 .card::before,
+body .cover.block-skin-concept-3 .card::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(180deg, transparent 36%, rgba(0,0,0,.24)) !important;
+    z-index: 1 !important;
+}
+
+body .cover.block-skin-concept-2 .card::after,
+body .cover.block-skin-concept-3 .card::after {
+    content: var(--concept-cover-label, "Mở thiệp") !important;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: .34rem !important;
+    transform: translateX(-50%) !important;
+    z-index: 2 !important;
+    white-space: nowrap !important;
+    border-radius: 999px !important;
+    padding: .12rem .3rem !important;
+    color: #fff !important;
+    font: 800 .22rem/1 "Quicksand", sans-serif !important;
+    background: rgba(0,0,0,.34) !important;
+    box-shadow: none !important;
+}
+
+body .cover.block-skin-concept-2 .card__close,
+body .cover.block-skin-concept-2 .card__open,
+body .cover.block-skin-concept-3 .card__close,
+body .cover.block-skin-concept-3 .card__open {
+    display: none !important;
+}
+
+body .cover.block-skin-concept-2 .cover__footer,
+body .cover.block-skin-concept-3 .cover__footer {
+    width: min(100%, 7rem) !important;
+    margin-top: .24rem !important;
+    color: #fff !important;
+    text-shadow: 0 .08rem .26rem rgba(0,0,0,.28) !important;
+}
+
+body .cover.block-skin-concept-2 .cover__footer .man_name,
+body .cover.block-skin-concept-2 .cover__footer .women_name,
+body .cover.block-skin-concept-3 .cover__footer .man_name,
+body .cover.block-skin-concept-3 .cover__footer .women_name {
+    color: #fff !important;
+    font-family: "Great Vibes", cursive !important;
+    font-size: .72rem !important;
+    line-height: 1.25 !important;
+}
+
+body .cover.block-skin-concept-2 .cover__date,
+body .cover.block-skin-concept-3 .cover__date {
+    margin-top: .18rem !important;
+    color: rgba(255,255,255,.96) !important;
+    font-size: .28rem !important;
+    font-weight: 800 !important;
+    letter-spacing: .11rem !important;
+    text-shadow: 0 .08rem .24rem rgba(0,0,0,.28) !important;
+}
+
+/* Countdown block concept 2/3: isolated from base countdown image overlay. */
+body .countdown.block-skin-concept-2,
+body .countdown.block-skin-concept-3 {
+    position: relative !important;
+    min-height: auto !important;
+    padding: .78rem .34rem .86rem !important;
+    overflow: hidden !important;
+    color: var(--botanical-ink) !important;
+    background: var(--botanical-paper) !important;
+}
+
+body .countdown.block-skin-concept-3 {
+    color: var(--sunset-ink) !important;
+    background: linear-gradient(180deg, rgba(var(--sunset-lemon-rgb), .32), var(--sunset-paper)) !important;
+}
+
+body .countdown.block-skin-concept-2::before,
+body .countdown.block-skin-concept-3::before,
+body .countdown.block-skin-concept-2::after,
+body .countdown.block-skin-concept-3::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    opacity: 1 !important;
+}
+
+body .countdown.block-skin-concept-2::before {
+    background: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) center/cover no-repeat !important;
+    opacity: .2 !important;
+    filter: saturate(.8) brightness(1.08) !important;
+}
+
+body .countdown.block-skin-concept-3::before {
+    background: var(--concept-countdown-image, var(--countdown-image, url("../../img/anh_2.jpg"))) center/cover no-repeat !important;
+    opacity: .24 !important;
+    filter: saturate(1.08) brightness(1.04) !important;
+}
+
+body .countdown.block-skin-concept-2::after {
+    background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(var(--botanical-mint-rgb), .82)) !important;
+}
+
+body .countdown.block-skin-concept-3::after {
+    background: linear-gradient(180deg, rgba(255,255,255,.76), rgba(var(--sunset-cream-rgb), .9)) !important;
+}
+
+body .countdown.block-skin-concept-2 > *,
+body .countdown.block-skin-concept-3 > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+body .countdown.block-skin-concept-2 .section-title,
+body .countdown.block-skin-concept-3 .section-title {
+    color: inherit !important;
+    font-size: .46rem !important;
+    text-shadow: none !important;
+}
+
+body .countdown.block-skin-concept-2 .count-item,
+body .countdown.block-skin-concept-3 .count-item {
+    border: 1px solid rgba(255,255,255,.72) !important;
+    border-radius: .26rem !important;
+    background: rgba(255,255,255,.72) !important;
+    box-shadow: 0 .16rem .42rem rgba(50,40,30,.1) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+body .countdown.block-skin-concept-2 .count-item div,
+body .countdown.block-skin-concept-2 .count-item span,
+body .countdown.block-skin-concept-3 .count-item div,
+body .countdown.block-skin-concept-3 .count-item span {
+    color: inherit !important;
+    text-shadow: none !important;
+}

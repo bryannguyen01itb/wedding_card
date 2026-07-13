@@ -36,6 +36,21 @@ export function getWeddingIdFromUrl() {
 }
 
 export async function loadWeddingConfig() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("preview") === "builder") {
+        try {
+            const previewConfig = JSON.parse(localStorage.getItem("weddingBuilderPreview") || "null");
+            if (previewConfig) {
+                const mergedPreview = mergeConfig(fallbackWedding, previewConfig);
+                setWeddingConfig(mergedPreview);
+                return mergedPreview;
+            }
+        } catch (error) {
+            console.warn("Không đọc được preview builder:", error);
+        }
+    }
+
     const weddingId = getWeddingIdFromUrl();
 
     if (!weddingId) {

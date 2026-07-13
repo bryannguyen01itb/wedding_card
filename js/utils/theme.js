@@ -7,6 +7,32 @@ const CONCEPT_ALIASES = {
 };
 
 const CONCEPT_CLASSES = ["concept-1", "concept-2", "concept-3", "concept-4"];
+const BUILDER_BLOCK_PREFIXES = [
+    "block-cover-",
+    "block-poster-",
+    "block-save-date-",
+    "block-about-",
+    "block-timeline-",
+    "block-gallery-",
+    "block-divider-",
+    "block-countdown-",
+    "font-body-",
+    "font-nickname-"
+];
+
+const BUILDER_SECTION_CLASSES = ["concept-1", "concept-2", "concept-3", "concept-4"]
+    .map(concept => `block-skin-${concept}`);
+
+const BUILDER_SECTION_TARGETS = {
+    cover: ".cover",
+    poster: ".poster",
+    saveDate: ".save-date",
+    about: ".about",
+    timeline: ".timeline",
+    gallery: ".gallery",
+    countdown: ".countdown",
+    divider: ".section-divider"
+};
 
 const PALETTE_VARS = {
     botanical: {
@@ -153,10 +179,79 @@ function applyConceptClass(concept) {
     return activeConcept;
 }
 
+function normalizeToken(value, fallback = "default") {
+    return String(value || fallback)
+        .trim()
+        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || fallback;
+}
+
+function applyBuilderSectionClasses(blocks = {}) {
+    Object.values(BUILDER_SECTION_TARGETS).forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            element.classList.remove(...BUILDER_SECTION_CLASSES);
+        });
+    });
+
+    Object.entries(BUILDER_SECTION_TARGETS).forEach(([blockName, selector]) => {
+        const concept = normalizeConcept(blocks[blockName]);
+        document.querySelectorAll(selector).forEach(element => {
+            element.classList.add(`block-skin-${concept}`);
+        });
+    });
+}
+
+function applyBuilderClasses(themeConfig = {}) {
+    const body = document.body;
+    [...body.classList].forEach(className => {
+        if (BUILDER_BLOCK_PREFIXES.some(prefix => className.startsWith(prefix))) {
+            body.classList.remove(className);
+        }
+    });
+
+    const blocks = themeConfig.blocks || {};
+    const fonts = themeConfig.fonts || {};
+
+    applyBuilderSectionClasses(blocks);
+    Object.entries(blocks).forEach(([blockName, option]) => {
+        body.classList.add(`block-${normalizeToken(blockName)}-${normalizeToken(option)}`);
+    });
+    body.classList.add(`font-body-${normalizeToken(fonts.body)}`);
+    body.classList.add(`font-nickname-${normalizeToken(fonts.nickname)}`);
+}
+
 function applyPalette(target, palette, variableMap) {
     Object.entries(variableMap).forEach(([key, cssVar]) => {
         setColorVar(target, cssVar, palette[key]);
     });
+}
+
+function getConceptConfig(themeConfig, concept) {
+    return themeConfig?.concepts?.[normalizeConcept(concept)] || {};
+}
+
+function applyBuilderPalettes(bodyStyle, primaryColor) {
+    applyPalette(bodyStyle, createBotanicalPalette(primaryColor), PALETTE_VARS.botanical);
+    applyPalette(bodyStyle, createSunsetPalette(primaryColor), PALETTE_VARS.sunset);
+}
+
+function applySharedThemeSurface(rootStyle, primaryColor) {
+    setColorVar(rootStyle, "--theme-page-bg", mixHex(primaryColor, "#fffdf8", .94));
+    setColorVar(rootStyle, "--theme-page-bg-soft", mixHex(primaryColor, "#fff7eb", .88));
+    setColorVar(rootStyle, "--theme-surface", mixHex(primaryColor, "#ffffff", .9));
+}
+
+function applyBuilderBlockMedia(themeConfig, rootStyle, bodyStyle) {
+    const blocks = themeConfig?.blocks || {};
+    const coverConfig = getConceptConfig(themeConfig, blocks.cover);
+    const countdownConfig = getConceptConfig(themeConfig, blocks.countdown);
+
+    setImageVar(bodyStyle, "--concept-cover-image", coverConfig?.images?.cover);
+    setVar(bodyStyle, "--concept-cover-label", toCssString(coverConfig?.cover?.openLabel || "Mở thiệp"));
+    setImageVar(rootStyle, "--countdown-image", countdownConfig?.images?.countdown);
+    setImageVar(bodyStyle, "--concept-countdown-image", countdownConfig?.images?.countdown);
 }
 
 function applyConceptMediaConfig(config, rootStyle, bodyStyle, defaultCoverLabel) {
@@ -208,6 +303,10 @@ export function applyTheme(theme = {}) {
     rootStyle.setProperty("--primary-color", primaryColor);
     rootStyle.setProperty("--primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
     rootStyle.setProperty("--primary-hover", darkenHex(primaryColor, 10));
+    applySharedThemeSurface(rootStyle, primaryColor);
 
+    applyBuilderPalettes(bodyStyle, primaryColor);
+    applyBuilderClasses(themeConfig);
     CONCEPT_APPLIERS[activeConcept](conceptConfig, rootStyle, bodyStyle, primaryColor);
+    applyBuilderBlockMedia(themeConfig, rootStyle, bodyStyle);
 }

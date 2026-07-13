@@ -10,9 +10,24 @@ export let wedding = {
     music: "music/1_doi.mp3",
 
     theme: {
-        // concept-1: giao diện gốc, concept-2: Botanical Airy, concept-3: Sunset Pop, concept-4: MeHappy Soft
-        concept: "concept-3",
+        // concept chỉ còn là nền mặc định cho các phần cố định như wish/gift/thanks.
+        // Các section chính sẽ lấy giao diện theo theme.blocks bên dưới.
+        concept: "concept-1",
         primaryColor: "#8fb8a8",
+        blocks: {
+            cover: "concept-1",
+            poster: "concept-1",
+            saveDate: "concept-1",
+            about: "concept-1",
+            timeline: "concept-1",
+            gallery: "concept-1",
+            countdown: "concept-1",
+            divider: "concept-1"
+        },
+        fonts: {
+            body: "quicksand",
+            nickname: "great-vibes"
+        },
         concepts: {
             "concept-1": {
                 images: {

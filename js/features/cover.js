@@ -6,6 +6,13 @@ const INVITATION_PREPARE_DELAY = 260;
 const COVER_FADE_DELAY = 520;
 const COVER_REMOVE_DELAY = 980;
 
+function dismissCover(cover) {
+    cover.classList.add("is-dismissed");
+    cover.setAttribute("aria-hidden", "true");
+    cover.hidden = true;
+    cover.style.setProperty("display", "none", "important");
+}
+
 /** Xử lý mở bìa thiệp và chuyển sang nội dung chính */
 export function initCover() {
     let isOpening = false;
@@ -45,8 +52,8 @@ export function initCover() {
         setTimeout(() => cover.classList.add("hide"), COVER_FADE_DELAY);
 
         setTimeout(() => {
-            cover.style.display = "none";
             cover.classList.remove("opening", "hide");
+            dismissCover(cover);
         }, COVER_REMOVE_DELAY);
 
         showMusic();
