@@ -69,6 +69,30 @@
         </section>
     </main>
 
+
+    <div id="saveModal" class="save-modal" hidden>
+        <div class="save-modal__backdrop" data-close-modal></div>
+        <section class="save-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
+            <button class="save-modal__close" type="button" data-close-modal aria-label="Dong popup"><i class="bi bi-x-lg"></i></button>
+            <div class="save-modal__icon"><i class="bi bi-check-lg"></i></div>
+            <p class="save-modal__eyebrow">Da luu Firebase thanh cong</p>
+            <h2 id="saveModalTitle">Vui long luu lai link sua thiep</h2>
+            <p class="save-modal__desc">Link sua lai mau la link gui cho khach giu. Sau nay muon doi block, mau hoac font thi mo dung link nay de sua tiep.</p>
+            <div class="save-modal__links">
+                <div class="save-modal__link-card">
+                    <span>Link xem thiep</span>
+                    <a id="modalInvitationLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyInvitationLink" type="button"><i class="bi bi-copy"></i> Copy</button>
+                </div>
+                <div class="save-modal__link-card save-modal__link-card--important">
+                    <span>Link sua lai mau</span>
+                    <a id="modalEditLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyEditLink" type="button"><i class="bi bi-copy"></i> Copy</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
     <script type="module" src="builder.js"></script>

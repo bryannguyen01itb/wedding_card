@@ -10,6 +10,11 @@ const saveBtn = document.getElementById("saveBtn");
 const resultLinks = document.getElementById("resultLinks");
 const invitationLink = document.getElementById("invitationLink");
 const editLink = document.getElementById("editLink");
+const saveModal = document.getElementById("saveModal");
+const modalInvitationLink = document.getElementById("modalInvitationLink");
+const modalEditLink = document.getElementById("modalEditLink");
+const copyInvitationLink = document.getElementById("copyInvitationLink");
+const copyEditLink = document.getElementById("copyEditLink");
 
 const BASE_CONCEPT = "concept-1";
 const WEDDING_QUERY_KEY = "wedding";
@@ -76,19 +81,67 @@ function buildEditUrl(weddingId) {
     return url.toString();
 }
 
+function applyLink(anchor, url) {
+    if (!anchor) {
+        return;
+    }
+
+    anchor.href = url;
+    anchor.textContent = url;
+}
+
+function getShareUrls(weddingId) {
+    return {
+        invitationUrl: buildInvitationUrl(weddingId),
+        editUrl: buildEditUrl(weddingId)
+    };
+}
+
 function updateResultLinks(weddingId) {
     if (!weddingId || !resultLinks || !invitationLink || !editLink) {
         return;
     }
 
-    const invitationUrl = buildInvitationUrl(weddingId);
-    const editUrl = buildEditUrl(weddingId);
+    const { invitationUrl, editUrl } = getShareUrls(weddingId);
 
-    invitationLink.href = invitationUrl;
-    invitationLink.textContent = invitationUrl;
-    editLink.href = editUrl;
-    editLink.textContent = editUrl;
+    applyLink(invitationLink, invitationUrl);
+    applyLink(editLink, editUrl);
+    applyLink(modalInvitationLink, invitationUrl);
+    applyLink(modalEditLink, editUrl);
     resultLinks.hidden = false;
+}
+
+function showSaveModal(weddingId) {
+    updateResultLinks(weddingId);
+    if (!saveModal) {
+        return;
+    }
+
+    saveModal.hidden = false;
+    document.body.classList.add("modal-open");
+}
+
+function hideSaveModal() {
+    if (!saveModal) {
+        return;
+    }
+
+    saveModal.hidden = true;
+    document.body.classList.remove("modal-open");
+}
+
+async function copyText(value, button) {
+    try {
+        await navigator.clipboard.writeText(value);
+        if (button) {
+            const original = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check-lg"></i> Da copy';
+            window.setTimeout(() => { button.innerHTML = original; }, 1400);
+        }
+    } catch (error) {
+        console.error(error);
+        setStatus("Khong copy duoc link, hay copy thu cong.", "error");
+    }
 }
 
 function syncUrlForEdit(weddingId) {
@@ -245,6 +298,7 @@ async function saveConfig(event) {
         updateResultLinks(payload.weddingId);
         setStatus(`Da luu Firebase thanh cong: ${payload.weddingId}`, "success");
         refreshPreview(false);
+        showSaveModal(payload.weddingId);
     } catch (error) {
         console.error(error);
         setStatus("Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.", "error");
@@ -263,3 +317,25 @@ form.addEventListener("input", () => {
 previewBtn.addEventListener("click", refreshPreview);
 form.addEventListener("submit", saveConfig);
 loadConfigForEdit();
+
+if (saveModal) {
+    saveModal.addEventListener("click", event => {
+        if (event.target.closest("[data-close-modal]")) {
+            hideSaveModal();
+        }
+    });
+}
+
+copyInvitationLink?.addEventListener("click", () => {
+    copyText(modalInvitationLink?.href || "", copyInvitationLink);
+});
+
+copyEditLink?.addEventListener("click", () => {
+    copyText(modalEditLink?.href || "", copyEditLink);
+});
+
+window.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        hideSaveModal();
+    }
+});
