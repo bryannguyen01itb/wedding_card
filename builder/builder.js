@@ -6,6 +6,10 @@ const frame = document.getElementById("previewFrame");
 const statusEl = document.getElementById("status");
 const weddingIdInput = document.getElementById("weddingId");
 const previewBtn = document.getElementById("previewBtn");
+const saveBtn = document.getElementById("saveBtn");
+const resultLinks = document.getElementById("resultLinks");
+const invitationLink = document.getElementById("invitationLink");
+const editLink = document.getElementById("editLink");
 
 const BASE_CONCEPT = "concept-1";
 const WEDDING_QUERY_KEY = "wedding";
@@ -60,6 +64,42 @@ function setStatus(message, type = "") {
     statusEl.dataset.type = type;
 }
 
+function buildInvitationUrl(weddingId) {
+    const url = new URL("../", window.location.href);
+    url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
+    return url.toString();
+}
+
+function buildEditUrl(weddingId) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
+    return url.toString();
+}
+
+function updateResultLinks(weddingId) {
+    if (!weddingId || !resultLinks || !invitationLink || !editLink) {
+        return;
+    }
+
+    const invitationUrl = buildInvitationUrl(weddingId);
+    const editUrl = buildEditUrl(weddingId);
+
+    invitationLink.href = invitationUrl;
+    invitationLink.textContent = invitationUrl;
+    editLink.href = editUrl;
+    editLink.textContent = editUrl;
+    resultLinks.hidden = false;
+}
+
+function syncUrlForEdit(weddingId) {
+    if (!weddingId) {
+        return;
+    }
+
+    const editUrl = buildEditUrl(weddingId);
+    window.history.replaceState({}, "", editUrl);
+}
+
 function readBuilderTheme() {
     const data = new FormData(form);
     const weddingId = editingWeddingId || buildWeddingId(data);
@@ -105,12 +145,17 @@ function createPreviewConfig() {
 }
 
 function createSavePayload() {
+    const data = new FormData(form);
     const builderTheme = readBuilderTheme();
 
     return {
         weddingId: builderTheme.weddingId,
         date: builderTheme.date,
-        theme: builderTheme.theme
+        theme: builderTheme.theme,
+        builder: {
+            groomNickname: data.get("groomNickname") || "",
+            brideNickname: data.get("brideNickname") || ""
+        }
     };
 }
 
@@ -118,10 +163,13 @@ function fillBuilderForm(config = {}) {
     const theme = config.theme || {};
     const blocks = theme.blocks || {};
     const fonts = theme.fonts || {};
+    const builder = config.builder || {};
 
     editingWeddingId = config.weddingId || editingWeddingId;
     weddingIdInput.value = editingWeddingId;
 
+    setControlValue("groomNickname", builder.groomNickname);
+    setControlValue("brideNickname", builder.brideNickname);
     setControlValue("date", config.date);
     setControlValue("primaryColor", theme.primaryColor);
     setControlValue("blockCover", blocks.cover);
@@ -152,8 +200,10 @@ async function loadConfigForEdit() {
         const doc = await db.collection("weddings").doc(weddingId).get();
         if (doc.exists) {
             fillBuilderForm({ ...doc.data(), weddingId: doc.id });
+            updateResultLinks(weddingId);
             setStatus(`Dang sua: ${weddingId}`);
         } else {
+            updateResultLinks(weddingId);
             setStatus(`Chua co cau hinh Firebase cho: ${weddingId}. Co the luu de tao moi.`, "error");
         }
     } catch (error) {
@@ -183,14 +233,26 @@ async function saveConfig(event) {
     }
 
     try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Dang luu';
+        }
+
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
         editingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
-        setStatus(`Da luu Firebase: ${payload.weddingId}`);
-        refreshPreview();
+        syncUrlForEdit(payload.weddingId);
+        updateResultLinks(payload.weddingId);
+        setStatus(`Da luu Firebase thanh cong: ${payload.weddingId}`, "success");
+        refreshPreview(false);
     } catch (error) {
         console.error(error);
         setStatus("Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.", "error");
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Luu Firebase';
+        }
     }
 }
 
