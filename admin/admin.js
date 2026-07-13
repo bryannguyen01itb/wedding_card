@@ -24,6 +24,15 @@ const saveBtn = document.getElementById("saveBtn");
 const toast = document.getElementById("toast");
 const previewLink = document.getElementById("previewLink");
 const galleryFields = document.getElementById("galleryFields");
+const musicPanel = document.getElementById("musicPanel");
+const musicForm = document.getElementById("musicForm");
+const musicDocId = document.getElementById("musicDocId");
+const musicTitle = document.getElementById("musicTitle");
+const musicUrl = document.getElementById("musicUrl");
+const musicActive = document.getElementById("musicActive");
+const musicList = document.getElementById("musicList");
+const resetMusicBtn = document.getElementById("resetMusicBtn");
+const saveMusicBtn = document.getElementById("saveMusicBtn");
 
 let currentConfig = createDefaultConfig();
 let hasLoadedInitialConfig = false;
@@ -179,6 +188,135 @@ function readForm() {
     return nextConfig;
 }
 
+function resetMusicForm() {
+    musicDocId.value = "";
+    musicTitle.value = "";
+    musicUrl.value = "";
+    musicActive.value = "true";
+    saveMusicBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Lưu nhạc';
+}
+
+function renderMusicList(items) {
+    musicList.textContent = "";
+
+    if (!items.length) {
+        musicList.innerHTML = '<p class="empty-state">Chưa có bài nhạc nào. Thêm link Cloudinary ở form bên trên.</p>';
+        return;
+    }
+
+    items.forEach(item => {
+        const row = document.createElement("article");
+        row.className = `music-item${item.active === false ? " is-inactive" : ""}`;
+        row.innerHTML = `
+            <div class="music-item__info">
+                <strong>${item.title || item.id}</strong>
+                <span>${item.url || ""}</span>
+                <em>${item.active === false ? "Đang ẩn" : "Đang hiện"}</em>
+            </div>
+            <div class="music-item__actions">
+                <button type="button" class="ghost small" data-action="edit" data-id="${item.id}"><i class="bi bi-pencil-square"></i> Sửa</button>
+                <button type="button" class="ghost small" data-action="toggle" data-id="${item.id}">${item.active === false ? '<i class="bi bi-eye-fill"></i> Hiện' : '<i class="bi bi-eye-slash-fill"></i> Ẩn'}</button>
+                <button type="button" class="ghost small danger" data-action="delete" data-id="${item.id}"><i class="bi bi-trash3-fill"></i> Xóa</button>
+            </div>
+        `;
+        musicList.appendChild(row);
+    });
+}
+
+async function loadMusicLibraryAdmin() {
+    try {
+        const snapshot = await db.collection("musicLibrary").orderBy("title").get();
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderMusicList(items);
+    } catch (error) {
+        console.error(error);
+        musicList.innerHTML = '<p class="empty-state error">Không tải được thư viện nhạc. Kiểm tra Firestore Rules.</p>';
+    }
+}
+
+async function saveMusicItem(event) {
+    event.preventDefault();
+
+    if (!auth.currentUser) {
+        showToast("Bạn cần đăng nhập trước khi lưu nhạc.", "error");
+        return;
+    }
+
+    const title = musicTitle.value.trim();
+    const url = musicUrl.value.trim();
+    const active = musicActive.value === "true";
+
+    if (!title || !url) {
+        showToast("Nhập tên bài hát và link mp3 trước khi lưu.", "error");
+        return;
+    }
+
+    const docId = musicDocId.value || slugify(title) || `music-${Date.now()}`;
+    saveMusicBtn.disabled = true;
+    saveMusicBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu';
+
+    try {
+        await db.collection("musicLibrary").doc(docId).set({
+            title,
+            url,
+            active,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        resetMusicForm();
+        await loadMusicLibraryAdmin();
+        showToast("Đã lưu bài nhạc vào thư viện chung.");
+    } catch (error) {
+        console.error(error);
+        showToast("Lưu nhạc thất bại. Kiểm tra Firestore Rules.", "error");
+    } finally {
+        saveMusicBtn.disabled = false;
+        saveMusicBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Lưu nhạc';
+    }
+}
+
+async function handleMusicListClick(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const { action, id } = button.dataset;
+    const ref = db.collection("musicLibrary").doc(id);
+
+    try {
+        if (action === "edit") {
+            const doc = await ref.get();
+            if (!doc.exists) return;
+            const data = doc.data();
+            musicDocId.value = doc.id;
+            musicTitle.value = data.title || "";
+            musicUrl.value = data.url || "";
+            musicActive.value = data.active === false ? "false" : "true";
+            saveMusicBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Cập nhật nhạc';
+            musicTitle.focus();
+            return;
+        }
+
+        if (action === "toggle") {
+            const doc = await ref.get();
+            if (!doc.exists) return;
+            await ref.set({ active: doc.data().active === false }, { merge: true });
+            await loadMusicLibraryAdmin();
+            showToast("Đã cập nhật trạng thái bài nhạc.");
+            return;
+        }
+
+        if (action === "delete") {
+            if (!window.confirm("Xóa bài nhạc này khỏi thư viện builder?")) return;
+            await ref.delete();
+            if (musicDocId.value === id) resetMusicForm();
+            await loadMusicLibraryAdmin();
+            showToast("Đã xóa bài nhạc.");
+        }
+    } catch (error) {
+        console.error(error);
+        showToast("Không thao tác được với bài nhạc. Kiểm tra Firestore Rules.", "error");
+    }
+}
+
 async function loadConfigById(weddingId) {
     loadBtn.disabled = true;
     loadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tải';
@@ -259,6 +397,7 @@ function showLoggedOut() {
     loginPanel.classList.remove("is-hidden");
     adminHero.classList.add("is-hidden");
     form.classList.add("is-hidden");
+    musicPanel.classList.add("is-hidden");
 }
 
 async function showLoggedIn(user) {
@@ -271,7 +410,9 @@ async function showLoggedIn(user) {
     loginPanel.classList.add("is-hidden");
     adminHero.classList.remove("is-hidden");
     form.classList.remove("is-hidden");
+    musicPanel.classList.remove("is-hidden");
     accountEmail.textContent = user.email;
+    await loadMusicLibraryAdmin();
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
@@ -292,6 +433,9 @@ function initEvents() {
     });
 
     form.addEventListener("submit", saveConfig);
+    musicForm.addEventListener("submit", saveMusicItem);
+    musicList.addEventListener("click", handleMusicListClick);
+    resetMusicBtn.addEventListener("click", resetMusicForm);
     resetBtn.addEventListener("click", () => loadConfigById(""));
     form.elements["weddingId"].addEventListener("input", event => updatePreviewLink(event.target.value.trim()));
     document.getElementById("mediaConcept")?.addEventListener("change", event => {

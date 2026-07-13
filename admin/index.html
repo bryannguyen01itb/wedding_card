@@ -43,6 +43,20 @@
             </div>
         </section>
 
+        <section class="panel music-admin is-hidden" id="musicPanel">
+            <div class="panel-title"><i class="bi bi-music-note-list"></i><div><h2>Thư viện nhạc dùng chung</h2><p>Thêm bài nhạc Cloudinary để builder tự hiển thị cho khách chọn.</p></div></div>
+            <form id="musicForm" class="music-form">
+                <input id="musicDocId" type="hidden">
+                <div class="grid music-grid">
+                    <label>Tên bài hát<input id="musicTitle" type="text" placeholder="vd: Váy cưới" required></label>
+                    <label>Link mp3 Cloudinary<input id="musicUrl" type="url" placeholder="https://res.cloudinary.com/...mp3" required></label>
+                    <label>Trạng thái<select id="musicActive"><option value="true">Hiện trong builder</option><option value="false">Ẩn khỏi builder</option></select></label>
+                    <div class="music-actions"><button id="resetMusicBtn" type="button" class="ghost"><i class="bi bi-plus-circle"></i> Bài mới</button><button id="saveMusicBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu nhạc</button></div>
+                </div>
+            </form>
+            <div id="musicList" class="music-list"></div>
+        </section>
+
         <form id="adminForm" class="admin-form is-hidden">
             <section class="panel">
                 <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>
