@@ -14,42 +14,38 @@
     <main class="builder-shell">
         <section class="builder-panel">
             <div class="builder-heading">
-                <p>Wedding Block Builder</p>
-                <h1>Khach tu chon giao dien thiep</h1>
-                <span>Chi nhap ten, mau, font va block. Anh, nhac, noi dung chi tiet admin se sua sau.</span>
-            </div>
-
+                <h1>Khách tự chọn giao diện thiệp</h1>
             <form id="builderForm" class="builder-form">
                 <section class="card">
-                    <h2>Thong tin de tao thiep</h2>
+                    <h2>Thông tin để tạo thiệp</h2>
                     <div class="grid two">
-                        <label>Ten chu re<input name="groomNickname" value="HUNG" required></label>
-                        <label>Ten co dau<input name="brideNickname" value="HANG" required></label>
-                        <label>Ngay cuoi<input name="date" type="date" value="2026-09-12" required></label>
-                        <label>Mau chu dao<input name="primaryColor" type="color" value="#c9974f"></label>
+                        <label>Tên chú rể (không cần họ tên đầy đủ)<input name="groomNickname" value="HUNG" required></label>
+                        <label>Tên cô dâu (không cần họ tên đầy đủ)<input name="brideNickname" value="HANG" required></label>
+                        <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
+                        <label>Màu sắc thiệp<input name="primaryColor" type="color" value="#c9974f"></label>
                     </div>
                     <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
                 </section>
 
                 <section class="card">
-                    <h2>Chon block giao dien</h2>
+                    <h2>Chọn giao diện</h2>
                     <div class="choice-grid">
-                        <label>Cover<select name="blockCover"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Poster dau thiep<select name="blockPoster"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Save date<select name="blockSaveDate"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>About<select name="blockAbout"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Timeline<select name="blockTimeline"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Gallery<select name="blockGallery"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Countdown<select name="blockCountdown"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Ngan cach section<select name="blockDivider"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Ảnh bìa thiệp<select name="blockCover"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Ảnh poster thiệp<select name="blockPoster"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Lịch (Save the date)<select name="blockSaveDate"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Đôi nét về chúng tôi<select name="blockAbout"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Lịch trình<select name="blockTimeline"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Album ảnh cưới<select name="blockGallery"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Đếm ngược<select name="blockCountdown"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                        <label>Icon ngăn cách<select name="blockDivider"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
                     </div>
                 </section>
 
                 <section class="card">
-                    <h2>Font chu</h2>
+                    <h2>Phông chữ</h2>
                     <div class="grid two">
-                        <label>Font tong quat<select name="fontBody"><option value="quicksand">Quicksand</option><option value="lora">Lora</option><option value="nunito">Nunito Sans</option></select></label>
-                        <label>Font ten rieng<select name="fontNickname"><option value="great-vibes">Great Vibes</option><option value="parisienne">Parisienne</option><option value="lora">Lora</option></select></label>
+                        <label>Phông chữ thiệp<select name="fontBody"><option value="quicksand">Quicksand</option><option value="lora">Lora</option><option value="nunito">Nunito Sans</option></select></label>
+                        <label>Phông tên nickname<select name="fontNickname"><option value="great-vibes">Great Vibes</option><option value="parisienne">Parisienne</option><option value="lora">Lora</option></select></label>
                     </div>
                 </section>
 
@@ -59,7 +55,7 @@
                 </div>
                 <p id="status" class="status"></p>
                 <div id="resultLinks" class="result-links" hidden>
-                    <p>Da luu thanh cong. Gui cho khach 2 link nay:</p>
+                    <p>Đã lưu thành công. Gui cho khach 2 link nay:</p>
                     <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link xem thiep</a>
                     <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sua lai mau</a>
                 </div>
