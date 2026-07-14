@@ -1,0 +1,10 @@
+/*
+ * Gallery skins — module: js/modules/gallery
+ *
+ * Primary rules currently live in css/parts/block-concepts.css
+ * Prefer adding NEW gallery skin rules here.
+ *
+ * Selectors:
+ *   body.block-gallery-concept-N .gallery
+ *   .gallery.block-skin-concept-N
+ */

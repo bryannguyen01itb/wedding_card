@@ -23,144 +23,176 @@
             </form>
         </section>
 
-        <section class="admin-hero is-hidden" id="adminHero">
-            <div>
-                <p class="eyebrow">Wedding Admin Online</p>
-                <h1>Nhập config thiệp cưới</h1>
-                <p class="hero-desc">Tạo/sửa config Firebase mà không cần mở code. Ảnh và nhạc chỉ cần dán link.</p>
+        <div id="adminApp" class="admin-app is-hidden" hidden>
+            <aside class="admin-nav" aria-label="Menu admin">
+                <div class="admin-nav__brand">
+                    <p class="eyebrow">Admin</p>
+                    <strong>Wedding Card</strong>
+                    <span id="accountEmail" class="admin-nav__email"></span>
+                </div>
+                <nav class="admin-nav__list">
+                    <button type="button" class="admin-nav__item is-active" data-admin-nav="wedding">
+                        <i class="bi bi-person-vcard"></i>
+                        <span>Thông tin khách</span>
+                    </button>
+                    <button type="button" class="admin-nav__item" data-admin-nav="music">
+                        <i class="bi bi-music-note-list"></i>
+                        <span>Thư viện nhạc</span>
+                    </button>
+                    <button type="button" class="admin-nav__item" data-admin-nav="payment">
+                        <i class="bi bi-credit-card-2-front-fill"></i>
+                        <span>Thanh toán / mở khóa</span>
+                    </button>
+                </nav>
+                <button id="logoutBtn" type="button" class="ghost admin-nav__logout">
+                    <i class="bi bi-box-arrow-right"></i> Thoát
+                </button>
+            </aside>
+
+            <div class="admin-main">
+                <section class="admin-view is-active" data-admin-view="wedding" id="weddingView">
+                    <section class="admin-hero" id="adminHero">
+                        <div>
+                            <p class="eyebrow">Thông tin khách theo ID</p>
+                            <h1>Sửa config thiệp</h1>
+                            <p class="hero-desc">Tải weddingId để chỉnh chi tiết. Ảnh/nhạc dán link Cloudinary hoặc local.</p>
+                        </div>
+                        <div class="hero-card">
+                            <label for="loadWeddingId">Wedding ID</label>
+                            <div class="load-row">
+                                <input id="loadWeddingId" type="text" placeholder="vd: nam-linh-2026">
+                                <button id="loadBtn" type="button"><i class="bi bi-search"></i> Tải</button>
+                            </div>
+                            <p>Link thiệp: <a id="previewLink" href="#" target="_blank" rel="noopener noreferrer">chưa có weddingId</a></p>
+                        </div>
+                    </section>
+
+                    <form id="adminForm" class="admin-form">
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>
+                            <div class="grid two">
+                                <label>Wedding ID<input name="weddingId" required></label>
+                                <label>Ngày cưới<input name="date" type="date" required></label>
+                                <label>Địa điểm<input name="location"></label>
+                                <label>Logo header<input name="header.logo"></label>
+                                <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
+                                <label class="span-2">Link nhạc<input name="music" placeholder="https://...mp3 hoặc music/1_doi.mp3"></label>
+                            </div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-image"></i><div><h2>Ảnh chính</h2><p>Dán link Cloudinary/GitHub hoặc đường dẫn local.</p></div></div>
+                            <div class="grid two">
+                                <label>Ảnh poster<input name="poster.image"></label>
+                                <label>Ảnh preview gửi link<input name="preview.image"></label>
+                                <label>Ảnh about<input name="aboutCard.image"></label>
+                                <label>Ảnh timeline<input name="ceremony.image"></label>
+                                <label>Nhóm ảnh block<select id="mediaConcept"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                                <label>Ảnh nền block<input name="theme.concepts.active.images.background"></label>
+                                <label>Ảnh cover block<input name="theme.concepts.active.images.cover"></label>
+                                <label>Ảnh countdown block<input name="theme.concepts.active.images.countdown"></label>
+                                <label>Nút mở cover block<input name="theme.concepts.active.cover.openLabel"></label>
+                            </div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-people-fill"></i><div><h2>Cô dâu & chú rể</h2><p>Nickname dùng cho bìa/poster, họ tên đầy đủ dùng trong about.</p></div></div>
+                            <div class="split-panels">
+                                <div class="mini-panel"><h3>Chú rể</h3><label>Nickname<input name="groom.nickname"></label><label>Họ tên<input name="groom.fullName"></label><label>Bố<input name="groom.father"></label><label>Mẹ<input name="groom.mother"></label><label>Ảnh<input name="groom.avatar"></label></div>
+                                <div class="mini-panel"><h3>Cô dâu</h3><label>Nickname<input name="bride.nickname"></label><label>Họ tên<input name="bride.fullName"></label><label>Bố<input name="bride.father"></label><label>Mẹ<input name="bride.mother"></label><label>Ảnh<input name="bride.avatar"></label></div>
+                            </div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-calendar-heart"></i><div><h2>Lịch trình</h2><p>Nhập giờ lễ, bữa cơm, địa chỉ và link chỉ đường.</p></div></div>
+                            <div class="split-panels">
+                                <div class="mini-panel"><h3>Nhà gái</h3><label>Tên lễ<input name="ceremony.bride.title"></label><label>Giờ lễ<input name="ceremony.bride.time"></label><label>Tên bữa cơm<input name="ceremony.bride.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.bride.meal.time"></label><label>Địa chỉ<textarea name="ceremony.bride.address" rows="2"></textarea></label><label>Maps<input name="ceremony.bride.mapUrl"></label></div>
+                                <div class="mini-panel"><h3>Nhà trai</h3><label>Tên lễ<input name="ceremony.groom.title"></label><label>Giờ lễ<input name="ceremony.groom.time"></label><label>Tên bữa cơm<input name="ceremony.groom.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.groom.meal.time"></label><label>Địa chỉ<textarea name="ceremony.groom.address" rows="2"></textarea></label><label>Maps<input name="ceremony.groom.mapUrl"></label></div>
+                            </div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-card-text"></i><div><h2>Tiêu đề & mô tả section</h2><p>Để trống subtitle nếu không muốn hiển thị.</p></div></div>
+                            <div class="grid two">
+                                <label>About title<input name="sections.about"></label><label>About subtitle<textarea name="sectionSubtitles.about" rows="3"></textarea></label>
+                                <label>Timeline title<input name="sections.timeline"></label><label>Timeline subtitle<textarea name="sectionSubtitles.timeline" rows="3"></textarea></label>
+                                <label>Gallery title<input name="sections.gallery"></label><label>Gallery subtitle<textarea name="sectionSubtitles.gallery" rows="3"></textarea></label>
+                                <label>Wish title<input name="sections.wish"></label><label>Wish subtitle<textarea name="sectionSubtitles.wish" rows="3"></textarea></label>
+                                <label>Gift title<input name="sections.gift.title"></label><label>Gift subtitle<textarea name="sectionSubtitles.gift" rows="3"></textarea></label>
+                                <label>Thanks title<input name="sections.thanks.title"></label><label>Thanks subtitle, mỗi dòng là một đoạn<textarea name="sectionSubtitles.thanks" rows="5"></textarea></label>
+                            </div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-images"></i><div><h2>Gallery 7 ảnh</h2><p>Dán link ảnh cưới. Concept 4 dùng cố định 7 ảnh.</p></div></div>
+                            <div id="galleryFields" class="gallery-fields"></div>
+                        </section>
+
+                        <section class="panel">
+                            <div class="panel-title"><i class="bi bi-gift-fill"></i><div><h2>Hộp mừng cưới</h2><p>QR có thể là link ảnh hoặc đường dẫn local.</p></div></div>
+                            <div class="split-panels">
+                                <div class="mini-panel"><h3>Chú rể</h3><label>QR<input name="gift.groom.qr"></label><label>Ngân hàng<input name="gift.groom.bank"></label><label>Tên TK<input name="gift.groom.accountName"></label><label>Số TK<input name="gift.groom.accountNumber"></label></div>
+                                <div class="mini-panel"><h3>Cô dâu</h3><label>QR<input name="gift.bride.qr"></label><label>Ngân hàng<input name="gift.bride.bank"></label><label>Tên TK<input name="gift.bride.accountName"></label><label>Số TK<input name="gift.bride.accountNumber"></label></div>
+                            </div>
+                        </section>
+
+                        <div class="sticky-actions"><button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại mẫu</button><button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button></div>
+                    </form>
+                </section>
+
+                <section class="admin-view" data-admin-view="music" id="musicView">
+                    <section class="panel music-admin" id="musicPanel">
+                        <div class="panel-title"><i class="bi bi-music-note-list"></i><div><h2>Thư viện nhạc dùng chung</h2><p>Thêm bài nhạc Cloudinary để builder tự hiển thị cho khách chọn.</p></div></div>
+                        <form id="musicForm" class="music-form">
+                            <input id="musicDocId" type="hidden">
+                            <div class="grid music-grid">
+                                <label>Tên bài hát<input id="musicTitle" type="text" placeholder="vd: Váy cưới" required></label>
+                                <label>Link mp3 Cloudinary<input id="musicUrl" type="url" placeholder="https://res.cloudinary.com/...mp3" required></label>
+                                <label>Trạng thái<select id="musicActive"><option value="true">Hiện trong builder</option><option value="false">Ẩn khỏi builder</option></select></label>
+                                <div class="music-actions"><button id="resetMusicBtn" type="button" class="ghost"><i class="bi bi-plus-circle"></i> Bài mới</button><button id="saveMusicBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu nhạc</button></div>
+                            </div>
+                        </form>
+                        <div id="musicList" class="music-list"></div>
+                    </section>
+                </section>
+
+                <section class="admin-view" data-admin-view="payment" id="paymentView">
+                    <section class="panel payment-admin" id="paymentPanel">
+                        <div class="panel-title"><i class="bi bi-credit-card-2-front-fill"></i><div><h2>Thanh toán & mở khóa</h2><p>Cấu hình popup thanh toán cho khách và mở khóa thiệp sau khi đã xác nhận.</p></div></div>
+                        <form id="paymentSettingsForm" class="payment-settings-form">
+                            <div class="grid two">
+                                <label>Số tiền cần trả<input id="paymentAmount" type="number" min="0" step="1000" placeholder="vd: 199000"></label>
+                                <label>Đơn vị<input id="paymentCurrency" type="text" value="VND"></label>
+                                <label>Link Facebook/Zalo admin<input id="paymentContactUrl" type="url" placeholder="https://facebook.com/..."></label>
+                                <label>Link ảnh QR thanh toán<input id="paymentQrImage" type="text" placeholder="img/admin-qr-code.jpg hoặc https://res.cloudinary.com/...jpg"></label>
+                                <label class="span-2">Tên người nhận / tài khoản<input id="paymentReceiver" placeholder="vd: NGUYEN VAN A - Vietcombank - 0123456789"></label>
+                                <label class="span-2">Lời nhắn thanh toán<textarea id="paymentMessage" rows="3" placeholder="Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn."></textarea></label>
+                                <div class="span-2 payment-actions"><button id="savePaymentSettingsBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu cấu hình thanh toán</button></div>
+                            </div>
+                        </form>
+                        <div class="payment-current">
+                            <div>
+                                <h3>Thiệp đang tải</h3>
+                                <p id="paymentWeddingInfo">Chưa tải weddingId nào.</p>
+                            </div>
+                            <div class="payment-actions">
+                                <button id="markPendingBtn" type="button" class="ghost"><i class="bi bi-hourglass-split"></i> Chờ thanh toán</button>
+                                <button id="unlockWeddingBtn" type="button"><i class="bi bi-unlock-fill"></i> Mở khóa</button>
+                                <button id="lockWeddingBtn" type="button" class="ghost danger"><i class="bi bi-lock-fill"></i> Khóa lại</button>
+                            </div>
+                        </div>
+                        <div class="payment-list-wrap">
+                            <div class="payment-list-head">
+                                <h3>Danh sách thiệp thanh toán</h3>
+                                <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+                            </div>
+                            <div id="paymentList" class="payment-list"></div>
+                        </div>
+                    </section>
+                </section>
             </div>
-            <div class="hero-card">
-                <div class="account-row">
-                    <span id="accountEmail"></span>
-                    <button id="logoutBtn" type="button" class="ghost small"><i class="bi bi-box-arrow-right"></i> Thoát</button>
-                </div>
-                <label for="loadWeddingId">Wedding ID</label>
-                <div class="load-row">
-                    <input id="loadWeddingId" type="text" placeholder="vd: nam-linh-2026">
-                    <button id="loadBtn" type="button"><i class="bi bi-search"></i> Tải</button>
-                </div>
-                <p>Link thiệp: <a id="previewLink" href="#" target="_blank" rel="noopener noreferrer">chưa có weddingId</a></p>
-            </div>
-        </section>
+        </div>
 
-        <section class="panel music-admin is-hidden" id="musicPanel">
-            <div class="panel-title"><i class="bi bi-music-note-list"></i><div><h2>Thư viện nhạc dùng chung</h2><p>Thêm bài nhạc Cloudinary để builder tự hiển thị cho khách chọn.</p></div></div>
-            <form id="musicForm" class="music-form">
-                <input id="musicDocId" type="hidden">
-                <div class="grid music-grid">
-                    <label>Tên bài hát<input id="musicTitle" type="text" placeholder="vd: Váy cưới" required></label>
-                    <label>Link mp3 Cloudinary<input id="musicUrl" type="url" placeholder="https://res.cloudinary.com/...mp3" required></label>
-                    <label>Trạng thái<select id="musicActive"><option value="true">Hiện trong builder</option><option value="false">Ẩn khỏi builder</option></select></label>
-                    <div class="music-actions"><button id="resetMusicBtn" type="button" class="ghost"><i class="bi bi-plus-circle"></i> Bài mới</button><button id="saveMusicBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu nhạc</button></div>
-                </div>
-            </form>
-            <div id="musicList" class="music-list"></div>
-        </section>
-
-        <section class="panel payment-admin is-hidden" id="paymentPanel">
-            <div class="panel-title"><i class="bi bi-credit-card-2-front-fill"></i><div><h2>Thanh toán & mở khóa</h2><p>Cấu hình popup thanh toán cho khách và mở khóa thiệp sau khi đã xác nhận.</p></div></div>
-            <form id="paymentSettingsForm" class="payment-settings-form">
-                <div class="grid two">
-                    <label>Số tiền cần trả<input id="paymentAmount" type="number" min="0" step="1000" placeholder="vd: 199000"></label>
-                    <label>Đơn vị<input id="paymentCurrency" type="text" value="VND"></label>
-                    <label>Link Facebook/Zalo admin<input id="paymentContactUrl" type="url" placeholder="https://facebook.com/..."></label>
-                    <label>Link ảnh QR thanh toán<input id="paymentQrImage" type="text" placeholder="img/admin-qr-code.jpg hoặc https://res.cloudinary.com/...jpg"></label>
-                    <label class="span-2">Tên người nhận / tài khoản<input id="paymentReceiver" placeholder="vd: NGUYEN VAN A - Vietcombank - 0123456789"></label>
-                    <label class="span-2">Lời nhắn thanh toán<textarea id="paymentMessage" rows="3" placeholder="Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn."></textarea></label>
-                    <div class="span-2 payment-actions"><button id="savePaymentSettingsBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu cấu hình thanh toán</button></div>
-                </div>
-            </form>
-            <div class="payment-current">
-                <div>
-                    <h3>Thiệp đang tải</h3>
-                    <p id="paymentWeddingInfo">Chưa tải weddingId nào.</p>
-                </div>
-                <div class="payment-actions">
-                    <button id="markPendingBtn" type="button" class="ghost"><i class="bi bi-hourglass-split"></i> Chờ thanh toán</button>
-                    <button id="unlockWeddingBtn" type="button"><i class="bi bi-unlock-fill"></i> Mở khóa</button>
-                    <button id="lockWeddingBtn" type="button" class="ghost danger"><i class="bi bi-lock-fill"></i> Khóa lại</button>
-                </div>
-            </div>
-            <div class="payment-list-wrap">
-                <div class="payment-list-head">
-                    <h3>Danh sách thiệp thanh toán</h3>
-                    <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
-                </div>
-                <div id="paymentList" class="payment-list"></div>
-            </div>
-        </section>
-
-        <form id="adminForm" class="admin-form is-hidden">
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>
-                <div class="grid two">
-                    <label>Wedding ID<input name="weddingId" required></label>
-                    <label>Ngày cưới<input name="date" type="date" required></label>
-                    <label>Địa điểm<input name="location"></label>
-                    <label>Logo header<input name="header.logo"></label>
-                    <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
-                    <label class="span-2">Link nhạc<input name="music" placeholder="https://...mp3 hoặc music/1_doi.mp3"></label>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-image"></i><div><h2>Ảnh chính</h2><p>Dán link Cloudinary/GitHub hoặc đường dẫn local.</p></div></div>
-                <div class="grid two">
-                    <label>Ảnh poster<input name="poster.image"></label>
-                    <label>Ảnh preview gửi link<input name="preview.image"></label>
-                    <label>Ảnh about<input name="aboutCard.image"></label>
-                    <label>Ảnh timeline<input name="ceremony.image"></label>
-                    <label>Nhóm ảnh block<select id="mediaConcept"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                    <label>Ảnh nền block<input name="theme.concepts.active.images.background"></label>
-                    <label>Ảnh cover block<input name="theme.concepts.active.images.cover"></label>
-                    <label>Ảnh countdown block<input name="theme.concepts.active.images.countdown"></label>
-                    <label>Nút mở cover block<input name="theme.concepts.active.cover.openLabel"></label>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-people-fill"></i><div><h2>Cô dâu & chú rể</h2><p>Nickname dùng cho bìa/poster, họ tên đầy đủ dùng trong about.</p></div></div>
-                <div class="split-panels">
-                    <div class="mini-panel"><h3>Chú rể</h3><label>Nickname<input name="groom.nickname"></label><label>Họ tên<input name="groom.fullName"></label><label>Bố<input name="groom.father"></label><label>Mẹ<input name="groom.mother"></label><label>Ảnh<input name="groom.avatar"></label></div>
-                    <div class="mini-panel"><h3>Cô dâu</h3><label>Nickname<input name="bride.nickname"></label><label>Họ tên<input name="bride.fullName"></label><label>Bố<input name="bride.father"></label><label>Mẹ<input name="bride.mother"></label><label>Ảnh<input name="bride.avatar"></label></div>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-calendar-heart"></i><div><h2>Lịch trình</h2><p>Nhập giờ lễ, bữa cơm, địa chỉ và link chỉ đường.</p></div></div>
-                <div class="split-panels">
-                    <div class="mini-panel"><h3>Nhà gái</h3><label>Tên lễ<input name="ceremony.bride.title"></label><label>Giờ lễ<input name="ceremony.bride.time"></label><label>Tên bữa cơm<input name="ceremony.bride.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.bride.meal.time"></label><label>Địa chỉ<textarea name="ceremony.bride.address" rows="2"></textarea></label><label>Maps<input name="ceremony.bride.mapUrl"></label></div>
-                    <div class="mini-panel"><h3>Nhà trai</h3><label>Tên lễ<input name="ceremony.groom.title"></label><label>Giờ lễ<input name="ceremony.groom.time"></label><label>Tên bữa cơm<input name="ceremony.groom.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.groom.meal.time"></label><label>Địa chỉ<textarea name="ceremony.groom.address" rows="2"></textarea></label><label>Maps<input name="ceremony.groom.mapUrl"></label></div>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-card-text"></i><div><h2>Tiêu đề & mô tả section</h2><p>Để trống subtitle nếu không muốn hiển thị.</p></div></div>
-                <div class="grid two">
-                    <label>About title<input name="sections.about"></label><label>About subtitle<textarea name="sectionSubtitles.about" rows="3"></textarea></label>
-                    <label>Timeline title<input name="sections.timeline"></label><label>Timeline subtitle<textarea name="sectionSubtitles.timeline" rows="3"></textarea></label>
-                    <label>Gallery title<input name="sections.gallery"></label><label>Gallery subtitle<textarea name="sectionSubtitles.gallery" rows="3"></textarea></label>
-                    <label>Wish title<input name="sections.wish"></label><label>Wish subtitle<textarea name="sectionSubtitles.wish" rows="3"></textarea></label>
-                    <label>Gift title<input name="sections.gift.title"></label><label>Gift subtitle<textarea name="sectionSubtitles.gift" rows="3"></textarea></label>
-                    <label>Thanks title<input name="sections.thanks.title"></label><label>Thanks subtitle, mỗi dòng là một đoạn<textarea name="sectionSubtitles.thanks" rows="5"></textarea></label>
-                </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-images"></i><div><h2>Gallery 7 ảnh</h2><p>Dán link ảnh cưới. Concept 4 dùng cố định 7 ảnh.</p></div></div>
-                <div id="galleryFields" class="gallery-fields"></div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-title"><i class="bi bi-gift-fill"></i><div><h2>Hộp mừng cưới</h2><p>QR có thể là link ảnh hoặc đường dẫn local.</p></div></div>
-                <div class="split-panels">
-                    <div class="mini-panel"><h3>Chú rể</h3><label>QR<input name="gift.groom.qr"></label><label>Ngân hàng<input name="gift.groom.bank"></label><label>Tên TK<input name="gift.groom.accountName"></label><label>Số TK<input name="gift.groom.accountNumber"></label></div>
-                    <div class="mini-panel"><h3>Cô dâu</h3><label>QR<input name="gift.bride.qr"></label><label>Ngân hàng<input name="gift.bride.bank"></label><label>Tên TK<input name="gift.bride.accountName"></label><label>Số TK<input name="gift.bride.accountNumber"></label></div>
-                </div>
-            </section>
-
-            <div class="sticky-actions"><button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại mẫu</button><button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button></div>
-        </form>
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </main>
 

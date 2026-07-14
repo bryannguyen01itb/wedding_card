@@ -1,0 +1,10 @@
+/*
+ * Save-the-date skins — module: js/modules/save-date
+ *
+ * Primary rules currently live in css/parts/block-concepts.css
+ * Prefer adding NEW save-date skin rules here.
+ *
+ * Selectors:
+ *   body.block-save-date-concept-N .save-date
+ *   .save-date.block-skin-concept-N
+ */

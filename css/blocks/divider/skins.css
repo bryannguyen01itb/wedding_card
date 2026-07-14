@@ -1,0 +1,10 @@
+/*
+ * Divider skins — module: js/modules/divider
+ *
+ * Primary rules currently live in css/parts/block-builder.css / block-concepts.css
+ * Prefer adding NEW divider skin rules here.
+ *
+ * Selectors:
+ *   body.block-divider-concept-N .section-divider
+ *   .section-divider.block-skin-concept-N
+ */

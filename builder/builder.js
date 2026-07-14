@@ -1,5 +1,13 @@
 import { wedding as fallbackWedding } from "../js/config.js";
 import { db } from "../js/firebase.js";
+import {
+    getBuildableSections,
+    getPreviewTargetMap,
+    getDefaultBlocksConfig,
+    blocksFromBuilderFields,
+    populateBuilderBlockSelects,
+    normalizeSkinId
+} from "../js/modules/index.js";
 
 const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
@@ -507,12 +515,14 @@ function renderBuilderGalleryFields() {
 }
 
 function getConceptMedia(config, blockName, imageKey) {
-    const blockValue = config.theme?.blocks?.[blockName] || fallbackWedding.theme?.blocks?.[blockName] || "concept-1";
+    const blockValue = normalizeSkinId(
+        config.theme?.blocks?.[blockName] || fallbackWedding.theme?.blocks?.[blockName]
+    );
     return config.theme?.concepts?.[blockValue]?.images?.[imageKey] || "";
 }
 
 function getSelectedBlockValue(name) {
-    return readField(name) || "concept-1";
+    return normalizeSkinId(readField(name));
 }
 
 function setConceptImage(concepts, conceptName, imageKey, imageUrl) {
@@ -563,15 +573,30 @@ async function compressImageFile(file, options = {}) {
     return canvasToBlob(canvas, "image/jpeg", options.quality || 0.86);
 }
 
-async function uploadBlobToCloudinary(blob, filename) {
+/**
+ * Upload ảnh với public_id cố định theo field + weddingId để ghi đè (update).
+ * Lưu ý Cloudinary: preset unsigned cần bật "Overwrite" / cho phép public_id.
+ * Docs: https://cloudinary.com/documentation/upload_images#public_id
+ */
+async function uploadBlobToCloudinary(blob, filename, options = {}) {
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
         throw new Error("Chua cau hinh CLOUDINARY_CLOUD_NAME hoac CLOUDINARY_UPLOAD_PRESET trong builder.js");
     }
 
+    const folder = buildCloudinaryFolder();
+    const assetKey = String(options.assetKey || filename || "image")
+        .replace(/\.[a-z0-9]+$/i, "")
+        .replace(/[^a-zA-Z0-9/_-]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "image";
+    // public_id đầy đủ path → cùng wedding + cùng field = cùng file, overwrite thay vì tạo bản mới
+    const publicId = `${folder}/${assetKey}`;
+
     const data = new FormData();
     data.append("file", blob, filename);
     data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    data.append("folder", buildCloudinaryFolder());
+    data.append("public_id", publicId);
+    data.append("overwrite", "true");
+    data.append("invalidate", "true");
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: "POST",
@@ -584,7 +609,10 @@ async function uploadBlobToCloudinary(blob, filename) {
     }
 
     const result = await response.json();
-    return result.secure_url;
+    // Cache-bust khi URL giữ nguyên sau overwrite
+    const version = result.version || Date.now();
+    const url = String(result.secure_url || "");
+    return url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
 }
 
 async function uploadImageForField(fieldName, file, options = {}) {
@@ -602,7 +630,7 @@ async function uploadImageForField(fieldName, file, options = {}) {
         }
         setStatus("Dang nen anh va upload Cloudinary...");
         const blob = await compressImageFile(file, options);
-        const url = await uploadBlobToCloudinary(blob, `${fieldName}.jpg`);
+        const url = await uploadBlobToCloudinary(blob, `${fieldName}.jpg`, { assetKey: fieldName });
         setField(fieldName, url);
         setStatus("Da upload anh va dien URL vao form.", "success");
         refreshPreview(false);
@@ -682,7 +710,7 @@ async function uploadQrForField(fieldName) {
         setStatus("Dang cat QR va upload Cloudinary...");
         renderQrCrop(fieldName);
         const blob = await canvasToBlob(canvas, "image/png", 0.95);
-        const url = await uploadBlobToCloudinary(blob, `${fieldName}.png`);
+        const url = await uploadBlobToCloudinary(blob, `${fieldName}.png`, { assetKey: fieldName });
         setField(fieldName, url);
         setStatus("Da upload QR va dien URL vao form.", "success");
         refreshPreview(false);
@@ -802,6 +830,7 @@ function saveSelectedMapPoint() {
 function readBuilderTheme() {
     const data = new FormData(form);
     const weddingId = editingWeddingId || buildWeddingId(data);
+    const fieldMap = Object.fromEntries(data.entries());
 
     weddingIdInput.value = weddingId;
 
@@ -811,14 +840,8 @@ function readBuilderTheme() {
         theme: {
             primaryColor: data.get("primaryColor") || "#c9974f",
             blocks: {
-                cover: data.get("blockCover"),
-                poster: data.get("blockPoster"),
-                saveDate: data.get("blockSaveDate"),
-                about: data.get("blockAbout"),
-                timeline: data.get("blockTimeline"),
-                gallery: data.get("blockGallery"),
-                countdown: data.get("blockCountdown"),
-                divider: data.get("blockDivider")
+                ...getDefaultBlocksConfig(),
+                ...blocksFromBuilderFields(fieldMap)
             },
             fonts: {
                 body: data.get("fontBody"),
@@ -871,7 +894,44 @@ function createCustomerConfig() {
             mother: readText(data, "brideMother"),
             avatar: readText(data, "brideAvatar")
         },
+        sections: {
+            ...(loadedWeddingConfig.sections || fallbackWedding.sections || {}),
+            saveDate: readText(data, "titleSaveDate")
+                || loadedWeddingConfig.sections?.saveDate
+                || fallbackWedding.sections?.saveDate,
+            about: readText(data, "titleAbout")
+                || loadedWeddingConfig.sections?.about
+                || fallbackWedding.sections?.about,
+            timeline: readText(data, "titleTimeline")
+                || loadedWeddingConfig.sections?.timeline
+                || fallbackWedding.sections?.timeline,
+            gallery: readText(data, "titleGallery")
+                || loadedWeddingConfig.sections?.gallery
+                || fallbackWedding.sections?.gallery,
+            wish: readText(data, "titleWish")
+                || loadedWeddingConfig.sections?.wish
+                || fallbackWedding.sections?.wish,
+            gift: {
+                ...(loadedWeddingConfig.sections?.gift || fallbackWedding.sections?.gift || {}),
+                title: readText(data, "titleGift")
+                    || loadedWeddingConfig.sections?.gift?.title
+                    || fallbackWedding.sections?.gift?.title
+            },
+            countdown: {
+                ...(loadedWeddingConfig.sections?.countdown || fallbackWedding.sections?.countdown || {}),
+                title: readText(data, "titleCountdown")
+                    || loadedWeddingConfig.sections?.countdown?.title
+                    || fallbackWedding.sections?.countdown?.title
+            },
+            thanks: {
+                ...(loadedWeddingConfig.sections?.thanks || fallbackWedding.sections?.thanks || {}),
+                title: readText(data, "titleThanks")
+                    || loadedWeddingConfig.sections?.thanks?.title
+                    || fallbackWedding.sections?.thanks?.title
+            }
+        },
         sectionSubtitles: {
+            saveDate: readText(data, "subtitleSaveDate"),
             about: readText(data, "subtitleAbout"),
             timeline: readText(data, "subtitleTimeline"),
             gallery: readText(data, "subtitleGallery"),
@@ -883,18 +943,34 @@ function createCustomerConfig() {
         ceremony: {
             image: readText(data, "timelineImage"),
             bride: {
+                title: readText(data, "brideCeremonyTitle")
+                    || loadedWeddingConfig.ceremony?.bride?.title
+                    || fallbackWedding.ceremony?.bride?.title
+                    || "LỄ VU QUY",
                 time: readText(data, "brideCeremonyTime"),
                 address: readText(data, "brideAddress"),
                 mapUrl: readText(data, "brideMapUrl"),
                 meal: {
+                    title: readText(data, "brideMealTitle")
+                        || loadedWeddingConfig.ceremony?.bride?.meal?.title
+                        || fallbackWedding.ceremony?.bride?.meal?.title
+                        || "BỮA CƠM THÂN MẬT",
                     time: formatMealTime(data.get("brideMealDate"), data.get("brideMealTime"))
                 }
             },
             groom: {
+                title: readText(data, "groomCeremonyTitle")
+                    || loadedWeddingConfig.ceremony?.groom?.title
+                    || fallbackWedding.ceremony?.groom?.title
+                    || "LỄ THÀNH HÔN",
                 time: readText(data, "groomCeremonyTime"),
                 address: readText(data, "groomAddress"),
                 mapUrl: readText(data, "groomMapUrl"),
                 meal: {
+                    title: readText(data, "groomMealTitle")
+                        || loadedWeddingConfig.ceremony?.groom?.meal?.title
+                        || fallbackWedding.ceremony?.groom?.meal?.title
+                        || "BỮA CƠM THÂN MẬT",
                     time: formatMealTime(data.get("groomMealDate"), data.get("groomMealTime"))
                 }
             }
@@ -1120,18 +1196,24 @@ function fillBuilderForm(config = {}) {
     galleryPhotos.slice(0, GALLERY_SIZE).forEach((photo, index) => {
         setControlValue(`galleryPhoto${index + 1}`, photo.src);
     });
-    setControlValue("blockCover", blocks.cover);
-    setControlValue("blockPoster", blocks.poster);
-    setControlValue("blockSaveDate", blocks.saveDate);
-    setControlValue("blockAbout", blocks.about);
-    setControlValue("blockTimeline", blocks.timeline);
-    setControlValue("blockGallery", blocks.gallery);
-    setControlValue("blockCountdown", blocks.countdown);
-    setControlValue("blockDivider", blocks.divider);
+    getBuildableSections().forEach(section => {
+        setControlValue(section.builderField, blocks[section.id] || section.defaultSkin);
+    });
     setControlValue("fontBody", fonts.body);
     setControlValue("fontNickname", fonts.nickname);
 
+    const sections = config.sections || {};
+    setControlValue("titleSaveDate", sections.saveDate);
+    setControlValue("titleAbout", sections.about);
+    setControlValue("titleTimeline", sections.timeline);
+    setControlValue("titleGallery", sections.gallery);
+    setControlValue("titleWish", sections.wish);
+    setControlValue("titleGift", sections.gift?.title);
+    setControlValue("titleCountdown", sections.countdown?.title);
+    setControlValue("titleThanks", sections.thanks?.title);
+
     const subtitles = config.sectionSubtitles || {};
+    setControlValue("subtitleSaveDate", subtitles.saveDate);
     setControlValue("subtitleAbout", subtitles.about);
     setControlValue("subtitleTimeline", subtitles.timeline);
     setControlValue("subtitleGallery", subtitles.gallery);
@@ -1142,8 +1224,12 @@ function fillBuilderForm(config = {}) {
 
     const brideMeal = splitMealTime(config.ceremony?.bride?.meal?.time);
     const groomMeal = splitMealTime(config.ceremony?.groom?.meal?.time);
+    setControlValue("brideCeremonyTitle", config.ceremony?.bride?.title);
+    setControlValue("groomCeremonyTitle", config.ceremony?.groom?.title);
     setControlValue("brideCeremonyTime", config.ceremony?.bride?.time);
     setControlValue("groomCeremonyTime", config.ceremony?.groom?.time);
+    setControlValue("brideMealTitle", config.ceremony?.bride?.meal?.title);
+    setControlValue("groomMealTitle", config.ceremony?.groom?.meal?.title);
     setControlValue("brideMealDate", brideMeal.date);
     setControlValue("brideMealTime", brideMeal.time);
     setControlValue("groomMealDate", groomMeal.date);
@@ -1261,11 +1347,65 @@ async function loadConfigForEdit() {
     }
 }
 
+/**
+ * Field gần nhất gắn với 1 section thiệp (concept / title / subtitle).
+ * Dùng để preview nhảy đúng chỗ.
+ */
+let lastJumpFieldName = "";
+/** Token để bỏ qua load/scroll event của iframe cũ khi refresh liên tiếp. */
+let previewLoadToken = 0;
+
+const COVER_PREVIEW_STATE = Object.freeze({ opened: false, scrollY: 0, target: "" });
+
+/** Title / subtitle / lịch tổ chức builder → selector section trên thiệp. */
+const TITLE_SUBTITLE_PREVIEW_MAP = {
+    titleSaveDate: ".save-date",
+    subtitleSaveDate: ".save-date",
+    titleAbout: ".about",
+    subtitleAbout: ".about",
+    titleTimeline: ".timeline",
+    subtitleTimeline: ".timeline",
+    titleGallery: ".gallery",
+    subtitleGallery: ".gallery",
+    titleWish: ".wish",
+    subtitleWish: ".wish",
+    titleGift: ".gift",
+    subtitleGift: ".gift",
+    titleCountdown: ".countdown",
+    subtitleCountdown: ".countdown",
+    titleThanks: ".thanks",
+    subtitleThanks: ".thanks",
+    // Lịch tổ chức → timeline
+    brideCeremonyTitle: ".timeline",
+    groomCeremonyTitle: ".timeline",
+    brideMealTitle: ".timeline",
+    groomMealTitle: ".timeline",
+    brideCeremonyTime: ".timeline",
+    groomCeremonyTime: ".timeline",
+    brideMealDate: ".timeline",
+    brideMealTime: ".timeline",
+    groomMealDate: ".timeline",
+    groomMealTime: ".timeline"
+};
+
+function isMobileBuilderLayout() {
+    return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function isSectionJumpField(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (!name) return false;
+    if (name.startsWith("block")) return true;
+    if (name.startsWith("title") || name.startsWith("subtitle")) return true;
+    if (Object.prototype.hasOwnProperty.call(TITLE_SUBTITLE_PREVIEW_MAP, name)) return true;
+    return false;
+}
+
 function readPreviewState() {
     try {
-        return JSON.parse(localStorage.getItem(PREVIEW_STATE_KEY) || "null") || { opened: false, scrollY: 0, target: "" };
+        return JSON.parse(localStorage.getItem(PREVIEW_STATE_KEY) || "null") || { ...COVER_PREVIEW_STATE };
     } catch (error) {
-        return { opened: false, scrollY: 0, target: "" };
+        return { ...COVER_PREVIEW_STATE };
     }
 }
 
@@ -1277,38 +1417,83 @@ function savePreviewState(state) {
     }));
 }
 
-function getPreviewTargetFromField(fieldName) {
-    const targetMap = {
-        blockPoster: ".poster",
-        blockSaveDate: ".save-date",
-        blockAbout: ".about",
-        blockTimeline: ".timeline",
-        blockGallery: ".gallery",
-        blockCountdown: ".countdown",
-        blockDivider: ".section-divider"
-    };
-
-    return targetMap[fieldName] || "";
+function rememberJumpField(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (!isSectionJumpField(name)) return;
+    lastJumpFieldName = name;
 }
 
-function getCurrentPreviewState() {
-    const activeField = document.activeElement?.name || "";
-    const target = getPreviewTargetFromField(activeField);
+function getPreviewTargetFromField(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (name === "blockCover") return "";
+    if (TITLE_SUBTITLE_PREVIEW_MAP[name]) {
+        return TITLE_SUBTITLE_PREVIEW_MAP[name];
+    }
+    const targetMap = getPreviewTargetMap();
+    return targetMap[name] || "";
+}
 
-    if (activeField === "blockCover") {
-        return { opened: false, scrollY: 0, target: "" };
+/**
+ * State preview cho 1 field (concept / title / subtitle).
+ * blockCover → cover; titleAbout / blockAbout → .about; …
+ */
+function buildPreviewStateForField(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (!name) return null;
+
+    if (name === "blockCover") {
+        return { ...COVER_PREVIEW_STATE };
     }
 
+    const target = getPreviewTargetFromField(name);
     if (target) {
         return { opened: true, scrollY: 0, target };
     }
 
-    return { opened: false, scrollY: 0, target: "" };
+    return null;
+}
+
+/**
+ * Resolve state ghi localStorage trước khi reload iframe.
+ * - mode: "cover" → luôn bìa (nút Preview)
+ * - previewState: object tường minh
+ * - forceField: map từ tên field
+ */
+function resolvePreviewState(options = {}) {
+    if (options.mode === "cover") {
+        return { ...COVER_PREVIEW_STATE };
+    }
+
+    if (options.previewState && typeof options.previewState === "object") {
+        return {
+            opened: Boolean(options.previewState.opened),
+            scrollY: Math.max(0, Math.round(Number(options.previewState.scrollY || 0))),
+            target: String(options.previewState.target || "")
+        };
+    }
+
+    if (options.forceField) {
+        rememberJumpField(options.forceField);
+        return buildPreviewStateForField(options.forceField) || { ...COVER_PREVIEW_STATE };
+    }
+
+    const activeName = String(document.activeElement?.name || "").trim();
+    if (isSectionJumpField(activeName)) {
+        rememberJumpField(activeName);
+        return buildPreviewStateForField(activeName) || { ...COVER_PREVIEW_STATE };
+    }
+
+    if (lastJumpFieldName) {
+        return buildPreviewStateForField(lastJumpFieldName) || { ...COVER_PREVIEW_STATE };
+    }
+
+    return { ...COVER_PREVIEW_STATE };
 }
 
 function syncPreviewStateFromFrame() {
     let previewWindow = null;
     let previewDocument = null;
+    const loadToken = previewLoadToken;
 
     try {
         previewWindow = frame.contentWindow;
@@ -1319,12 +1504,24 @@ function syncPreviewStateFromFrame() {
 
     if (!previewWindow || !previewDocument) return;
 
-    const markOpened = () => savePreviewState({ opened: true, scrollY: previewWindow.scrollY || 0 });
-    const syncScroll = () => {
+    // Giữ nguyên target section — scroll/open không được xóa target
+    const markOpened = () => {
+        if (loadToken !== previewLoadToken) return;
         const previousState = readPreviewState();
         savePreviewState({
-            opened: previousState.opened || previewWindow.scrollY > 20,
-            scrollY: previousWindowSafeScroll(previewWindow, previousState.scrollY)
+            opened: true,
+            scrollY: previousWindowSafeScroll(previewWindow, previousState.scrollY),
+            target: previousState.target || ""
+        });
+    };
+
+    const syncScroll = () => {
+        if (loadToken !== previewLoadToken) return;
+        const previousState = readPreviewState();
+        savePreviewState({
+            opened: previousState.opened || previewWindow.scrollY > 20 || Boolean(previousState.target),
+            scrollY: previousWindowSafeScroll(previewWindow, previousState.scrollY),
+            target: previousState.target || ""
         });
     };
 
@@ -1336,14 +1533,125 @@ function previousWindowSafeScroll(previewWindow, fallbackScrollY) {
     return Math.max(0, Math.round(Number(previewWindow?.scrollY || fallbackScrollY || 0)));
 }
 
-function refreshPreview(updateStatus = true) {
+function setBuilderMobileTab(tab) {
+    const next = tab === "preview" ? "preview" : "edit";
+    document.body.dataset.builderTab = next;
+    document.querySelectorAll("[data-builder-tab]").forEach(button => {
+        button.classList.toggle("is-active", button.dataset.builderTab === next);
+    });
+}
+
+function scrollToPreviewPanel() {
+    const panel = document.getElementById("previewPanel");
+    if (!panel) return;
+
+    setBuilderMobileTab("preview");
+    requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+}
+
+function refreshPreview(updateStatus = true, options = {}) {
     const config = createPreviewConfig();
     localStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
-    savePreviewState(getCurrentPreviewState());
-    frame.src = `../index.html?preview=builder&t=${Date.now()}`;
+
+    const previewState = resolvePreviewState(options);
+    savePreviewState(previewState);
+
+    previewLoadToken += 1;
+    frame.src = `../index.html?preview=builder&t=${Date.now()}&pt=${previewLoadToken}`;
+
     if (updateStatus) {
-        setStatus(`Preview: ${config.weddingId || "chua-co-id"}`);
+        const sectionHint = previewState.target ? ` → ${previewState.target}` : " → cover";
+        setStatus(`Preview: ${config.weddingId || "chua-co-id"}${sectionHint}`);
     }
+    if (options.focusPreview) {
+        scrollToPreviewPanel();
+    }
+}
+
+/** Nút "Xem preview": luôn về màn cover. */
+function handlePreviewClick() {
+    lastJumpFieldName = "";
+    window.clearTimeout(refreshPreview.timer);
+    refreshPreview(true, {
+        focusPreview: true,
+        mode: "cover"
+    });
+}
+
+/**
+ * Nhảy preview tới section gắn với field (concept / title / subtitle).
+ * Mobile: mở tab preview; PC: refresh iframe tại section đó.
+ */
+function jumpPreviewToField(fieldName, options = {}) {
+    const name = String(fieldName || "").trim();
+    if (!isSectionJumpField(name)) return;
+
+    rememberJumpField(name);
+    const previewState = buildPreviewStateForField(name) || { ...COVER_PREVIEW_STATE };
+    const mobile = isMobileBuilderLayout();
+
+    window.clearTimeout(refreshPreview.timer);
+    refreshPreview(options.updateStatus ?? mobile, {
+        focusPreview: options.focusPreview ?? mobile,
+        previewState,
+        forceField: name
+    });
+}
+
+/**
+ * Đổi concept block → preview đúng section đó (ghi đè target cũ).
+ */
+function handleBlockConceptChange(event) {
+    const field = event.target;
+    if (!field || field.tagName !== "SELECT") return;
+
+    const name = String(field.name || "").trim();
+    if (!name.startsWith("block")) return;
+
+    jumpPreviewToField(name);
+}
+
+/**
+ * Sửa title/subtitle/lịch tổ chức → preview đúng phần đó.
+ * PC: cập nhật khung preview bên cạnh.
+ * Mobile: cập nhật state (không cướp form khi đang gõ); blur sẽ mở tab preview.
+ */
+function handleTitleSubtitleInput(event) {
+    const field = event.target;
+    const name = String(field?.name || "").trim();
+    if (!TITLE_SUBTITLE_PREVIEW_MAP[name]) return;
+
+    rememberJumpField(name);
+    window.clearTimeout(refreshPreview.timer);
+    refreshPreview.timer = window.setTimeout(() => {
+        jumpPreviewToField(name, {
+            updateStatus: false,
+            // Mobile giữ tab "Chỉnh sửa" để gõ tiếp; PC luôn thấy panel bên cạnh
+            focusPreview: false
+        });
+    }, 320);
+}
+
+/** Mobile: rời ô title/subtitle/lịch → mở preview đúng section vừa sửa. */
+function handleTitleSubtitleFocusOut(event) {
+    const field = event.target;
+    const name = String(field?.name || "").trim();
+    if (!TITLE_SUBTITLE_PREVIEW_MAP[name]) return;
+    if (!isMobileBuilderLayout()) return;
+
+    rememberJumpField(name);
+
+    // Đợi focus chuyển sang ô khác; nếu vẫn trong cùng nhóm jump field thì không nhảy
+    window.setTimeout(() => {
+        const activeName = String(document.activeElement?.name || "").trim();
+        if (TITLE_SUBTITLE_PREVIEW_MAP[activeName]) return;
+        jumpPreviewToField(name, {
+            updateStatus: true,
+            focusPreview: true
+        });
+    }, 0);
 }
 
 async function saveConfig(event) {
@@ -1435,17 +1743,61 @@ function handleMapButton(event) {
     }
 }
 
-form.addEventListener("input", () => {
-    window.clearTimeout(refreshPreview.timer);
-    refreshPreview.timer = window.setTimeout(refreshPreview, 250);
+form.addEventListener("focusin", event => {
+    const name = String(event.target?.name || "").trim();
+    if (isSectionJumpField(name)) {
+        rememberJumpField(name);
+    }
 });
-previewBtn.addEventListener("click", refreshPreview);
+
+form.addEventListener("focusout", handleTitleSubtitleFocusOut);
+
+form.addEventListener("input", event => {
+    const name = String(event.target?.name || "").trim();
+    // Concept block: chỉ xử lý ở change
+    if (name.startsWith("block")) {
+        return;
+    }
+    // Title / subtitle / lịch tổ chức: nhảy đúng section
+    if (TITLE_SUBTITLE_PREVIEW_MAP[name]) {
+        handleTitleSubtitleInput(event);
+        return;
+    }
+    window.clearTimeout(refreshPreview.timer);
+    refreshPreview.timer = window.setTimeout(() => refreshPreview(false), 250);
+});
+
+form.addEventListener("change", handleBlockConceptChange);
+
+previewBtn.addEventListener("click", handlePreviewClick);
+document.querySelectorAll("[data-builder-tab]").forEach(button => {
+    button.addEventListener("click", () => {
+        const tab = button.dataset.builderTab;
+        setBuilderMobileTab(tab);
+        if (tab === "preview") {
+            // Tab preview = section vừa chỉnh (concept / title / subtitle)
+            if (lastJumpFieldName) {
+                jumpPreviewToField(lastJumpFieldName, {
+                    updateStatus: true,
+                    focusPreview: true
+                });
+            } else {
+                refreshPreview(true, {
+                    focusPreview: true,
+                    mode: "cover"
+                });
+            }
+        }
+    });
+});
+setBuilderMobileTab("edit");
 frame.addEventListener("load", syncPreviewStateFromFrame);
 form.addEventListener("submit", saveConfig);
 form.addEventListener("click", handleUploadClick);
 form.addEventListener("change", handleQrInputChange);
 form.addEventListener("input", handleQrCropInput);
 form.addEventListener("click", handleMapButton);
+populateBuilderBlockSelects(form);
 renderBuilderGalleryFields();
 Promise.all([
     loadPaymentSettings(),

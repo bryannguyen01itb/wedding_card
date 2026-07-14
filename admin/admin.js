@@ -13,6 +13,7 @@ const loginPanel = document.getElementById("loginPanel");
 const loginForm = document.getElementById("loginForm");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
+const adminApp = document.getElementById("adminApp");
 const adminHero = document.getElementById("adminHero");
 const accountEmail = document.getElementById("accountEmail");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -626,12 +627,27 @@ function canUseAdmin(user) {
     return !allowedEmails.length || allowedEmails.includes(user.email);
 }
 
+function setAdminView(viewId) {
+    const next = ["wedding", "music", "payment"].includes(viewId) ? viewId : "wedding";
+
+    document.querySelectorAll("[data-admin-view]").forEach(panel => {
+        panel.classList.toggle("is-active", panel.dataset.adminView === next);
+    });
+    document.querySelectorAll("[data-admin-nav]").forEach(button => {
+        button.classList.toggle("is-active", button.dataset.adminNav === next);
+    });
+
+    if (window.location.hash !== `#${next}`) {
+        window.history.replaceState({}, "", `#${next}`);
+    }
+}
+
 function showLoggedOut() {
-    loginPanel.classList.remove("is-hidden");
-    adminHero.classList.add("is-hidden");
-    form.classList.add("is-hidden");
-    musicPanel.classList.add("is-hidden");
-    paymentPanel.classList.add("is-hidden");
+    if (loginPanel) loginPanel.classList.remove("is-hidden");
+    if (adminApp) {
+        adminApp.classList.add("is-hidden");
+        adminApp.hidden = true;
+    }
 }
 
 async function showLoggedIn(user) {
@@ -641,17 +657,31 @@ async function showLoggedIn(user) {
         return;
     }
 
-    loginPanel.classList.add("is-hidden");
-    adminHero.classList.remove("is-hidden");
-    form.classList.remove("is-hidden");
-    musicPanel.classList.remove("is-hidden");
-    paymentPanel.classList.remove("is-hidden");
-    accountEmail.textContent = user.email;
-    await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin(), loadPaymentList()]);
+    if (loginPanel) loginPanel.classList.add("is-hidden");
+    if (adminApp) {
+        adminApp.classList.remove("is-hidden");
+        adminApp.hidden = false;
+        adminApp.style.display = "";
+    }
+    if (accountEmail) accountEmail.textContent = user.email || "";
+
+    const hashView = (window.location.hash || "").replace("#", "").trim();
+    setAdminView(hashView || "wedding");
+
+    try {
+        await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin(), loadPaymentList()]);
+    } catch (error) {
+        console.error(error);
+        showToast("Một phần dữ liệu admin chưa tải được.", "error");
+    }
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
-        await loadConfigById(params.get("wedding") || "");
+        try {
+            await loadConfigById(params.get("wedding") || "");
+        } catch (error) {
+            console.error(error);
+        }
         hasLoadedInitialConfig = true;
     }
 }
@@ -667,38 +697,53 @@ function initEvents() {
         }
     });
 
-    form.addEventListener("submit", saveConfig);
-    musicForm.addEventListener("submit", saveMusicItem);
-    paymentSettingsForm.addEventListener("submit", savePaymentSettings);
-    paymentList.addEventListener("click", handlePaymentListClick);
-    paymentList.addEventListener("click", handlePaymentListRowClick);
-    refreshPaymentListBtn.addEventListener("click", loadPaymentList);
-    markPendingBtn.addEventListener("click", () => setWeddingPaymentStatus("pending"));
-    unlockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("paid"));
-    lockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("locked"));
-    musicList.addEventListener("click", handleMusicListClick);
-    resetMusicBtn.addEventListener("click", resetMusicForm);
-    resetBtn.addEventListener("click", () => loadConfigById(""));
-    form.elements["weddingId"].addEventListener("input", event => updatePreviewLink(event.target.value.trim()));
+    document.querySelectorAll("[data-admin-nav]").forEach(button => {
+        button.addEventListener("click", () => setAdminView(button.dataset.adminNav));
+    });
+    window.addEventListener("hashchange", () => {
+        setAdminView(window.location.hash.replace("#", "") || "wedding");
+    });
+
+    form?.addEventListener("submit", saveConfig);
+    musicForm?.addEventListener("submit", saveMusicItem);
+    paymentSettingsForm?.addEventListener("submit", savePaymentSettings);
+    paymentList?.addEventListener("click", handlePaymentListClick);
+    paymentList?.addEventListener("click", handlePaymentListRowClick);
+    refreshPaymentListBtn?.addEventListener("click", loadPaymentList);
+    markPendingBtn?.addEventListener("click", () => setWeddingPaymentStatus("pending"));
+    unlockWeddingBtn?.addEventListener("click", () => setWeddingPaymentStatus("paid"));
+    lockWeddingBtn?.addEventListener("click", () => setWeddingPaymentStatus("locked"));
+    musicList?.addEventListener("click", handleMusicListClick);
+    resetMusicBtn?.addEventListener("click", resetMusicForm);
+    resetBtn?.addEventListener("click", () => loadConfigById(""));
+    form?.elements?.["weddingId"]?.addEventListener("input", event => updatePreviewLink(event.target.value.trim()));
     document.getElementById("mediaConcept")?.addEventListener("change", event => {
         currentConfig = readForm();
         activeMediaConcept = event.target.value || DEFAULT_MEDIA_CONCEPT;
         fillForm(currentConfig);
     });
-    form.elements["theme.primaryColor"].addEventListener("input", event => syncColorInputs(event.target.value));
-    form.elements["theme.primaryColorText"].addEventListener("input", event => {
+    form?.elements?.["theme.primaryColor"]?.addEventListener("input", event => syncColorInputs(event.target.value));
+    form?.elements?.["theme.primaryColorText"]?.addEventListener("input", event => {
         if (/^#[0-9a-fA-F]{6}$/.test(event.target.value.trim())) {
             syncColorInputs(event.target.value.trim());
         }
     });
 }
 
-fillGalleryFields();
-fillForm(createDefaultConfig());
-initEvents();
+try {
+    fillGalleryFields();
+    fillForm(createDefaultConfig());
+    initEvents();
+} catch (error) {
+    console.error("Admin init error:", error);
+}
+
 auth.onAuthStateChanged(user => {
     if (user) {
-        showLoggedIn(user);
+        showLoggedIn(user).catch(error => {
+            console.error("Admin login UI error:", error);
+            showToast("Không mở được giao diện admin. Xem console để biết chi tiết.", "error");
+        });
     } else {
         showLoggedOut();
         hasLoadedInitialConfig = false;

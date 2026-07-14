@@ -30,11 +30,12 @@ https://domain-cua-ban/admin/
 ├── css/
 │   ├── style.css               # File import CSS tong
 │   ├── parts/                  # CSS nen, section, animation, concept goc
-│   └── blocks/                 # CSS block rieng cho builder concept 1-4
+│   └── blocks/                 # CSS block theo section module
 ├── js/
 │   ├── app.js                  # Entry point cua thiep
 │   ├── config.js               # Config fallback/local
 │   ├── firebase.js             # Firebase client config
+│   ├── modules/                # 1 folder / section (module.js + render.js)
 │   ├── services/               # Load config tu URL/Firebase/localStorage preview
 │   ├── render/                 # Do config vao HTML
 │   ├── features/               # Tuong tac: cover, music, wish, gift, scroll...
@@ -44,6 +45,8 @@ https://domain-cua-ban/admin/
 ├── scripts/                    # Script upload config len Firebase
 └── README.md
 ```
+
+Xem `js/modules/README.md` de biet cach them section/skin moi ma khong dam vao module khac.
 
 ## Luong hoat dong
 

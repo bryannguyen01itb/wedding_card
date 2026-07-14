@@ -5,6 +5,16 @@ CSS hiện được chia thành 2 lớp chính:
 1. `parts/` chứa style nền, style concept 1 cố định và một số file legacy cần giữ để tương thích.
 2. `blocks/` chứa CSS chính cho block builder. Khi sửa layout từng block, ưu tiên sửa trong thư mục này.
 
+JS module ownership nằm ở `js/modules/<section>/`. CSS ownership:
+
+```txt
+css/blocks/<section>/skins.css   ← rule skin mới của section đó
+css/blocks/index.css             ← import tất cả module
+css/parts/block-concepts.css     ← legacy (poster/gallery/… cũ)
+```
+
+Thêm skin mới: chỉ sửa `css/blocks/<section>/skins.css` của section cần, không đụng module khác.
+
 Thứ tự import nằm trong `style.css`:
 
 ```txt

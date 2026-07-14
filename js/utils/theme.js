@@ -1,41 +1,15 @@
 import { getLocalImageFallback, shouldTryRemoteFallback } from "./mediaFallback.js";
+// Bootstrap module registry before applying skins.
+import "../modules/index.js";
+import {
+    applyModuleClasses,
+    getActiveConceptConfig,
+    resolveCoverOpenLabel
+} from "../modules/core/apply.js";
+import { getRegisteredSkins, normalizeSkinId } from "../modules/index.js";
 
 const DEFAULT_PRIMARY_COLOR = "#8fb8a8";
-
-const CONCEPT_ALIASES = {
-    "concept-2": ["2", "concept2", "concept-2", "botanical", "botanical-airy"],
-    "concept-3": ["3", "concept3", "concept-3", "sunset", "sunset-pop"],
-    "concept-4": ["4", "concept4", "concept-4", "mehappy", "mehappy-soft"]
-};
-
-const CONCEPT_CLASSES = ["concept-1", "concept-2", "concept-3", "concept-4"];
 const FIXED_BASE_CONCEPT = "concept-1";
-const BUILDER_BLOCK_PREFIXES = [
-    "block-cover-",
-    "block-poster-",
-    "block-save-date-",
-    "block-about-",
-    "block-timeline-",
-    "block-gallery-",
-    "block-divider-",
-    "block-countdown-",
-    "font-body-",
-    "font-nickname-"
-];
-
-const BUILDER_SECTION_CLASSES = ["concept-1", "concept-2", "concept-3", "concept-4"]
-    .map(concept => `block-skin-${concept}`);
-
-const BUILDER_SECTION_TARGETS = {
-    cover: ".cover",
-    poster: ".poster",
-    saveDate: ".save-date",
-    about: ".about",
-    timeline: ".timeline",
-    gallery: ".gallery",
-    countdown: ".countdown",
-    divider: ".section-divider"
-};
 
 const PALETTE_VARS = {
     botanical: {
@@ -126,13 +100,6 @@ function createSunsetPalette(primaryColor) {
     };
 }
 
-function normalizeConcept(concept) {
-    const value = String(concept || "concept-1").trim().toLowerCase();
-
-    return Object.entries(CONCEPT_ALIASES).find(([, aliases]) => aliases.includes(value))?.[0]
-        || "concept-1";
-}
-
 function resolveAssetUrl(path) {
     const value = String(path || "").trim();
     if (!value) return "";
@@ -174,54 +141,13 @@ function setColorVar(target, name, value) {
     setVar(target, name + "-rgb", rgb.r + ", " + rgb.g + ", " + rgb.b);
 }
 
-function applyConceptClass() {
-    document.body.classList.remove(...CONCEPT_CLASSES);
+function applyBaseConceptClass() {
+    // Wish / gift / thanks stay on concept-1 chrome; section skins are modular.
+    const skinClasses = getRegisteredSkins().map(skin => skin.id);
+    document.body.classList.remove(...skinClasses);
     document.body.classList.add(FIXED_BASE_CONCEPT);
     document.body.dataset.concept = FIXED_BASE_CONCEPT;
     return FIXED_BASE_CONCEPT;
-}
-
-function normalizeToken(value, fallback = "default") {
-    return String(value || fallback)
-        .trim()
-        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") || fallback;
-}
-
-function applyBuilderSectionClasses(blocks = {}) {
-    Object.values(BUILDER_SECTION_TARGETS).forEach(selector => {
-        document.querySelectorAll(selector).forEach(element => {
-            element.classList.remove(...BUILDER_SECTION_CLASSES);
-        });
-    });
-
-    Object.entries(BUILDER_SECTION_TARGETS).forEach(([blockName, selector]) => {
-        const concept = normalizeConcept(blocks[blockName]);
-        document.querySelectorAll(selector).forEach(element => {
-            element.classList.add(`block-skin-${concept}`);
-        });
-    });
-}
-
-function applyBuilderClasses(themeConfig = {}) {
-    const body = document.body;
-    [...body.classList].forEach(className => {
-        if (BUILDER_BLOCK_PREFIXES.some(prefix => className.startsWith(prefix))) {
-            body.classList.remove(className);
-        }
-    });
-
-    const blocks = themeConfig.blocks || {};
-    const fonts = themeConfig.fonts || {};
-
-    applyBuilderSectionClasses(blocks);
-    Object.entries(blocks).forEach(([blockName, option]) => {
-        body.classList.add(`block-${normalizeToken(blockName)}-${normalizeToken(option)}`);
-    });
-    body.classList.add(`font-body-${normalizeToken(fonts.body)}`);
-    body.classList.add(`font-nickname-${normalizeToken(fonts.nickname)}`);
 }
 
 function applyPalette(target, palette, variableMap) {
@@ -230,11 +156,8 @@ function applyPalette(target, palette, variableMap) {
     });
 }
 
-function getConceptConfig(themeConfig, concept) {
-    return themeConfig?.concepts?.[normalizeConcept(concept)] || {};
-}
-
 function applyBuilderPalettes(bodyStyle, primaryColor) {
+    // Always publish both palettes so mixed section skins can use CSS vars safely.
     applyPalette(bodyStyle, createBotanicalPalette(primaryColor), PALETTE_VARS.botanical);
     applyPalette(bodyStyle, createSunsetPalette(primaryColor), PALETTE_VARS.sunset);
 }
@@ -244,7 +167,6 @@ function applySharedThemeSurface(rootStyle, primaryColor) {
     setColorVar(rootStyle, "--theme-page-bg-soft", mixHex(primaryColor, "#fff7eb", .88));
     setColorVar(rootStyle, "--theme-surface", mixHex(primaryColor, "#ffffff", .9));
 }
-
 
 function preloadImage(url) {
     return new Promise(resolve => {
@@ -271,51 +193,25 @@ function setImageVarWithFallback(target, name, value, fallbackKey) {
     });
 }
 
-function applyBuilderBlockMedia(themeConfig, rootStyle, bodyStyle) {
-    const blocks = themeConfig?.blocks || {};
-    const coverConfig = getConceptConfig(themeConfig, blocks.cover);
-    const countdownConfig = getConceptConfig(themeConfig, blocks.countdown);
-
-    setImageVarWithFallback(bodyStyle, "--concept-cover-image", coverConfig?.images?.cover, "poster");
-    setVar(bodyStyle, "--concept-cover-label", toCssString(coverConfig?.cover?.openLabel || "Mở thiệp"));
-    setImageVarWithFallback(rootStyle, "--countdown-image", countdownConfig?.images?.countdown, "countdown");
-    setImageVarWithFallback(bodyStyle, "--concept-countdown-image", countdownConfig?.images?.countdown, "countdown");
-}
-
-function applyConceptMediaConfig(config, rootStyle, bodyStyle, defaultCoverLabel) {
+function applyBaseMediaConfig(config, rootStyle, bodyStyle, openLabel) {
     setImageVarWithFallback(rootStyle, "--site-background-image", config?.images?.background, "background");
     setImageVarWithFallback(rootStyle, "--countdown-image", config?.images?.countdown, "countdown");
     setImageVarWithFallback(bodyStyle, "--concept-background-image", config?.images?.background, "background");
     setImageVarWithFallback(bodyStyle, "--concept-cover-image", config?.images?.cover, "poster");
     setImageVarWithFallback(bodyStyle, "--concept-countdown-image", config?.images?.countdown, "countdown");
-    setVar(bodyStyle, "--concept-cover-label", toCssString(config?.cover?.openLabel || defaultCoverLabel));
+    setVar(bodyStyle, "--concept-cover-label", toCssString(openLabel));
 }
 
-function applyConceptOneConfig(config, rootStyle, bodyStyle) {
-    setImageVarWithFallback(rootStyle, "--site-background-image", config?.images?.background, "background");
-    setImageVarWithFallback(rootStyle, "--countdown-image", config?.images?.countdown, "countdown");
-    setImageVarWithFallback(bodyStyle, "--concept-cover-image", config?.images?.cover, "poster");
-    setVar(bodyStyle, "--concept-cover-label", toCssString(config?.cover?.openLabel || "Mở thiệp"));
-}
+function applyModuleMedia(themeConfig, rootStyle, bodyStyle) {
+    const cover = getActiveConceptConfig(themeConfig, "cover");
+    const countdown = getActiveConceptConfig(themeConfig, "countdown");
+    const openLabel = resolveCoverOpenLabel(themeConfig);
 
-function applyConceptTwoConfig(config, rootStyle, bodyStyle, primaryColor) {
-    applyPalette(bodyStyle, createBotanicalPalette(primaryColor), PALETTE_VARS.botanical);
-    applyConceptMediaConfig(config, rootStyle, bodyStyle, "open invitation");
+    setImageVarWithFallback(bodyStyle, "--concept-cover-image", cover.config?.images?.cover, "poster");
+    setVar(bodyStyle, "--concept-cover-label", toCssString(openLabel));
+    setImageVarWithFallback(rootStyle, "--countdown-image", countdown.config?.images?.countdown, "countdown");
+    setImageVarWithFallback(bodyStyle, "--concept-countdown-image", countdown.config?.images?.countdown, "countdown");
 }
-
-function applyConceptThreeConfig(config, rootStyle, bodyStyle, primaryColor) {
-    applyPalette(bodyStyle, createSunsetPalette(primaryColor), PALETTE_VARS.sunset);
-    applyConceptMediaConfig(config, rootStyle, bodyStyle, "tap to open");
-}
-
-const CONCEPT_APPLIERS = {
-    "concept-1": applyConceptOneConfig,
-    "concept-2": applyConceptTwoConfig,
-    "concept-3": applyConceptThreeConfig,
-    "concept-4": (config, rootStyle, bodyStyle) => {
-        applyConceptMediaConfig(config, rootStyle, bodyStyle, "Chạm để mở");
-    }
-};
 
 export function applyTheme(theme = {}) {
     const themeConfig = typeof theme === "string"
@@ -325,8 +221,8 @@ export function applyTheme(theme = {}) {
     const rgb = hexToRgb(primaryColor);
     const rootStyle = document.documentElement.style;
     const bodyStyle = document.body.style;
-    const activeConcept = applyConceptClass();
-    const conceptConfig = themeConfig?.concepts?.[activeConcept] || {};
+    const baseConcept = applyBaseConceptClass();
+    const baseConfig = themeConfig?.concepts?.[normalizeSkinId(baseConcept)] || {};
 
     rootStyle.setProperty("--primary-color", primaryColor);
     rootStyle.setProperty("--primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
@@ -334,7 +230,7 @@ export function applyTheme(theme = {}) {
     applySharedThemeSurface(rootStyle, primaryColor);
 
     applyBuilderPalettes(bodyStyle, primaryColor);
-    applyBuilderClasses(themeConfig);
-    CONCEPT_APPLIERS[activeConcept](conceptConfig, rootStyle, bodyStyle, primaryColor);
-    applyBuilderBlockMedia(themeConfig, rootStyle, bodyStyle);
+    applyModuleClasses(themeConfig);
+    applyBaseMediaConfig(baseConfig, rootStyle, bodyStyle, resolveCoverOpenLabel(themeConfig));
+    applyModuleMedia(themeConfig, rootStyle, bodyStyle);
 }

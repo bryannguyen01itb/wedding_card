@@ -17,8 +17,9 @@ export let wedding = {
     ],
 
     theme: {
-        // Các section chính lấy giao diện theo theme.blocks.
-        // Wish/gift/thanks dùng style cố định concept 1 để thiệp luôn thống nhất.
+        // Section skins — keys khớp id trong js/modules/*.js (registry).
+        // Wish/gift/thanks cố định concept-1; các section còn lại chọn skin độc lập.
+        // Xem js/modules/README.md khi thêm section/skin mới.
         primaryColor: "#8fb8a8",
         blocks: {
             cover: "concept-1",

@@ -1,7 +1,21 @@
-/* Block CSS entrypoint.
-   Keep this order: section-specific blocks first, shared unifier last. */
-@import url("cover-blocks.css");
-@import url("about-blocks.css");
-@import url("timeline-blocks.css");
-@import url("countdown-blocks.css");
+/* Module CSS entrypoint — one folder per section module.
+   JS ownership: js/modules/<section>/module.js → cssFile field.
+   Order: section skins first, shared unifier last. */
+
+/* Buildable sections */
+@import url("cover/skins.css");
+@import url("poster/skins.css");
+@import url("save-date/skins.css");
+@import url("about/skins.css");
+@import url("timeline/skins.css");
+@import url("gallery/skins.css");
+@import url("countdown/skins.css");
+@import url("divider/skins.css");
+
+/* Fixed chrome modules (not skin-selectable in builder) */
+@import url("gift/skins.css");
+@import url("wish/skins.css");
+@import url("thanks/skins.css");
+
+/* Shared surface / titles */
 @import url("theme-unifier.css");

@@ -13,27 +13,36 @@
 </head>
 <body>
     <main class="builder-shell">
-        <section class="builder-panel">
+        <nav class="builder-mobile-tabs" aria-label="Chuyển form và preview">
+            <button type="button" class="is-active" data-builder-tab="edit"><i class="bi bi-pencil-square"></i> Chỉnh sửa</button>
+            <button type="button" data-builder-tab="preview"><i class="bi bi-phone"></i> Xem preview</button>
+        </nav>
+
+        <section class="builder-panel" data-builder-panel="edit">
             <div class="builder-heading">
-                <h1>Khách tự chọn giao diện thiệp</h1>
-                <span>Khách chọn giao diện, nhập thông tin, upload ảnh/QR và tạo link Maps. Admin vẫn có thể sửa lại mọi thông tin sau.</span>
+                <p>Wedding Builder</p>
+                <h1>Tự thiết kế thiệp cưới</h1>
+                <span>Nhập thông tin theo từng bước. Trên điện thoại: bấm <strong>Xem preview</strong> để nhảy tới khung điện thoại.</span>
             </div>
             <form id="builderForm" class="builder-form">
-                <section class="card">
-                    <h2>Thông tin chính</h2>
+                <details class="card builder-step" open>
+                    <summary><span class="step-index">1</span> Thông tin chính</summary>
+                    <div class="card-body">
                     <div class="grid two">
                         <label>Nickname chú rể<input name="groomNickname" value="Phạm Hùng" required></label>
                         <label>Nickname cô dâu<input name="brideNickname" value="Thanh Hằng" required></label>
                         <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
                         <label>Tỉnh/Thành phố<input name="locationProvince" value="Hải Phòng" placeholder="vd: Hải Phòng"></label>
                         <label>Màu sắc thiệp<input name="primaryColor" type="color" value="#c9974f"></label>
-                        <label>Nhạc nền<select name="music" id="musicSelect"></select></label>
+                        <label>Nhạc nền (liên hệ admin thêm bài hát nếu trong d/s không có)<select name="music" id="musicSelect"></select></label>
                         <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
                     </div>
-                </section>
+                    </div>
+                </details>
 
-                <section class="card">
-                    <h2>Thông tin cô dâu & chú rể</h2>
+                <details class="card builder-step" open>
+                    <summary><span class="step-index">2</span> Cô dâu & chú rể</summary>
+                    <div class="card-body">
                     <div class="split-builder">
                         <div class="mini-card">
                             <h3>Chú rể</h3>
@@ -50,14 +59,19 @@
                             <label>Địa chỉ nhà gái<textarea name="brideAddress" rows="2">Nhà gái - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
                         </div>
                     </div>
-                </section>
+                    </div>
+                </details>
 
-                <section class="card">
-                    <h2>Lịch tổ chức</h2>
+                <details class="card builder-step">
+                    <summary><span class="step-index">3</span> Lịch tổ chức</summary>
+                    <div class="card-body">
+                    <p class="hint">Tự đặt tên lễ và bữa cơm (vd: Lễ Vu Quy, Lễ Thành Hôn, Bữa cơm thân mật…). Giờ và ngày vẫn chỉnh bên dưới.</p>
                     <div class="split-builder">
                         <div class="mini-card">
                             <h3>Nhà gái</h3>
-                            <label>Giờ lễ Vu Quy<input name="brideCeremonyTime" type="time" value="10:00"></label>
+                            <label>Tên lễ (vd: Lễ Vu Quy)<input name="brideCeremonyTitle" value="LỄ VU QUY" placeholder="LỄ VU QUY"></label>
+                            <label>Giờ lễ<input name="brideCeremonyTime" type="time" value="10:00"></label>
+                            <label>Tên bữa cơm<input name="brideMealTitle" value="BỮA CƠM THÂN MẬT" placeholder="BỮA CƠM THÂN MẬT"></label>
                             <div class="grid two compact-grid">
                                 <label>Ngày bữa cơm<input name="brideMealDate" type="date" value="2026-09-11"></label>
                                 <label>Giờ bữa cơm<input name="brideMealTime" type="time" value="17:00"></label>
@@ -65,41 +79,125 @@
                         </div>
                         <div class="mini-card">
                             <h3>Nhà trai</h3>
-                            <label>Giờ lễ Thành Hôn<input name="groomCeremonyTime" type="time" value="17:00"></label>
+                            <label>Tên lễ (vd: Lễ Thành Hôn)<input name="groomCeremonyTitle" value="LỄ THÀNH HÔN" placeholder="LỄ THÀNH HÔN"></label>
+                            <label>Giờ lễ<input name="groomCeremonyTime" type="time" value="17:00"></label>
+                            <label>Tên bữa cơm<input name="groomMealTitle" value="BỮA CƠM THÂN MẬT" placeholder="BỮA CƠM THÂN MẬT"></label>
                             <div class="grid two compact-grid">
                                 <label>Ngày bữa cơm<input name="groomMealDate" type="date" value="2026-09-12"></label>
                                 <label>Giờ bữa cơm<input name="groomMealTime" type="time" value="16:00"></label>
                             </div>
                         </div>
                     </div>
-                </section>
+                    </div>
+                </details>
 
+                <details class="card builder-step">
+                    <summary><span class="step-index">4</span> Tiêu đề & mô tả từng phần</summary>
+                    <div class="card-body">
+                    <p class="hint">Title = tiêu đề section. Subtitle = dòng mô tả nhỏ bên dưới (để trống thì ẩn).</p>
+                    <div class="title-subtitle-grid">
+                        <div class="field-pair">
+                            <label>Save the date — title<input name="titleSaveDate" value="SAVE THE DATE"></label>
+                            <label>Subtitle<textarea name="subtitleSaveDate" rows="2" placeholder="Tuỳ chọn"></textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Đôi nét — title<input name="titleAbout" value="ĐÔI NÉT VỀ CHÚNG TÔI"></label>
+                            <label>Subtitle<textarea name="subtitleAbout" rows="2">Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Lịch trình — title<input name="titleTimeline" value="LỊCH TRÌNH"></label>
+                            <label>Subtitle<textarea name="subtitleTimeline" rows="2">Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Album ảnh — title<input name="titleGallery" value="ALBUM ẢNH CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleGallery" rows="2">Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Lời chúc — title<input name="titleWish" value="NHẮN GỬI YÊU THƯƠNG"></label>
+                            <label>Subtitle<textarea name="subtitleWish" rows="2">Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Mừng cưới — title<input name="titleGift" value="HỘP MỪNG CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleGift" rows="2">Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Đếm ngược — title<input name="titleCountdown" value="ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleCountdown" rows="2">Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Cảm ơn — title<input name="titleThanks" value="XIN CHÂN THÀNH CẢM ƠN"></label>
+                            <label>Subtitle<textarea name="subtitleThanks" rows="3">Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi.</textarea></label>
+                        </div>
+                    </div>
+                    </div>
+                </details>
 
-                <section class="card media-card">
-                    <h2>Ảnh & QR</h2>
-                    <p class="hint">Chọn file ảnh để tự nén và upload Cloudinary. QR nên dùng nút cắt vuông để đúng khung hiển thị.</p>
+                
+<details class="card builder-step" open>
+                    <summary><span class="step-index">5</span> Giao diện & phông chữ</summary>
+                    <div class="card-body">
+                    <h3 class="card-subheading">Chọn concept từng phần</h3>
+                    <div class="choice-grid">
+                        <!-- Options filled from js/modules registry (populateBuilderBlockSelects) -->
+                        <label>Ảnh bìa thiệp<select name="blockCover"></select></label>
+                        <label>Ảnh poster thiệp<select name="blockPoster"></select></label>
+                        <label>Lịch (Save the date)<select name="blockSaveDate"></select></label>
+                        <label>Đôi nét về chúng tôi<select name="blockAbout"></select></label>
+                        <label>Lịch trình<select name="blockTimeline"></select></label>
+                        <label>Album ảnh cưới<select name="blockGallery"></select></label>
+                        <label>Đếm ngược<select name="blockCountdown"></select></label>
+                        <label>Icon ngăn cách<select name="blockDivider"></select></label>
+                    </div>
+                    <h3 class="card-subheading">Phông chữ</h3>
+                    <div class="grid two">
+                        <label>Phông chữ thiệp<select name="fontBody"><option value="quicksand">Quicksand</option><option value="lora">Lora</option><option value="nunito">Nunito Sans</option></select></label>
+                        <label>Phông tên nickname<select name="fontNickname"><option value="great-vibes">Dancing Script</option><option value="playwrite-vn">Playwrite VN</option><option value="pacifico">Pacifico</option><option value="lobster">Lobster</option><option value="parisienne">Parisienne</option><option value="lora">Lora</option></select></label>
+                    </div>
+                    </div>
+                </details>
+
+                
+<details class="card media-card gallery-media-card builder-step">
+                    <summary><span class="step-index">6</span> Ảnh thiệp</summary>
+                    <div class="card-body">
+                    <p class="hint">Upload ảnh cover/poster, album và các ảnh section. Ảnh tự nén; cùng field + Wedding ID sẽ <strong>ghi đè</strong> file cũ trên Cloudinary.</p>
+
+                    <h3 class="card-subheading">Ảnh chính</h3>
                     <div class="media-grid">
-                        <div class="media-label">Ảnh đầu thiệp/ ảnh poster<input type="hidden" name="coverPosterImage"></div>
+                        <div class="media-label">Ảnh đầu thiệp / poster<input type="hidden" name="coverPosterImage"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh preview khi gửi link cho khách<input type="hidden" name="previewImage"></div>
+                        <div class="media-label">Ảnh preview khi gửi link<input type="hidden" name="previewImage"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage"><button type="button" data-upload-button="previewImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh đôi (chỉ tải lên nếu dùng concept 1 hoặc 4 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input type="hidden" name="aboutImage"></div>
+                        <div class="media-label">Ảnh đôi (concept 1 hoặc 4 — Đôi nét)<input type="hidden" name="aboutImage"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage"><button type="button" data-upload-button="aboutImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh ở phần lịch trình<input type="hidden" name="timelineImage"></div>
+                        <div class="media-label">Ảnh lịch trình<input type="hidden" name="timelineImage"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage"><button type="button" data-upload-button="timelineImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh đếm ngược đến ngày<input type="hidden" name="countdownImage"></div>
+                        <div class="media-label">Ảnh đếm ngược<input type="hidden" name="countdownImage"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage"><button type="button" data-upload-button="countdownImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh chú rể (chỉ tải lên nếu dùng concept 2 hoặc 3 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input type="hidden" name="groomAvatar"></div>
+                        <div class="media-label">Ảnh chú rể (concept 2 hoặc 3 — Đôi nét)<input type="hidden" name="groomAvatar"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
 
-                        <div class="media-label">Ảnh cô dâu (chỉ tải lên nếu dùng concept 2 hoặc 3 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input type="hidden" name="brideAvatar"></div>
+                        <div class="media-label">Ảnh cô dâu (concept 2 hoặc 3 — Đôi nét)<input type="hidden" name="brideAvatar"></div>
                         <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                    </div>
 
+                    <h3 class="card-subheading">Album 7 ảnh</h3>
+                    <p class="hint">Chọn file cho từng ảnh gallery. Ảnh được nén trước khi lưu Cloudinary.</p>
+                    <div id="builderGalleryFields" class="builder-gallery-fields"></div>
+                    </div>
+                </details>
+
+                
+<details class="card builder-step">
+                    <summary><span class="step-index">7</span> QR mừng cưới</summary>
+                    <div class="card-body">
+                    <p class="hint">Cắt QR vuông rồi upload. Điền ngân hàng / số TK để hiển thị trên thiệp.</p>
+                    <div class="qr-stack">
                         <div class="qr-upload" data-qr-box="giftGroomQr">
                             <div class="media-label">QR chú rể<input type="hidden" name="giftGroomQr"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-qr-input="giftGroomQr"><button type="button" data-upload-button="giftGroomQr"><i class="bi bi-crop"></i> Cắt & upload QR</button></div>
@@ -122,16 +220,13 @@
                             <div class="qr-crop" hidden><canvas width="240" height="240"></canvas><label>Zoom<input type="range" min="1" max="2.5" step="0.05" value="1" data-qr-zoom></label><div class="grid two compact-grid"><label>Dịch ngang<input type="range" min="-100" max="100" step="1" value="0" data-qr-x></label><label>Dịch dọc<input type="range" min="-100" max="100" step="1" value="0" data-qr-y></label></div></div>
                         </div>
                     </div>
-                </section>
+                    </div>
+                </details>
 
-                <section class="card gallery-media-card">
-                    <h2>Gallery 7 ảnh</h2>
-                    <p class="hint">Chọn file cho từng ảnh. Ảnh sẽ được nén về kích thước hợp lý trước khi lưu Cloudinary.</p>
-                    <div id="builderGalleryFields" class="builder-gallery-fields"></div>
-                </section>
-
-                <section class="card">
-                    <h2>Maps chỉ đường</h2>
+                
+<details class="card builder-step">
+                    <summary><span class="step-index">8</span> Maps chỉ đường</summary>
+                    <div class="card-body">
                     <p class="hint">Dán link chia sẻ Google Maps hoặc chọn trực tiếp điểm trên bản đồ.</p>
                     <div class="split-builder">
                         <div class="mini-card">
@@ -149,45 +244,12 @@
                             </div>
                         </div>
                     </div>
-                </section>
-
-                <section class="card">
-                    <h2>Subtitle từng phần</h2>
-                    <p class="hint">Chỉ nhập dòng mô tả nhỏ dưới tiêu đề. Để trống thì thiệp tự ẩn như cũ.</p>
-                    <div class="grid two">
-                        <label>Đôi nét về chúng tôi<textarea name="subtitleAbout" data-default="Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương." rows="2">Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương.</textarea></label>
-                        <label>Lịch trình<textarea name="subtitleTimeline" data-default="Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui." rows="2">Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui.</textarea></label>
-                        <label>Album ảnh cưới<textarea name="subtitleGallery" data-default="Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường." rows="2">Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường.</textarea></label>
-                        <label>Nhắn gửi yêu thương<textarea name="subtitleWish" data-default="Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể." rows="2">Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể.</textarea></label>
-                        <label>Hộp mừng cưới<textarea name="subtitleGift" data-default="Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi." rows="2">Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.</textarea></label>
-                        <label>Đếm ngược<textarea name="subtitleCountdown" data-default="Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà." rows="2">Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà.</textarea></label>
-                        <label>Lời cảm ơn<textarea name="subtitleThanks" data-default="Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi." rows="3">Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi.</textarea></label>
                     </div>
-                </section>
+                </details>
 
-                <section class="card">
-                    <h2>Chọn giao diện</h2>
-                    <div class="choice-grid">
-                        <label>Ảnh bìa thiệp<select name="blockCover"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Ảnh poster thiệp<select name="blockPoster"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Lịch (Save the date)<select name="blockSaveDate"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Đôi nét về chúng tôi<select name="blockAbout"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Lịch trình<select name="blockTimeline"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Album ảnh cưới<select name="blockGallery"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Đếm ngược<select name="blockCountdown"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                        <label>Icon ngăn cách<select name="blockDivider"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
-                    </div>
-                </section>
+                
 
-                <section class="card">
-                    <h2>Phông chữ</h2>
-                    <div class="grid two">
-                        <label>Phông chữ thiệp<select name="fontBody"><option value="quicksand">Quicksand</option><option value="lora">Lora</option><option value="nunito">Nunito Sans</option></select></label>
-                        <label>Phông tên nickname<select name="fontNickname"><option value="great-vibes">Dancing Script</option><option value="playwrite-vn">Playwrite VN</option><option value="pacifico">Pacifico</option><option value="lobster">Lobster</option><option value="parisienne">Parisienne</option><option value="lora">Lora</option></select></label>
-                    </div>
-                </section>
-
-                <div class="actions">
+                <div class="actions builder-actions">
                     <button type="button" id="previewBtn"><i class="bi bi-eye-fill"></i> Xem preview</button>
                     <button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button>
                 </div>
@@ -200,7 +262,11 @@
             </form>
         </section>
 
-        <section class="preview-panel">
+        <section class="preview-panel" id="previewPanel" data-builder-panel="preview">
+            <div class="preview-panel__head">
+                <h2>Xem trước trên điện thoại</h2>
+                <p>Kéo/thao tác trong khung để kiểm tra thiệp.</p>
+            </div>
             <div class="phone-frame">
                 <iframe id="previewFrame" title="Preview thiep"></iframe>
             </div>

@@ -1,0 +1,11 @@
+/*
+ * Poster skins — module: js/modules/poster
+ *
+ * Primary rules currently live in css/parts/block-concepts.css
+ * (legacy migration layer). Prefer adding NEW poster skin rules here
+ * so future concepts stay isolated from other sections.
+ *
+ * Selectors to use:
+ *   body.block-poster-concept-N .poster
+ *   .poster.block-skin-concept-N
+ */

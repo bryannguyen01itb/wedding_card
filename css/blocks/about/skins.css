@@ -1,0 +1,270 @@
+/* About block skins. Edit about layout here, not in concept files. */
+.about.block-skin-concept-2,
+.about.block-skin-concept-3 {
+    clear: both !important;
+    overflow: hidden !important;
+    padding: .72rem .34rem .42rem !important;
+    color: var(--botanical-ink) !important;
+    background: var(--botanical-paper) !important;
+}
+
+.about.block-skin-concept-3 {
+    color: var(--sunset-ink) !important;
+    background: var(--sunset-paper) !important;
+}
+
+.about.block-skin-concept-2 .about-portrait,
+.about.block-skin-concept-3 .about-portrait {
+    display: none !important;
+}
+
+.about.block-skin-concept-2 .person,
+.about.block-skin-concept-3 .person {
+    float: none !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+}
+
+.about.block-skin-concept-2 .person img,
+.about.block-skin-concept-3 .person img {
+    display: block !important;
+}
+
+.about.block-skin-concept-2 .person-name::before,
+.about.block-skin-concept-3 .person-name::before {
+    display: none !important;
+    content: none !important;
+}
+
+.about.block-skin-concept-2 .person {
+    display: grid !important;
+    grid-template-columns: 3rem 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    column-gap: .32rem !important;
+    align-items: center !important;
+    justify-items: center !important;
+    margin-bottom: .46rem !important;
+    padding: .22rem !important;
+    border-radius: .34rem !important;
+    background: linear-gradient(135deg, #fff, rgba(var(--botanical-mint-rgb), .52)) !important;
+    box-shadow: var(--botanical-shadow) !important;
+    text-align: center !important;
+}
+
+.about.block-skin-concept-2 .person:nth-of-type(even) {
+    grid-template-columns: 1fr 3rem !important;
+    background: linear-gradient(135deg, rgba(var(--botanical-cream-rgb), .74), #fff) !important;
+}
+
+.about.block-skin-concept-2 .person img {
+    grid-row: 1 / -1 !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    margin: 0 !important;
+    border-radius: .28rem !important;
+    object-fit: cover !important;
+    box-shadow: 0 14px 26px rgba(var(--botanical-ink-rgb), .15) !important;
+}
+
+.about.block-skin-concept-2 .person:nth-of-type(even) img {
+    grid-column: 2 !important;
+}
+
+.about.block-skin-concept-2 .person-name {
+    margin: 0 0 .08rem !important;
+    color: var(--botanical-leaf) !important;
+    font: 600 .38rem/1.25 "Lora", Georgia, serif !important;
+}
+
+.about.block-skin-concept-2 .parent {
+    color: var(--botanical-muted) !important;
+    font-size: .23rem !important;
+}
+
+.about.block-skin-concept-3 .person {
+    position: relative !important;
+    margin-bottom: .48rem !important;
+    padding: .24rem .24rem .36rem !important;
+    border-radius: .48rem !important;
+    overflow: hidden !important;
+    text-align: center !important;
+    background: #fff !important;
+    box-shadow: var(--sunset-shadow) !important;
+}
+
+.about.block-skin-concept-3 .person::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 auto 0 0 !important;
+    width: .16rem !important;
+    background: linear-gradient(to bottom, var(--sunset-coral), var(--sunset-lavender)) !important;
+}
+
+.about.block-skin-concept-3 .person:nth-of-type(even)::before {
+    left: auto !important;
+    right: 0 !important;
+    background: linear-gradient(to bottom, var(--sunset-sky), var(--sunset-lemon)) !important;
+}
+
+.about.block-skin-concept-3 .person img {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+    margin: 0 auto !important;
+    border-radius: 38% 62% 45% 55% / 55% 42% 58% 45% !important;
+    object-fit: cover !important;
+    box-shadow: 0 14px 28px rgba(var(--sunset-ink-rgb), .14) !important;
+}
+
+.about.block-skin-concept-3 .person-name {
+    margin-top: .28rem !important;
+    color: var(--sunset-coral) !important;
+    font: 800 .36rem/1.25 "Quicksand", Arial, sans-serif !important;
+    text-transform: none !important;
+}
+
+.about.block-skin-concept-3 .parent {
+    color: var(--sunset-muted) !important;
+}
+
+/* Final fix for concept 2 about cards in mixed-block mode. */
+.about.block-skin-concept-2 .person,
+body .about.block-skin-concept-2 .person {
+    display: grid !important;
+    grid-template-columns: 3rem minmax(0, 1fr) !important;
+    grid-template-rows: none !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    column-gap: .36rem !important;
+    min-height: 3.38rem !important;
+    padding: .24rem !important;
+    text-align: center !important;
+}
+
+.about.block-skin-concept-2 .person:nth-of-type(even),
+body .about.block-skin-concept-2 .person:nth-of-type(even) {
+    grid-template-columns: minmax(0, 1fr) 3rem !important;
+}
+
+.about.block-skin-concept-2 .person img,
+body .about.block-skin-concept-2 .person img {
+    grid-column: 1 !important;
+    grid-row: 1 / span 3 !important;
+    align-self: center !important;
+    justify-self: center !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    margin: 0 !important;
+}
+
+.about.block-skin-concept-2 .person:nth-of-type(even) img,
+body .about.block-skin-concept-2 .person:nth-of-type(even) img {
+    grid-column: 2 !important;
+}
+
+.about.block-skin-concept-2 .person-name,
+.about.block-skin-concept-2 .parent,
+body .about.block-skin-concept-2 .person-name,
+body .about.block-skin-concept-2 .parent {
+    grid-column: 2 !important;
+    justify-self: center !important;
+    align-self: center !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+}
+
+.about.block-skin-concept-2 .person-name,
+body .about.block-skin-concept-2 .person-name {
+    grid-row: 1 !important;
+    align-self: end !important;
+    margin-bottom: .08rem !important;
+    font-size: .32rem !important;
+    line-height: 1.2 !important;
+}
+
+.about.block-skin-concept-2 .parent,
+body .about.block-skin-concept-2 .parent {
+    font-size: .2rem !important;
+    line-height: 1.5 !important;
+}
+
+.about.block-skin-concept-2 .person .parent:nth-of-type(2),
+body .about.block-skin-concept-2 .person .parent:nth-of-type(2) {
+    grid-row: 2 !important;
+    align-self: center !important;
+}
+
+.about.block-skin-concept-2 .person .parent:nth-of-type(3),
+body .about.block-skin-concept-2 .person .parent:nth-of-type(3) {
+    grid-row: 3 !important;
+    align-self: start !important;
+}
+
+.about.block-skin-concept-2 .person:nth-of-type(even) .person-name,
+.about.block-skin-concept-2 .person:nth-of-type(even) .parent,
+body .about.block-skin-concept-2 .person:nth-of-type(even) .person-name,
+body .about.block-skin-concept-2 .person:nth-of-type(even) .parent {
+    grid-column: 1 !important;
+}
+
+/* Keep concept 4 First Married text centered and readable on the portrait. */
+.about.block-skin-concept-4 .about-portrait__text,
+body .about.block-skin-concept-4 .about-portrait__text {
+    left: 2rem !important;
+    right: .28rem !important;
+    bottom: .48rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    text-shadow: 0 .08rem .26rem rgba(0, 0, 0, .38) !important;
+}
+
+.about.block-skin-concept-4 .about-portrait__text span,
+body .about.block-skin-concept-4 .about-portrait__text span {
+    margin-bottom: -.06rem !important;
+    font-size: .92rem !important;
+    line-height: .9 !important;
+    color: #fff !important;
+}
+
+.about.block-skin-concept-4 .about-portrait__text strong,
+body .about.block-skin-concept-4 .about-portrait__text strong {
+    max-width: 100% !important;
+    color: #fff !important;
+    font-size: .58rem !important;
+    line-height: 1.05 !important;
+    letter-spacing: .08rem !important;
+    text-align: center !important;
+    word-break: keep-all !important;
+}
+
+/* Soft depth for concept 3 about cards on the shared white background. */
+.about.block-skin-concept-3 .person,
+body .about.block-skin-concept-3 .person {
+    border: 1px solid rgba(var(--primary-rgb), .08) !important;
+    box-shadow: 0 .22rem .62rem rgba(54, 43, 32, .1) !important;
+}
+
+.about.block-skin-concept-3 .person img,
+body .about.block-skin-concept-3 .person img {
+    box-shadow: 0 .16rem .42rem rgba(54, 43, 32, .12) !important;
+}
+
+/* Concept 4: keep the portrait below optional about subtitle text. */
+.about.block-skin-concept-4 .section-subtitle:not([hidden]),
+body .about.block-skin-concept-4 .section-subtitle:not([hidden]) {
+    position: relative !important;
+    z-index: 4 !important;
+    margin-bottom: .58rem !important;
+}
+
+.about.block-skin-concept-4 .section-subtitle:not([hidden]) + .about-portrait,
+body .about.block-skin-concept-4 .section-subtitle:not([hidden]) + .about-portrait {
+    margin-top: 0 !important;
+}
+
