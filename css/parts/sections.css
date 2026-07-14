@@ -620,7 +620,7 @@
 }
 
 .timeline-row span {
-    font-size: .3rem;
+    font-size: .27rem;
     color: #555;
     line-height: 1.5;
 }
@@ -636,7 +636,7 @@
     gap: .14rem;
     color: #fff;
     background: var(--primary-color);
-    font-size: .3rem;
+    font-size: .27rem;
     font-weight: 400;
     text-decoration: none;
     box-shadow: 0 8px 20px rgba(var(--primary-rgb), .28);

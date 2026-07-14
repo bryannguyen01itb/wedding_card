@@ -39,6 +39,12 @@ function isPaymentUnlocked(payment = {}) {
     return payment?.unlocked === true || payment?.status === "paid";
 }
 
+/** Chỉ token 32 hex — tránh nhầm cache-buster (?t=timestamp cũ, ?cb=…) với access token */
+function normalizeAccessToken(value) {
+    const token = String(value || "").trim();
+    return /^[a-f0-9]{32}$/i.test(token) ? token.toLowerCase() : "";
+}
+
 function metaFromWeddingData(data = {}, weddingId = "") {
     if (!isPaymentUnlocked(data.payment)) {
         return { paymentLocked: true };
@@ -51,6 +57,34 @@ function metaFromWeddingData(data = {}, weddingId = "") {
         description: FALLBACK_META.description,
         weddingId
     };
+}
+
+function createPaymentLockedHtml() {
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiệp chưa được mở khóa</title>
+    <meta name="robots" content="noindex">
+    <meta property="og:title" content="Thiệp chưa được mở khóa">
+    <meta property="og:description" content="Vui lòng hoàn tất thanh toán. Link thiệp chính thức chỉ hoạt động sau khi admin xác nhận.">
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#fff7f7;color:#333;display:grid;place-items:center;min-height:100vh;text-align:center;padding:24px;box-sizing:border-box;">
+    <main style="max-width:420px;background:#fff;border-radius:18px;padding:32px 24px;box-shadow:0 18px 45px rgba(0,0,0,.08);">
+        <h1 style="font-size:24px;margin:0 0 12px;">Thiệp chưa được mở khóa</h1>
+        <p style="font-size:16px;line-height:1.6;margin:0;color:#666;">Vui lòng hoàn tất thanh toán và dùng đúng link admin/builder gửi sau khi xác nhận. Link sửa thiệp vẫn mở được trong builder.</p>
+    </main>
+</body>
+</html>`;
+}
+
+/** Edge chỉ chặn link thiệp public — không chặn /builder hay iframe preview */
+function shouldGatePublicInvite(url) {
+    const path = (url.pathname || "/").replace(/\/+$/, "") || "/";
+    if (path.includes("/builder")) return false;
+    if ((url.searchParams.get("preview") || "").trim() === "builder") return false;
+    return true;
 }
 
 async function getWeddingMetaById(weddingId) {
@@ -215,13 +249,16 @@ export async function onRequest(context) {
 
     const url = new URL(context.request.url);
     const weddingId = (url.searchParams.get("wedding") || "").trim();
-    const accessToken = (url.searchParams.get("t") || "").trim();
+    // Chỉ nhận ?t= đúng 32 hex — không nuốt timestamp/cache-buster
+    const accessToken = normalizeAccessToken(url.searchParams.get("t"));
+    const gatePublic = shouldGatePublicInvite(url);
     const meta = await getWeddingMeta({ weddingId, accessToken });
     const headers = new Headers(response.headers);
     headers.set("content-type", "text/html; charset=UTF-8");
     headers.set("cache-control", "public, max-age=60");
 
-    if ((weddingId || accessToken) && meta.notFound) {
+    // Chỉ chặn link thiệp public. Builder (?wedding=) và preview=builder phải load SPA.
+    if (gatePublic && (weddingId || accessToken) && meta.notFound) {
         return new Response(createNotFoundHtml(), {
             status: 404,
             statusText: "Not Found",
@@ -229,8 +266,8 @@ export async function onRequest(context) {
         });
     }
 
-    if ((weddingId || accessToken) && meta.paymentLocked) {
-        return new Response(createNotFoundHtml(), {
+    if (gatePublic && (weddingId || accessToken) && meta.paymentLocked) {
+        return new Response(createPaymentLockedHtml(), {
             status: 403,
             statusText: "Payment Required",
             headers
@@ -238,7 +275,9 @@ export async function onRequest(context) {
     }
 
     const html = await response.text();
-    const body = injectPreviewMeta(html, meta, context.request.url);
+    // Builder / preview: không ép OG theo wedding chưa paid (meta locked → dùng fallback)
+    const metaForInject = meta.paymentLocked || meta.notFound ? FALLBACK_META : meta;
+    const body = injectPreviewMeta(html, metaForInject, context.request.url);
 
     return new Response(body, {
         status: response.status,

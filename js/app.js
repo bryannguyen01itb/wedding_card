@@ -145,13 +145,15 @@ function restoreBuilderPreviewState() {
 
 async function bootstrap() {
     try {
-        // Không có weddingId / access token (?t=) và không phải preview builder → trang quảng cáo
+        const builderPreview = isBuilderPreview();
+        // Không có weddingId / access token (?t=32hex) và không phải preview → landing
         const hasInviteQuery = Boolean(getWeddingIdFromUrl() || getAccessTokenFromUrl());
-        if (!hasInviteQuery && !isBuilderPreview()) {
+        if (!hasInviteQuery && !builderPreview) {
             showLandingPage();
             return;
         }
 
+        // preview=builder: loadWeddingConfig dùng localStorage/mẫu (không Firebase / không gate ?t=)
         await loadWeddingConfig();
 
         updateLinkPreview();

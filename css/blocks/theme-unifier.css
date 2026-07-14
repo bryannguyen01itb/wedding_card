@@ -115,9 +115,9 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
    so cover/poster hardcodes cannot pin everything to Great Vibes. */
 
 /* ============================================================
-   ABOUT + TIMELINE — sàn .3rem cho date/time & location
-   (body mặc định .28rem → .parent / address hay bị inherit nhỏ)
-   Title/name đang > .3rem giữ nguyên (không gộp vào rule này).
+   ABOUT + TIMELINE — sàn .27rem cho date/time & location
+   (body mặc định .28rem → address hay bị inherit nhỏ)
+   Title/name đang lớn hơn giữ nguyên (không gộp vào rule này).
    ============================================================ */
 
 /* About: tên cô dâu/chú rể — cỡ đọc rõ (mọi concept) */
@@ -187,5 +187,16 @@ body[class*="block-timeline"] .timeline-line-address,
 .timeline.block-skin-concept-6 .timeline-itin-address,
 .timeline.block-skin-concept-7 .timeline-line-time,
 .timeline.block-skin-concept-7 .timeline-line-address {
-    font-size: .3rem !important;
+    font-size: .27rem !important;
+}
+
+/* Save the date — subtitle riêng .28rem (skin concept hay ép .2rem) */
+body .save-date .section-subtitle,
+body[class*="block-save-date"] .save-date .section-subtitle,
+.save-date.block-skin-concept-1 .section-subtitle,
+.save-date.block-skin-concept-2 .section-subtitle,
+.save-date.block-skin-concept-3 .section-subtitle,
+.save-date.block-skin-concept-4 .section-subtitle,
+body[class*="block-"] .save-date .section-subtitle {
+    font-size: .28rem !important;
 }

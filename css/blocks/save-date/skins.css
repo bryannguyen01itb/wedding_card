@@ -57,7 +57,7 @@ body[class*="block-"] .save-date.block-skin-concept-2 .section-subtitle {
     overflow: visible !important;
     color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .2rem !important;
+    font-size: .28rem !important;
     font-weight: 400 !important;
     line-height: 1.55 !important;
     letter-spacing: .02em !important;
@@ -453,7 +453,7 @@ body.block-save-date-concept-3 .section-subtitle,
     padding: 0 .2rem !important;
     color: color-mix(in srgb, var(--primary-color) 62%, #5a4a40 38%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .2rem !important;
+    font-size: .28rem !important;
     font-weight: 400 !important;
     letter-spacing: .02em !important;
     line-height: 1.55 !important;
@@ -672,7 +672,7 @@ body[class*="block-"] .save-date.block-skin-concept-4 .section-subtitle {
     overflow: visible !important;
     color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .2rem !important;
+    font-size: .28rem !important;
     font-weight: 400 !important;
     line-height: 1.55 !important;
     letter-spacing: .02em !important;
@@ -710,7 +710,7 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-date-couple-names {
     text-align: center !important;
 }
 
-/* Dòng ngày SEPTEMBER… — .3rem */
+/* Dòng ngày SEPTEMBER… — sàn .27rem */
 body.block-save-date-concept-4 .month-year,
 body.block-save-date-concept-4 .month-year.save-date-full-date,
 .save-date.block-skin-concept-4 .month-year,
@@ -724,7 +724,7 @@ body[class*="block-"] .save-date.block-skin-concept-4 .month-year {
     margin: .12rem 0 0 !important;
     color: color-mix(in srgb, var(--primary-color) 48%, #2f2a25 52%) !important;
     font-family: "Lora", Georgia, serif !important;
-    font-size: .3rem !important;
+    font-size: .27rem !important;
     font-weight: 600 !important;
     letter-spacing: .1em !important;
     line-height: 1.35 !important;

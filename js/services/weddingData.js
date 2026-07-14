@@ -1,9 +1,12 @@
 import { wedding as fallbackWedding, setWeddingConfig } from "../config.js";
 import { db } from "../firebase.js";
-import { isWeddingPaymentUnlocked } from "../utils/access.js";
+import {
+    ACCESS_TOKEN_QUERY_KEY,
+    isWeddingPaymentUnlocked,
+    normalizeAccessToken
+} from "../utils/access.js";
 
 const WEDDING_QUERY_KEY = "wedding";
-const ACCESS_TOKEN_QUERY_KEY = "t";
 
 export class WeddingConfigError extends Error {
     constructor(message, code) {
@@ -39,8 +42,11 @@ export function getWeddingIdFromUrl() {
 
 export function getAccessTokenFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get(ACCESS_TOKEN_QUERY_KEY);
-    return token ? token.trim() : "";
+    return normalizeAccessToken(params.get(ACCESS_TOKEN_QUERY_KEY));
+}
+
+function isBuilderPreviewRequest() {
+    return new URLSearchParams(window.location.search).get("preview") === "builder";
 }
 
 function assertPublicAccessAllowed(config) {
@@ -80,19 +86,23 @@ async function fetchWeddingByAccessToken(token) {
     });
 }
 
-export async function loadWeddingConfig() {
-    const params = new URLSearchParams(window.location.search);
+function applyPreviewOrFallback(previewConfig) {
+    const merged = previewConfig
+        ? mergeConfig(fallbackWedding, previewConfig)
+        : fallbackWedding;
+    setWeddingConfig(merged);
+    return merged;
+}
 
-    if (params.get("preview") === "builder") {
+export async function loadWeddingConfig() {
+    // Builder iframe: luôn dùng localStorage / thiệp mẫu — không đụng Firebase / ?t=
+    if (isBuilderPreviewRequest()) {
         try {
             const previewConfig = JSON.parse(localStorage.getItem("weddingBuilderPreview") || "null");
-            if (previewConfig) {
-                const mergedPreview = mergeConfig(fallbackWedding, previewConfig);
-                setWeddingConfig(mergedPreview);
-                return mergedPreview;
-            }
+            return applyPreviewOrFallback(previewConfig);
         } catch (error) {
             console.warn("Không đọc được preview builder:", error);
+            return applyPreviewOrFallback(null);
         }
     }
 
@@ -105,7 +115,7 @@ export async function loadWeddingConfig() {
     }
 
     try {
-        // Prefer unguessable token link (?t=...)
+        // Prefer unguessable token link (?t=32hex)
         const remoteWedding = accessToken
             ? await fetchWeddingByAccessToken(accessToken)
             : await fetchWeddingById(weddingId);

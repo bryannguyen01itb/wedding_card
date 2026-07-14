@@ -369,7 +369,10 @@ function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), si
 }
 
 function buildEditUrl(weddingId) {
+    // URL sạch: chỉ ?wedding= — tránh dính ?t= / param lạ làm gate nhầm
     const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
     url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
     return url.toString();
 }
@@ -1685,7 +1688,8 @@ function refreshPreview(updateStatus = true, options = {}) {
     savePreviewState(previewState);
 
     previewLoadToken += 1;
-    frame.src = `../index.html?preview=builder&t=${Date.now()}&pt=${previewLoadToken}`;
+    // Dùng cb/pt — KHÔNG dùng ?t= (đã dành cho payment.accessToken 32 hex)
+    frame.src = `../index.html?preview=builder&cb=${Date.now()}&pt=${previewLoadToken}`;
 
     if (updateStatus) {
         const sectionHint = previewState.target ? ` → ${previewState.target}` : " → cover";
@@ -1829,7 +1833,12 @@ async function saveConfig(event) {
         }
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
-        loadedWeddingConfig = createPreviewConfig();
+        // Giữ payment (accessToken, unlocked…) sau save — createPreviewConfig không mang field này
+        loadedWeddingConfig = {
+            ...createPreviewConfig(),
+            weddingId: payload.weddingId,
+            payment: payload.payment
+        };
         editingWeddingId = payload.weddingId;
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
@@ -1838,7 +1847,7 @@ async function saveConfig(event) {
         setStatus(`Da luu ban nhap Firebase: ${payload.weddingId}`, "success");
         refreshPreview(false);
         if (isPaymentUnlocked(payload)) {
-            showUnlockedLinks(payload.weddingId);
+            showUnlockedLinks(payload.weddingId, payload.payment?.accessToken || "");
         } else {
             showPaymentModal(payload.weddingId);
         }
