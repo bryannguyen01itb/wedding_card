@@ -57,6 +57,32 @@
             <div id="musicList" class="music-list"></div>
         </section>
 
+        <section class="panel payment-admin is-hidden" id="paymentPanel">
+            <div class="panel-title"><i class="bi bi-credit-card-2-front-fill"></i><div><h2>Thanh toán & mở khóa</h2><p>Cấu hình popup thanh toán cho khách và mở khóa thiệp sau khi đã xác nhận.</p></div></div>
+            <form id="paymentSettingsForm" class="payment-settings-form">
+                <div class="grid two">
+                    <label>Số tiền cần trả<input id="paymentAmount" type="number" min="0" step="1000" placeholder="vd: 199000"></label>
+                    <label>Đơn vị<input id="paymentCurrency" type="text" value="VND"></label>
+                    <label>Link Facebook/Zalo admin<input id="paymentContactUrl" type="url" placeholder="https://facebook.com/..."></label>
+                    <label>Link ảnh QR thanh toán<input id="paymentQrImage" type="url" placeholder="https://res.cloudinary.com/...jpg"></label>
+                    <label class="span-2">Tên người nhận / tài khoản<input id="paymentReceiver" placeholder="vd: NGUYEN VAN A - Vietcombank - 0123456789"></label>
+                    <label class="span-2">Lời nhắn thanh toán<textarea id="paymentMessage" rows="3" placeholder="Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn."></textarea></label>
+                    <div class="span-2 payment-actions"><button id="savePaymentSettingsBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu cấu hình thanh toán</button></div>
+                </div>
+            </form>
+            <div class="payment-current">
+                <div>
+                    <h3>Thiệp đang tải</h3>
+                    <p id="paymentWeddingInfo">Chưa tải weddingId nào.</p>
+                </div>
+                <div class="payment-actions">
+                    <button id="markPendingBtn" type="button" class="ghost"><i class="bi bi-hourglass-split"></i> Chờ thanh toán</button>
+                    <button id="unlockWeddingBtn" type="button"><i class="bi bi-unlock-fill"></i> Mở khóa</button>
+                    <button id="lockWeddingBtn" type="button" class="ghost danger"><i class="bi bi-lock-fill"></i> Khóa lại</button>
+                </div>
+            </div>
+        </section>
+
         <form id="adminForm" class="admin-form is-hidden">
             <section class="panel">
                 <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>

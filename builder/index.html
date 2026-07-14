@@ -231,6 +231,35 @@
     </div>
 
 
+    <div id="paymentModal" class="save-modal payment-modal" hidden>
+        <div class="save-modal__backdrop" data-close-payment-modal></div>
+        <section class="save-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+            <button class="save-modal__close" type="button" data-close-payment-modal aria-label="Dong popup"><i class="bi bi-x-lg"></i></button>
+            <div class="save-modal__icon payment-modal__icon"><i class="bi bi-qr-code"></i></div>
+            <p class="save-modal__eyebrow">Đã lưu bản nháp</p>
+            <h2 id="paymentModalTitle">Chờ xác nhận thanh toán</h2>
+            <p id="paymentMessageText" class="save-modal__desc">Vui lòng thanh toán và liên hệ admin để được mở khóa link thiệp.</p>
+            <img id="paymentQrPreview" class="payment-modal__qr" alt="QR thanh toán" hidden>
+            <div class="payment-modal__summary">
+                <div><span>Số tiền</span><strong id="paymentAmountText">Đang cập nhật</strong></div>
+                <div><span>Mã đơn</span><strong id="paymentWeddingIdText">-</strong></div>
+                <div id="paymentReceiverRow" hidden><span>Thông tin nhận</span><strong id="paymentReceiverText"></strong></div>
+            </div>
+            <div class="save-modal__links">
+                <div class="save-modal__link-card save-modal__link-card--important">
+                    <span>Link quay lại sửa/chờ mở khóa</span>
+                    <a id="paymentEditLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyPaymentEditLink" type="button"><i class="bi bi-copy"></i> Copy link này</button>
+                </div>
+                <div class="save-modal__link-card">
+                    <span>Liên hệ admin xác nhận</span>
+                    <a id="paymentContactLink" href="#" target="_blank" rel="noopener noreferrer">Chưa có link liên hệ</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
     <div id="mapPickerModal" class="map-picker-modal" hidden>
         <div class="map-picker-modal__backdrop" data-close-map-picker></div>
         <section class="map-picker-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle">

@@ -244,3 +244,48 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
     overflow: hidden;
 }
 
+
+/* Payment waiting modal */
+.payment-modal__icon {
+    background: #c9974f;
+}
+
+.payment-modal__qr {
+    width: min(240px, 70vw);
+    aspect-ratio: 1;
+    margin: 16px auto;
+    display: block;
+    border-radius: 18px;
+    border: 10px solid #fff;
+    object-fit: cover;
+    box-shadow: 0 16px 42px rgba(98,70,35,.16);
+}
+
+.payment-modal__summary {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+    text-align: left;
+}
+
+.payment-modal__summary div {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid rgba(201,151,79,.2);
+    border-radius: 16px;
+    background: #fff;
+}
+
+.payment-modal__summary span {
+    color: #8a735d;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.payment-modal__summary strong {
+    color: #4b3827;
+    overflow-wrap: anywhere;
+}

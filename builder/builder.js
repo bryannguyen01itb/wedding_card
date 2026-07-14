@@ -16,6 +16,16 @@ const modalInvitationLink = document.getElementById("modalInvitationLink");
 const modalEditLink = document.getElementById("modalEditLink");
 const copyInvitationLink = document.getElementById("copyInvitationLink");
 const copyEditLink = document.getElementById("copyEditLink");
+const paymentModal = document.getElementById("paymentModal");
+const paymentQrPreview = document.getElementById("paymentQrPreview");
+const paymentAmountText = document.getElementById("paymentAmountText");
+const paymentWeddingIdText = document.getElementById("paymentWeddingIdText");
+const paymentReceiverRow = document.getElementById("paymentReceiverRow");
+const paymentReceiverText = document.getElementById("paymentReceiverText");
+const paymentMessageText = document.getElementById("paymentMessageText");
+const paymentEditLink = document.getElementById("paymentEditLink");
+const paymentContactLink = document.getElementById("paymentContactLink");
+const copyPaymentEditLink = document.getElementById("copyPaymentEditLink");
 const builderGalleryFields = document.getElementById("builderGalleryFields");
 const mapPickerModal = document.getElementById("mapPickerModal");
 const mapPickerCanvas = document.getElementById("mapPickerCanvas");
@@ -24,6 +34,14 @@ const saveMapPointBtn = document.getElementById("saveMapPointBtn");
 const WEDDING_QUERY_KEY = "wedding";
 const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
 const GALLERY_SIZE = 7;
+const DEFAULT_PAYMENT_SETTINGS = {
+    amount: 0,
+    currency: "VND",
+    contactUrl: "",
+    qrImage: "",
+    receiver: "",
+    message: "Vui lòng chuyển khoản với nội dung là Wedding ID, sau đó liên hệ admin để được mở khóa link thiệp."
+};
 
 // Cloudinary chỉ cho upload trực tiếp từ trình duyệt bằng unsigned upload preset.
 // Vào Cloudinary > Settings > Upload > Upload presets, tạo preset unsigned tên "wedding_unsigned".
@@ -35,6 +53,8 @@ let editingWeddingId = "";
 let originalEditingWeddingId = "";
 let loadedWeddingConfig = clone(fallbackWedding);
 let remoteMusicLibrary = [];
+let paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS };
+let unsubscribeWeddingPayment = null;
 let missingWeddingConfig = false;
 let activeMapPickerRole = "";
 let mapPicker = null;
@@ -292,12 +312,120 @@ function updateResultLinks(weddingId) {
     resultLinks.hidden = false;
 }
 
+function formatPaymentAmount(settings = paymentSettings) {
+    const amount = Number(settings.amount || 0);
+    if (!amount) return "Liên hệ admin";
+    return new Intl.NumberFormat("vi-VN").format(amount) + ` ${settings.currency || "VND"}`;
+}
+
+function isPaymentUnlocked(config = loadedWeddingConfig) {
+    return config.payment?.unlocked === true || config.payment?.status === "paid";
+}
+
+function hidePaymentModal() {
+    if (!paymentModal) return;
+    paymentModal.hidden = true;
+    document.body.classList.remove("modal-open");
+}
+
+function showPaymentModal(weddingId) {
+    if (!paymentModal || !weddingId) return;
+    if (saveModal) saveModal.hidden = true;
+    if (resultLinks) resultLinks.hidden = true;
+
+    const { editUrl } = getShareUrls(weddingId);
+    paymentWeddingIdText.textContent = weddingId;
+    paymentAmountText.textContent = formatPaymentAmount();
+    paymentMessageText.textContent = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
+    applyLink(paymentEditLink, editUrl);
+
+    if (paymentSettings.contactUrl) {
+        paymentContactLink.href = paymentSettings.contactUrl;
+        paymentContactLink.textContent = paymentSettings.contactUrl;
+    } else {
+        paymentContactLink.href = "#";
+        paymentContactLink.textContent = "Chưa có link liên hệ";
+    }
+
+    if (paymentSettings.qrImage) {
+        paymentQrPreview.src = paymentSettings.qrImage;
+        paymentQrPreview.hidden = false;
+    } else {
+        paymentQrPreview.removeAttribute("src");
+        paymentQrPreview.hidden = true;
+    }
+
+    if (paymentSettings.receiver) {
+        paymentReceiverText.textContent = paymentSettings.receiver;
+        paymentReceiverRow.hidden = false;
+    } else {
+        paymentReceiverText.textContent = "";
+        paymentReceiverRow.hidden = true;
+    }
+
+    paymentModal.hidden = false;
+    document.body.classList.add("modal-open");
+}
+
+function showUnlockedLinks(weddingId) {
+    hidePaymentModal();
+    showSaveModal(weddingId);
+}
+
+function buildPendingPayment(weddingId) {
+    const current = loadedWeddingConfig.payment || {};
+    if (current.unlocked === true || current.status === "paid") {
+        return current;
+    }
+
+    return {
+        status: "pending",
+        unlocked: false,
+        amount: Number(paymentSettings.amount || current.amount || 0),
+        currency: paymentSettings.currency || current.currency || "VND",
+        weddingId,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+}
+
+function listenWeddingPayment(weddingId) {
+    if (unsubscribeWeddingPayment) {
+        unsubscribeWeddingPayment();
+        unsubscribeWeddingPayment = null;
+    }
+    if (!weddingId) return;
+
+    unsubscribeWeddingPayment = db.collection("weddings").doc(weddingId).onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+        loadedWeddingConfig = mergeConfig(loadedWeddingConfig, data);
+        if (data.payment?.unlocked === true || data.payment?.status === "paid") {
+            setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
+            showUnlockedLinks(weddingId);
+        }
+    });
+}
+
+async function loadPaymentSettings() {
+    try {
+        const doc = await db.collection("settings").doc("payment").get();
+        paymentSettings = {
+            ...DEFAULT_PAYMENT_SETTINGS,
+            ...(doc.exists ? doc.data() : {})
+        };
+    } catch (error) {
+        console.warn("Khong tai duoc cau hinh thanh toan, dung mac dinh.", error);
+        paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS };
+    }
+}
+
 function showSaveModal(weddingId) {
     updateResultLinks(weddingId);
     if (!saveModal) {
         return;
     }
 
+    hidePaymentModal();
     saveModal.hidden = false;
     document.body.classList.add("modal-open");
 }
@@ -1108,7 +1236,12 @@ async function loadConfigForEdit() {
             };
             fillBuilderForm(loadedWeddingConfig);
             markWeddingEditable();
-            updateResultLinks(weddingId);
+            listenWeddingPayment(weddingId);
+            if (isPaymentUnlocked(loadedWeddingConfig)) {
+                updateResultLinks(weddingId);
+            } else {
+                showPaymentModal(weddingId);
+            }
             setStatus(`Dang sua: ${weddingId}`);
             refreshPreview(false);
         } else {
@@ -1230,6 +1363,7 @@ async function saveConfig(event) {
             setStatus(`WeddingId da ton tai, tu dong luu thanh: ${availableWeddingId}`);
         }
         payload = applyWeddingIdToPayload(payload, availableWeddingId);
+        payload.payment = buildPendingPayment(payload.weddingId);
 
         if (saveBtn) {
             saveBtn.disabled = true;
@@ -1242,10 +1376,14 @@ async function saveConfig(event) {
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
         syncUrlForEdit(payload.weddingId);
-        updateResultLinks(payload.weddingId);
-        setStatus(`Da luu Firebase thanh cong: ${payload.weddingId}`, "success");
+        listenWeddingPayment(payload.weddingId);
+        setStatus(`Da luu ban nhap Firebase: ${payload.weddingId}`, "success");
         refreshPreview(false);
-        showSaveModal(payload.weddingId);
+        if (isPaymentUnlocked(payload)) {
+            showUnlockedLinks(payload.weddingId);
+        } else {
+            showPaymentModal(payload.weddingId);
+        }
     } catch (error) {
         console.error(error);
         setStatus("Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.", "error");
@@ -1304,9 +1442,9 @@ form.addEventListener("input", handleQrCropInput);
 form.addEventListener("click", handleMapButton);
 renderBuilderGalleryFields();
 Promise.all([
-    loadMusicLibrary(),
-    loadConfigForEdit()
-]).then(() => populateMusicOptions(loadedWeddingConfig));
+    loadPaymentSettings(),
+    loadMusicLibrary()
+]).then(() => loadConfigForEdit()).then(() => populateMusicOptions(loadedWeddingConfig));
 
 if (saveModal) {
     saveModal.addEventListener("click", event => {
@@ -1322,6 +1460,16 @@ copyInvitationLink?.addEventListener("click", () => {
 
 copyEditLink?.addEventListener("click", () => {
     copyText(modalEditLink?.href || "", copyEditLink);
+});
+
+copyPaymentEditLink?.addEventListener("click", () => {
+    copyText(paymentEditLink?.href || "", copyPaymentEditLink);
+});
+
+paymentModal?.addEventListener("click", event => {
+    if (event.target.closest("[data-close-payment-modal]")) {
+        hidePaymentModal();
+    }
 });
 
 saveMapPointBtn?.addEventListener("click", saveSelectedMapPoint);

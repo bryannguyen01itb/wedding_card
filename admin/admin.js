@@ -33,6 +33,18 @@ const musicActive = document.getElementById("musicActive");
 const musicList = document.getElementById("musicList");
 const resetMusicBtn = document.getElementById("resetMusicBtn");
 const saveMusicBtn = document.getElementById("saveMusicBtn");
+const paymentPanel = document.getElementById("paymentPanel");
+const paymentSettingsForm = document.getElementById("paymentSettingsForm");
+const paymentAmount = document.getElementById("paymentAmount");
+const paymentCurrency = document.getElementById("paymentCurrency");
+const paymentContactUrl = document.getElementById("paymentContactUrl");
+const paymentQrImage = document.getElementById("paymentQrImage");
+const paymentReceiver = document.getElementById("paymentReceiver");
+const paymentMessage = document.getElementById("paymentMessage");
+const paymentWeddingInfo = document.getElementById("paymentWeddingInfo");
+const markPendingBtn = document.getElementById("markPendingBtn");
+const unlockWeddingBtn = document.getElementById("unlockWeddingBtn");
+const lockWeddingBtn = document.getElementById("lockWeddingBtn");
 
 let currentConfig = createDefaultConfig();
 let hasLoadedInitialConfig = false;
@@ -151,6 +163,101 @@ function updatePreviewLink(weddingId) {
     previewLink.textContent = url.href;
 }
 
+function formatMoney(amount, currency = "VND") {
+    const value = Number(amount || 0);
+    if (!value) return "Chưa đặt số tiền";
+    return new Intl.NumberFormat("vi-VN").format(value) + ` ${currency || "VND"}`;
+}
+
+function updatePaymentWeddingInfo(config = currentConfig) {
+    if (!paymentWeddingInfo) return;
+    const id = config.weddingId || "chưa có weddingId";
+    const payment = config.payment || {};
+    const status = payment.unlocked || payment.status === "paid"
+        ? "Đã mở khóa"
+        : payment.status === "pending"
+            ? "Đang chờ thanh toán"
+            : payment.status === "locked"
+                ? "Đã khóa"
+                : "Chưa có trạng thái thanh toán";
+    paymentWeddingInfo.textContent = `${id} · ${status} · ${formatMoney(payment.amount, payment.currency)}`;
+}
+
+function fillPaymentSettings(data = {}) {
+    paymentAmount.value = data.amount ?? "";
+    paymentCurrency.value = data.currency || "VND";
+    paymentContactUrl.value = data.contactUrl || "";
+    paymentQrImage.value = data.qrImage || "";
+    paymentReceiver.value = data.receiver || "";
+    paymentMessage.value = data.message || "Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn.";
+}
+
+async function loadPaymentSettingsAdmin() {
+    try {
+        const doc = await db.collection("settings").doc("payment").get();
+        fillPaymentSettings(doc.exists ? doc.data() : {});
+    } catch (error) {
+        console.error(error);
+        showToast("Không tải được cấu hình thanh toán.", "error");
+    }
+}
+
+async function savePaymentSettings(event) {
+    event.preventDefault();
+    if (!auth.currentUser) {
+        showToast("Bạn cần đăng nhập trước khi lưu thanh toán.", "error");
+        return;
+    }
+
+    const payload = {
+        amount: Number(paymentAmount.value || 0),
+        currency: paymentCurrency.value.trim() || "VND",
+        contactUrl: paymentContactUrl.value.trim(),
+        qrImage: paymentQrImage.value.trim(),
+        receiver: paymentReceiver.value.trim(),
+        message: paymentMessage.value.trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        await db.collection("settings").doc("payment").set(payload, { merge: true });
+        showToast("Đã lưu cấu hình thanh toán.");
+    } catch (error) {
+        console.error(error);
+        showToast("Lưu cấu hình thanh toán thất bại.", "error");
+    }
+}
+
+async function setWeddingPaymentStatus(status) {
+    const weddingId = currentConfig.weddingId || form.elements["weddingId"].value.trim() || loadInput.value.trim();
+    if (!weddingId) {
+        showToast("Tải hoặc nhập weddingId trước khi cập nhật thanh toán.", "error");
+        return;
+    }
+
+    const unlocked = status === "paid";
+    const payload = {
+        payment: {
+            status,
+            unlocked,
+            amount: Number(paymentAmount.value || currentConfig.payment?.amount || 0),
+            currency: paymentCurrency.value.trim() || currentConfig.payment?.currency || "VND",
+            confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+    };
+
+    try {
+        await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
+        currentConfig = mergeConfig(currentConfig, payload);
+        updatePaymentWeddingInfo(currentConfig);
+        showToast(unlocked ? "Đã mở khóa thiệp cho khách." : "Đã cập nhật trạng thái chờ thanh toán.");
+    } catch (error) {
+        console.error(error);
+        showToast("Không cập nhật được trạng thái thanh toán.", "error");
+    }
+}
+
 function fillForm(config) {
     currentConfig = mergeConfig(createDefaultConfig(), config || {});
 
@@ -163,6 +270,7 @@ function fillForm(config) {
     syncColorInputs(currentConfig.theme?.primaryColor || DEFAULT_PRIMARY);
     loadInput.value = currentConfig.weddingId || loadInput.value;
     updatePreviewLink(currentConfig.weddingId);
+    updatePaymentWeddingInfo(currentConfig);
 }
 
 function readForm() {
@@ -398,6 +506,7 @@ function showLoggedOut() {
     adminHero.classList.add("is-hidden");
     form.classList.add("is-hidden");
     musicPanel.classList.add("is-hidden");
+    paymentPanel.classList.add("is-hidden");
 }
 
 async function showLoggedIn(user) {
@@ -411,8 +520,9 @@ async function showLoggedIn(user) {
     adminHero.classList.remove("is-hidden");
     form.classList.remove("is-hidden");
     musicPanel.classList.remove("is-hidden");
+    paymentPanel.classList.remove("is-hidden");
     accountEmail.textContent = user.email;
-    await loadMusicLibraryAdmin();
+    await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin()]);
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
@@ -434,6 +544,10 @@ function initEvents() {
 
     form.addEventListener("submit", saveConfig);
     musicForm.addEventListener("submit", saveMusicItem);
+    paymentSettingsForm.addEventListener("submit", savePaymentSettings);
+    markPendingBtn.addEventListener("click", () => setWeddingPaymentStatus("pending"));
+    unlockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("paid"));
+    lockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("locked"));
     musicList.addEventListener("click", handleMusicListClick);
     resetMusicBtn.addEventListener("click", resetMusicForm);
     resetBtn.addEventListener("click", () => loadConfigById(""));
