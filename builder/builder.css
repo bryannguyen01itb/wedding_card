@@ -32,6 +32,41 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
     font-size: 12px;
 }
 
+.media-label,
+.gallery-index {
+    display: grid;
+    align-content: center;
+    min-height: 42px;
+    color: #7b6147;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.35;
+}
+
+.upload-row input[type="file"] {
+    color: #7b6147;
+    border-color: rgba(201,151,79,.24);
+    background: #fffdf8;
+    cursor: pointer;
+}
+
+.upload-row input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 14px;
+    background: rgba(201,151,79,.14);
+    color: #9a6c2d;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.upload-row input[type="file"]:hover::file-selector-button {
+    background: rgba(201,151,79,.22);
+}
+
 .upload-row button,
 .map-button {
     height: 42px;
@@ -75,7 +110,7 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
 
 .builder-gallery-row {
     display: grid;
-    grid-template-columns: 70px minmax(0, 1fr) minmax(220px, .72fr);
+    grid-template-columns: 70px minmax(0, 1fr);
     gap: 10px;
     align-items: end;
     padding: 10px;
@@ -106,7 +141,7 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
 
 .map-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap: 8px;
 }
 
@@ -202,18 +237,6 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
 }
 
 
-.map-picker-search {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-    margin-top: 14px;
-}
-
-.map-picker-search button {
-    height: 42px;
-    padding: 0 16px;
-}
-
 .leaflet-control-layers {
     border: 0 !important;
     border-radius: 12px !important;
@@ -221,8 +244,3 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
     overflow: hidden;
 }
 
-@media(max-width:900px) {
-    .map-picker-search {
-        grid-template-columns: 1fr;
-    }
-}

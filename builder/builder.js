@@ -19,8 +19,6 @@ const copyEditLink = document.getElementById("copyEditLink");
 const builderGalleryFields = document.getElementById("builderGalleryFields");
 const mapPickerModal = document.getElementById("mapPickerModal");
 const mapPickerCanvas = document.getElementById("mapPickerCanvas");
-const mapPickerSearch = document.getElementById("mapPickerSearch");
-const mapPickerSearchBtn = document.getElementById("mapPickerSearchBtn");
 const saveMapPointBtn = document.getElementById("saveMapPointBtn");
 
 const WEDDING_QUERY_KEY = "wedding";
@@ -37,6 +35,7 @@ let editingWeddingId = "";
 let originalEditingWeddingId = "";
 let loadedWeddingConfig = clone(fallbackWedding);
 let remoteMusicLibrary = [];
+let missingWeddingConfig = false;
 let activeMapPickerRole = "";
 let mapPicker = null;
 let mapPickerMarker = null;
@@ -228,6 +227,29 @@ function setStatus(message, type = "") {
     statusEl.dataset.type = type;
 }
 
+function setBuilderLocked(locked) {
+    Array.from(form.elements).forEach(control => {
+        control.disabled = locked;
+    });
+}
+
+function showMissingWeddingMessage(weddingId) {
+    frame.srcdoc = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:28px;background:#fff8ee;color:#6f4d2d;font-family:Arial,sans-serif;text-align:center}div{max-width:300px}h1{margin:0 0 10px;font-size:22px}p{margin:0;line-height:1.55}</style></head><body><div><h1>Không tìm thấy thiệp</h1><p>Wedding ID <strong>${weddingId}</strong> chưa tồn tại trên Firebase. Vui lòng kiểm tra lại link sửa thiệp.</p></div></body></html>`;
+}
+
+function markWeddingMissing(weddingId) {
+    missingWeddingConfig = true;
+    setBuilderLocked(true);
+    if (resultLinks) resultLinks.hidden = true;
+    showMissingWeddingMessage(weddingId);
+    setStatus(`Khong tim thay weddingId: ${weddingId}. Vui long kiem tra lai link sua thiep.`, "error");
+}
+
+function markWeddingEditable() {
+    missingWeddingConfig = false;
+    setBuilderLocked(false);
+}
+
 function buildInvitationUrl(weddingId) {
     const url = new URL("../", window.location.href);
     url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
@@ -343,8 +365,7 @@ function renderBuilderGalleryFields() {
         const row = document.createElement("div");
         row.className = "builder-gallery-row";
         row.innerHTML = `
-            <div class="gallery-index">Ảnh ${number}</div>
-            <label>Link ảnh<input name="galleryPhoto${number}" placeholder="Dán link hoặc upload file"></label>
+            <div class="gallery-index">Ảnh ${number}<input type="hidden" name="galleryPhoto${number}"></div>
             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="galleryPhoto${number}"><button type="button" data-upload-button="galleryPhoto${number}"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
         `;
         builderGalleryFields.appendChild(row);
@@ -374,37 +395,6 @@ function getGalleryPhotosFromForm() {
     }).filter(Boolean);
 }
 
-function normalizeMapSearchAddress(address) {
-    return String(address || "")
-        .replace(/^\s*nh[aà]\s*(g[aá]i|trai)\s*[-–:]\s*/i, "")
-        .trim();
-}
-
-function buildMapSearchUrl(address) {
-    const query = normalizeMapSearchAddress(address);
-    if (!query) return "";
-    const url = new URL("https://www.google.com/maps/search/");
-    url.searchParams.set("api", "1");
-    url.searchParams.set("query", query);
-    return url.toString();
-}
-
-function syncMapUrl(role) {
-    const addressName = role === "bride" ? "brideAddress" : "groomAddress";
-    const searchName = role === "bride" ? "brideMapSearch" : "groomMapSearch";
-    const mapName = role === "bride" ? "brideMapUrl" : "groomMapUrl";
-    const keyword = readField(searchName) || readField(addressName);
-    const mapUrl = buildMapSearchUrl(keyword);
-    if (!mapUrl) {
-        setStatus("Nhap tu khoa hoac dia chi truoc khi mo Maps.", "error");
-        return;
-    }
-
-    setField(mapName, mapUrl);
-    window.open(mapUrl, "_blank", "noopener,noreferrer");
-    setStatus("Da tao link Maps tam thoi. Neu can dung dung diem, hay copy link chia se tren Google Maps va dan lai vao o Link Maps.", "success");
-    refreshPreview(false);
-}
 
 function loadImageFromFile(file) {
     return new Promise((resolve, reject) => {
@@ -608,45 +598,6 @@ function setMapPoint(point, zoom = 16) {
     }
 }
 
-async function searchMapPickerLocation() {
-    const keyword = String(mapPickerSearch?.value || "").trim();
-    if (!keyword) {
-        setStatus("Nhap ten khu vuc gan do de tim tren ban do.", "error");
-        return;
-    }
-
-    try {
-        if (mapPickerSearchBtn) {
-            mapPickerSearchBtn.disabled = true;
-            mapPickerSearchBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tìm';
-        }
-
-        const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.set("format", "jsonv2");
-        url.searchParams.set("limit", "1");
-        url.searchParams.set("q", keyword);
-
-        const response = await fetch(url.toString(), {
-            headers: { "Accept": "application/json" }
-        });
-        const results = await response.json();
-        if (!Array.isArray(results) || !results.length) {
-            setStatus("Khong tim thay khu vuc nay. Thu nhap ten xa/phuong hoac dia diem gan do.", "error");
-            return;
-        }
-
-        setMapPoint({ lat: Number(results[0].lat), lng: Number(results[0].lon) }, 17);
-        setStatus("Da dua ban do toi khu vuc gan dung. Hay zoom/keo va click dung diem can chi duong.", "success");
-    } catch (error) {
-        console.error(error);
-        setStatus("Khong tim duoc vi tri. Ban van co the keo ban do thu cong.", "error");
-    } finally {
-        if (mapPickerSearchBtn) {
-            mapPickerSearchBtn.disabled = false;
-            mapPickerSearchBtn.innerHTML = '<i class="bi bi-search"></i> Tìm';
-        }
-    }
-}
 
 function ensureMapPicker(role) {
     if (!window.L || !mapPickerCanvas) {
@@ -687,9 +638,6 @@ function ensureMapPicker(role) {
 function openMapPicker(role) {
     activeMapPickerRole = role;
     if (!mapPickerModal) return;
-    if (mapPickerSearch) {
-        mapPickerSearch.value = readField(role === "bride" ? "brideMapSearch" : "groomMapSearch") || normalizeMapSearchAddress(readField(role === "bride" ? "brideAddress" : "groomAddress"));
-    }
     mapPickerModal.hidden = false;
     document.body.classList.add("modal-open");
     if (!ensureMapPicker(role)) {
@@ -1009,8 +957,6 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideMother", config.bride?.mother);
     setControlValue("groomAddress", config.ceremony?.groom?.address);
     setControlValue("brideAddress", config.ceremony?.bride?.address);
-    setControlValue("groomMapSearch", normalizeMapSearchAddress(config.ceremony?.groom?.address));
-    setControlValue("brideMapSearch", normalizeMapSearchAddress(config.ceremony?.bride?.address));
     setControlValue("groomMapUrl", config.ceremony?.groom?.mapUrl);
     setControlValue("brideMapUrl", config.ceremony?.bride?.mapUrl);
     setControlValue("date", config.date);
@@ -1075,6 +1021,7 @@ async function loadConfigForEdit() {
 
     if (!weddingId) {
         originalEditingWeddingId = "";
+        markWeddingEditable();
         refreshPreview();
         return;
     }
@@ -1160,19 +1107,19 @@ async function loadConfigForEdit() {
                 }
             };
             fillBuilderForm(loadedWeddingConfig);
+            markWeddingEditable();
             updateResultLinks(weddingId);
             setStatus(`Dang sua: ${weddingId}`);
+            refreshPreview(false);
         } else {
             loadedWeddingConfig = { ...clone(fallbackWedding), weddingId };
-            updateResultLinks(weddingId);
-            setStatus(`Chua co cau hinh Firebase cho: ${weddingId}. Co the luu de tao moi.`, "error");
+            markWeddingMissing(weddingId);
         }
     } catch (error) {
         console.error(error);
-        setStatus("Khong tai duoc cau hinh. Kiem tra Firestore Rules.", "error");
+        markWeddingMissing(weddingId);
+        setStatus("Khong tai duoc cau hinh. Kiem tra Firestore Rules hoac kiem tra lai weddingId.", "error");
     }
-
-    refreshPreview(false);
 }
 
 function readPreviewState() {
@@ -1262,6 +1209,10 @@ function refreshPreview(updateStatus = true) {
 
 async function saveConfig(event) {
     event.preventDefault();
+    if (missingWeddingConfig) {
+        setStatus("Wedding ID nay khong ton tai, khong the luu de tranh tao nham thiep.", "error");
+        return;
+    }
     let payload = createSavePayload();
 
     if (!payload.weddingId) {
@@ -1334,12 +1285,6 @@ function handleQrCropInput(event) {
 }
 
 function handleMapButton(event) {
-    const searchButton = event.target.closest("[data-map-role]");
-    if (searchButton) {
-        syncMapUrl(searchButton.dataset.mapRole);
-        return;
-    }
-
     const pickerButton = event.target.closest("[data-map-picker]");
     if (pickerButton) {
         openMapPicker(pickerButton.dataset.mapPicker);
@@ -1380,13 +1325,6 @@ copyEditLink?.addEventListener("click", () => {
 });
 
 saveMapPointBtn?.addEventListener("click", saveSelectedMapPoint);
-mapPickerSearchBtn?.addEventListener("click", searchMapPickerLocation);
-mapPickerSearch?.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        searchMapPickerLocation();
-    }
-});
 mapPickerModal?.addEventListener("click", event => {
     if (event.target.closest("[data-close-map-picker]")) {
         closeMapPicker();

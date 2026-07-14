@@ -255,3 +255,16 @@ body .about.block-skin-concept-3 .person img {
     box-shadow: 0 .16rem .42rem rgba(54, 43, 32, .12) !important;
 }
 
+/* Concept 4: keep the portrait below optional about subtitle text. */
+.about.block-skin-concept-4 .section-subtitle:not([hidden]),
+body .about.block-skin-concept-4 .section-subtitle:not([hidden]) {
+    position: relative !important;
+    z-index: 4 !important;
+    margin-bottom: .58rem !important;
+}
+
+.about.block-skin-concept-4 .section-subtitle:not([hidden]) + .about-portrait,
+body .about.block-skin-concept-4 .section-subtitle:not([hidden]) + .about-portrait {
+    margin-top: 0 !important;
+}
+
