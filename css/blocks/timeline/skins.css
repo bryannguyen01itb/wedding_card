@@ -348,7 +348,7 @@ position: absolute;
     border-radius: 999px;
     color: var(--na01-gold);
     background: var(--na01-paper);
-    font-family: "Philosopher", serif;
+    font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .27rem;
     text-align: center;
 }
@@ -501,7 +501,7 @@ font-size: .27rem;
     border-radius: 999px !important;
     color: var(--na01-gold, #928362) !important;
     background: var(--na01-paper, #fffdf8) !important;
-    font-family: "Philosopher", serif !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     text-align: center !important;
 }
@@ -614,7 +614,7 @@ body.block-timeline-concept-5 .timeline-card--ritual .timeline-side-badge,
     background: transparent !important;
     border: 1px solid rgba(160, 120, 80, .35) !important;
     color: #8b6b45 !important;
-    font-family: "Lora", Georgia, serif !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     font-weight: 600 !important;
     letter-spacing: .14rem !important;
@@ -883,7 +883,7 @@ body.block-timeline-concept-6 .timeline-card--itin .timeline-side-badge,
     border-radius: 999px !important;
     background: rgba(var(--primary-rgb), .12) !important;
     color: var(--primary-color) !important;
-    font-family: "Lora", Georgia, serif !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     font-weight: 700 !important;
     letter-spacing: .14rem !important;
@@ -1108,7 +1108,7 @@ body.block-timeline-concept-7 .timeline-card--line .timeline-side-badge,
     border-radius: 999px !important;
     background: rgba(var(--primary-rgb), .1) !important;
     color: var(--primary-color) !important;
-    font-family: "Lora", Georgia, serif !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     font-weight: 700 !important;
     letter-spacing: .14rem !important;

@@ -133,7 +133,7 @@ content: attr(data-side);
     display: block;
     margin-bottom: .18rem;
     color: #948b69;
-    font-family: "Nunito Sans", Arial, sans-serif;
+    font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .3rem;
     font-weight: 800;
     letter-spacing: .08rem;
@@ -489,7 +489,7 @@ body .about.block-skin-concept-4 .person-name::before {
 content: attr(data-side);
     display: block;
     margin-bottom: .22rem;
-    font-family: "Lora", Georgia, serif;
+    font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .3rem;
     text-transform: uppercase;
 }

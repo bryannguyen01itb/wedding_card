@@ -1610,6 +1610,7 @@
     color: #fff;
     background: rgba(var(--primary-rgb), .92);
     box-shadow: 0 10px 22px rgba(var(--primary-rgb), .28);
+    font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .3rem;
     font-weight: 800;
     letter-spacing: .04rem;
@@ -1626,7 +1627,7 @@
     width: min(100%, 7.2rem);
     margin: -.52rem auto .72rem;
     color: #666;
-    font-size: .32rem;
+    font-size: .28rem;
     font-weight: 400;
     line-height: 1.72;
     text-align: center;

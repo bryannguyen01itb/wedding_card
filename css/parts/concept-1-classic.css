@@ -278,7 +278,7 @@ body.concept-1 .about .person-name::before {
     display: block;
     margin-bottom: .18rem;
     color: #948b69;
-    font-family: "Nunito Sans", Arial, sans-serif;
+    font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .3rem;
     font-weight: 800;
     letter-spacing: .08rem;

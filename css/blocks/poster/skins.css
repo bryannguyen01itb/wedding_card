@@ -334,7 +334,7 @@ body.block-poster-concept-3 .info {
     justify-content: center;
     align-items: center;
     gap: .04rem;
-    margin-top: .08rem;
+    margin-top: .6rem;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -431,28 +431,45 @@ body.block-poster-concept-4 .poster::after,
 body.block-poster-concept-4 .poster-content {
     justify-content: flex-end;
     align-items: center;
-    padding: 0 .4rem .85rem;
+    /* padding đáy đủ cho swash Great Vibes; ngang chừa nét bay 2 bên */
+    padding: 0 .28rem 1.05rem;
     color: #fff;
     z-index: 5;
+    overflow: visible;
 }
 
 body.block-poster-concept-4 .couple {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     width: 100%;
-    column-gap: .16rem;
+    column-gap: .2rem;
     row-gap: 0;
+    /* Great Vibes / script: không clip nét bay trên/dưới */
+    overflow: visible;
+    padding: .12rem 0 .06rem;
 }
 
 body.block-poster-concept-4 .text_1,
 body.block-poster-concept-4 .text_2 {
     width: auto;
+    max-width: 100%;
     min-width: 0;
     color: #fff;
     font-family: var(--font-nickname, "Great Vibes", cursive);
-    font-size: .72rem;
-    line-height: 1.05;
+    /* Script font: cỡ vừa + line-height rộng để không cắt descender/swash */
+    font-size: clamp(.52rem, 7.2vw, .68rem);
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: .01em;
+    overflow: visible;
+    /* chừa chỗ nét bay Great Vibes (ascender + descender) */
+    padding: .18rem .08rem .22rem;
+    /* backface-visibility:hidden (base animate) hay cắt nét script */
+    backface-visibility: visible;
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
     text-shadow:
         0 2px 4px rgba(0, 0, 0, .7),
         0 10px 28px rgba(0, 0, 0, .4);
@@ -461,17 +478,33 @@ body.block-poster-concept-4 .text_2 {
 body.block-poster-concept-4 .text_1 {
     justify-self: end;
     text-align: right;
+    /* padding-right nhẹ: nét chữ script bên phải không dính tim */
+    padding-right: .12rem;
 }
 
 body.block-poster-concept-4 .text_2 {
     justify-self: start;
     text-align: left;
+    padding-left: .12rem;
+}
+
+/* Bỏ GPU layer translate3d(0,0,0) sau animate — hay clip swash Great Vibes */
+body.block-poster-concept-4 .text_1.show,
+body.block-poster-concept-4 .text_2.show,
+body.block-poster-concept-4 .heart.show {
+    transform: none;
+    backface-visibility: visible;
 }
 
 body.block-poster-concept-4 .heart {
     justify-self: center;
+    align-self: center;
+    flex-shrink: 0;
     color: var(--primary-color);
     font-size: .4rem;
+    line-height: 1;
+    padding: .08rem 0;
+    overflow: visible;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .45));
     text-shadow: none;
 }

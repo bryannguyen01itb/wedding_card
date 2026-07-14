@@ -75,12 +75,13 @@ body[class*="block-"] .thanks-title::after {
     transform: none !important;
 }
 
+/* Subtitle đồng bộ mọi block (save-date, about, timeline, gallery…) */
 body[class*="block-"] .section-subtitle,
 body[class*="block-"] .gift-description,
 body[class*="block-"] .thanks-content {
     color: #6f6a62 !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .32rem !important;
+    font-size: .28rem !important;
     font-weight: 400 !important;
     line-height: 1.7 !important;
     letter-spacing: 0 !important;
@@ -113,6 +114,23 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
 
 /* Nickname fonts: applied via JS inject (#theme-font-overrides) in js/utils/fonts.js
    so cover/poster hardcodes cannot pin everything to Great Vibes. */
+
+/* NHÀ TRAI / NHÀ GÁI — đồng bộ font body (theme.fonts.body), không ép Lora/Nunito/Philosopher */
+body .about .person-name::before,
+body .timeline .timeline-side-badge,
+body[class*="block-about"] .person-name::before,
+body[class*="block-timeline"] .timeline-side-badge,
+.about.block-skin-concept-1 .person-name::before,
+.about.block-skin-concept-4 .person-name::before,
+.timeline.block-skin-concept-1 .timeline-side-badge,
+.timeline.block-skin-concept-2 .timeline-side-badge,
+.timeline.block-skin-concept-3 .timeline-side-badge,
+.timeline.block-skin-concept-4 .timeline-side-badge,
+.timeline.block-skin-concept-5 .timeline-side-badge,
+.timeline.block-skin-concept-6 .timeline-side-badge,
+.timeline.block-skin-concept-7 .timeline-side-badge {
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+}
 
 /* ============================================================
    ABOUT + TIMELINE — sàn .27rem cho date/time & location
@@ -190,13 +208,4 @@ body[class*="block-timeline"] .timeline-line-address,
     font-size: .27rem !important;
 }
 
-/* Save the date — subtitle riêng .28rem (skin concept hay ép .2rem) */
-body .save-date .section-subtitle,
-body[class*="block-save-date"] .save-date .section-subtitle,
-.save-date.block-skin-concept-1 .section-subtitle,
-.save-date.block-skin-concept-2 .section-subtitle,
-.save-date.block-skin-concept-3 .section-subtitle,
-.save-date.block-skin-concept-4 .section-subtitle,
-body[class*="block-"] .save-date .section-subtitle {
-    font-size: .28rem !important;
-}
+/* Save-date subtitle: cùng .28rem với rule chung phía trên (không override lệch cỡ) */
