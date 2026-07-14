@@ -45,6 +45,8 @@ const paymentWeddingInfo = document.getElementById("paymentWeddingInfo");
 const markPendingBtn = document.getElementById("markPendingBtn");
 const unlockWeddingBtn = document.getElementById("unlockWeddingBtn");
 const lockWeddingBtn = document.getElementById("lockWeddingBtn");
+const paymentList = document.getElementById("paymentList");
+const refreshPaymentListBtn = document.getElementById("refreshPaymentListBtn");
 
 let currentConfig = createDefaultConfig();
 let hasLoadedInitialConfig = false;
@@ -163,10 +165,29 @@ function updatePreviewLink(weddingId) {
     previewLink.textContent = url.href;
 }
 
+function getPaymentSettingAmount() {
+    const rawAmount = paymentAmount?.value;
+    if (rawAmount === undefined || rawAmount === null || rawAmount === "") {
+        return null;
+    }
+
+    const amount = Number(rawAmount);
+    return Number.isNaN(amount) ? null : amount;
+}
+
+function getPaymentSettingCurrency() {
+    return paymentCurrency?.value?.trim() || "VND";
+}
+
 function formatMoney(amount, currency = "VND") {
-    const value = Number(amount || 0);
-    if (!value) return "Chưa đặt số tiền";
-    return new Intl.NumberFormat("vi-VN").format(value) + ` ${currency || "VND"}`;
+    const rawAmount = amount ?? getPaymentSettingAmount();
+    if (rawAmount === undefined || rawAmount === null || rawAmount === "") {
+        return "Chưa đặt số tiền";
+    }
+
+    const value = Number(rawAmount);
+    if (Number.isNaN(value)) return "Chưa đặt số tiền";
+    return new Intl.NumberFormat("vi-VN").format(value) + ` ${currency || getPaymentSettingCurrency() || "VND"}`;
 }
 
 function updatePaymentWeddingInfo(config = currentConfig) {
@@ -180,7 +201,7 @@ function updatePaymentWeddingInfo(config = currentConfig) {
             : payment.status === "locked"
                 ? "Đã khóa"
                 : "Chưa có trạng thái thanh toán";
-    paymentWeddingInfo.textContent = `${id} · ${status} · ${formatMoney(payment.amount, payment.currency)}`;
+    paymentWeddingInfo.textContent = `${id} · ${status} · ${formatMoney(payment.amount, payment.currency || getPaymentSettingCurrency())}`;
 }
 
 function fillPaymentSettings(data = {}) {
@@ -210,7 +231,7 @@ async function savePaymentSettings(event) {
     }
 
     const payload = {
-        amount: Number(paymentAmount.value || 0),
+        amount: getPaymentSettingAmount(),
         currency: paymentCurrency.value.trim() || "VND",
         contactUrl: paymentContactUrl.value.trim(),
         qrImage: paymentQrImage.value.trim(),
@@ -240,8 +261,8 @@ async function setWeddingPaymentStatus(status) {
         payment: {
             status,
             unlocked,
-            amount: Number(paymentAmount.value || currentConfig.payment?.amount || 0),
-            currency: paymentCurrency.value.trim() || currentConfig.payment?.currency || "VND",
+            amount: getPaymentSettingAmount() ?? Number(currentConfig.payment?.amount ?? 0),
+            currency: getPaymentSettingCurrency() || currentConfig.payment?.currency || "VND",
             confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }
@@ -251,11 +272,113 @@ async function setWeddingPaymentStatus(status) {
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
         currentConfig = mergeConfig(currentConfig, payload);
         updatePaymentWeddingInfo(currentConfig);
+        await loadPaymentList();
         showToast(unlocked ? "Đã mở khóa thiệp cho khách." : "Đã cập nhật trạng thái chờ thanh toán.");
     } catch (error) {
         console.error(error);
         showToast("Không cập nhật được trạng thái thanh toán.", "error");
     }
+}
+
+function getPaymentStatusLabel(payment = {}) {
+    if (payment.unlocked === true || payment.status === "paid") return "Đã thanh toán";
+    if (payment.status === "pending") return "Chờ thanh toán";
+    if (payment.status === "locked") return "Đã khóa";
+    return "Chưa thanh toán";
+}
+
+function renderPaymentList(items) {
+    if (!paymentList) return;
+    paymentList.textContent = "";
+
+    if (!items.length) {
+        paymentList.innerHTML = '<p class="empty-state">Chưa có thiệp nào trong Firebase.</p>';
+        return;
+    }
+
+    items.forEach(item => {
+        const payment = item.payment || {};
+        const row = document.createElement("article");
+        row.className = `payment-item${payment.unlocked || payment.status === "paid" ? " is-paid" : ""}`;
+        row.dataset.id = item.id;
+        row.innerHTML = `
+            <div class="payment-item__info">
+                <strong>${item.weddingId || item.id}</strong>
+                <span>${item.groom?.nickname || "Chú rể"} & ${item.bride?.nickname || "Cô dâu"}</span>
+                <em>${getPaymentStatusLabel(payment)} · ${formatMoney(payment.amount, payment.currency || getPaymentSettingCurrency())}</em>
+            </div>
+            <div class="payment-item__actions">
+                ${payment.unlocked || payment.status === "paid"
+                    ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${item.id}"><i class="bi bi-lock-fill"></i> Khóa</button>`
+                    : `<button type="button" class="small" data-payment-action="paid" data-id="${item.id}"><i class="bi bi-check2-circle"></i> Đã trả</button>`}
+            </div>
+        `;
+        paymentList.appendChild(row);
+    });
+}
+
+async function loadPaymentList() {
+    if (!paymentList) return;
+    paymentList.innerHTML = '<p class="empty-state">Đang tải danh sách thiệp...</p>';
+
+    try {
+        const snapshot = await db.collection("weddings").limit(80).get();
+        const items = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data(), weddingId: doc.data().weddingId || doc.id }))
+            .sort((a, b) => {
+                const aPaid = a.payment?.unlocked === true || a.payment?.status === "paid";
+                const bPaid = b.payment?.unlocked === true || b.payment?.status === "paid";
+                if (aPaid !== bPaid) return aPaid ? 1 : -1;
+                return String(a.weddingId || a.id).localeCompare(String(b.weddingId || b.id));
+            });
+        renderPaymentList(items);
+    } catch (error) {
+        console.error(error);
+        paymentList.innerHTML = '<p class="empty-state error">Không tải được danh sách payment. Kiểm tra Firestore Rules.</p>';
+    }
+}
+
+async function updateWeddingPaymentById(weddingId, status) {
+    if (!weddingId) return;
+    const unlocked = status === "paid";
+    const payload = {
+        payment: {
+            status,
+            unlocked,
+            amount: getPaymentSettingAmount(),
+            currency: getPaymentSettingCurrency(),
+            confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+    };
+
+    try {
+        await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
+        if (currentConfig.weddingId === weddingId) {
+            currentConfig = mergeConfig(currentConfig, payload);
+            updatePaymentWeddingInfo(currentConfig);
+        }
+        await loadPaymentList();
+        showToast(unlocked ? `Đã mở khóa ${weddingId}.` : `Đã khóa ${weddingId}.`);
+    } catch (error) {
+        console.error(error);
+        showToast("Không cập nhật được payment trong danh sách.", "error");
+    }
+}
+
+async function handlePaymentListClick(event) {
+    const button = event.target.closest("button[data-payment-action]");
+    if (!button) return;
+    const { paymentAction, id } = button.dataset;
+
+    await updateWeddingPaymentById(id, paymentAction);
+}
+
+async function handlePaymentListRowClick(event) {
+    if (event.target.closest("button")) return;
+    const row = event.target.closest(".payment-item");
+    if (!row?.dataset.id) return;
+    await loadConfigById(row.dataset.id);
 }
 
 function fillForm(config) {
@@ -437,12 +560,14 @@ async function loadConfigById(weddingId) {
         }
 
         const doc = await db.collection("weddings").doc(weddingId).get();
-        const config = doc.exists
-            ? mergeConfig(createDefaultConfig(), { ...doc.data(), weddingId: doc.id })
-            : mergeConfig(createDefaultConfig(), { weddingId });
+        if (!doc.exists) {
+            showToast(`Không tìm thấy weddingId: ${weddingId}.`, "error");
+            return;
+        }
 
+        const config = mergeConfig(createDefaultConfig(), { ...doc.data(), weddingId: doc.id });
         fillForm(config);
-        showToast(doc.exists ? "Đã tải config từ Firebase." : "Chưa có config, đã tạo form mẫu theo weddingId này.");
+        showToast("Đã tải config từ Firebase.");
     } catch (error) {
         console.error(error);
         showToast("Không tải được config. Kiểm tra đăng nhập và Firestore Rules.", "error");
@@ -522,7 +647,7 @@ async function showLoggedIn(user) {
     musicPanel.classList.remove("is-hidden");
     paymentPanel.classList.remove("is-hidden");
     accountEmail.textContent = user.email;
-    await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin()]);
+    await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin(), loadPaymentList()]);
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
@@ -545,6 +670,9 @@ function initEvents() {
     form.addEventListener("submit", saveConfig);
     musicForm.addEventListener("submit", saveMusicItem);
     paymentSettingsForm.addEventListener("submit", savePaymentSettings);
+    paymentList.addEventListener("click", handlePaymentListClick);
+    paymentList.addEventListener("click", handlePaymentListRowClick);
+    refreshPaymentListBtn.addEventListener("click", loadPaymentList);
     markPendingBtn.addEventListener("click", () => setWeddingPaymentStatus("pending"));
     unlockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("paid"));
     lockWeddingBtn.addEventListener("click", () => setWeddingPaymentStatus("locked"));

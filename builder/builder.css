@@ -289,3 +289,29 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(141,105,58,.22);border
     color: #4b3827;
     overflow-wrap: anywhere;
 }
+
+.payment-return-card {
+    order: -1;
+    border-width: 2px !important;
+    border-color: rgba(36,133,83,.36) !important;
+    background: linear-gradient(135deg, rgba(36,133,83,.08), #fff) !important;
+}
+
+.payment-return-card span {
+    color: #248553 !important;
+    font-size: 14px !important;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.payment-return-card a {
+    font-size: 16px;
+}
+
+.payment-return-note {
+    margin: 0;
+    color: #8a4b32;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+}

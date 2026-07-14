@@ -312,9 +312,15 @@ function updateResultLinks(weddingId) {
     resultLinks.hidden = false;
 }
 
+function hasPaymentAmount(settings = paymentSettings) {
+    return settings.amount !== undefined && settings.amount !== null && settings.amount !== "";
+}
+
 function formatPaymentAmount(settings = paymentSettings) {
-    const amount = Number(settings.amount || 0);
-    if (!amount) return "Liên hệ admin";
+    if (!hasPaymentAmount(settings)) return "Chưa cấu hình số tiền";
+
+    const amount = Number(settings.amount);
+    if (Number.isNaN(amount)) return "Chưa cấu hình số tiền";
     return new Intl.NumberFormat("vi-VN").format(amount) + ` ${settings.currency || "VND"}`;
 }
 
@@ -381,8 +387,8 @@ function buildPendingPayment(weddingId) {
     return {
         status: "pending",
         unlocked: false,
-        amount: Number(paymentSettings.amount || current.amount || 0),
-        currency: paymentSettings.currency || current.currency || "VND",
+        amount: hasPaymentAmount(paymentSettings) ? Number(paymentSettings.amount) : 0,
+        currency: paymentSettings.currency || "VND",
         weddingId,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
