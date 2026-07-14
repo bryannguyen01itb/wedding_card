@@ -144,7 +144,7 @@ body .about.block-skin-concept-1 .parent {
 margin-top: .08rem;
     color: #6f684f;
     font-family: "Lora", Georgia, serif;
-    font-size: .34rem;
+    font-size: .3rem;
     line-height: 1.55;
 }
 
@@ -168,7 +168,7 @@ font-size: .4rem;
 }
 
 body .about.block-skin-concept-1 .parent {
-font-size: .34rem;
+font-size: .3rem;
 }
 
 /* about from concept-2 */
@@ -260,7 +260,7 @@ margin-top: 0;
 body .about.block-skin-concept-2 .parent {
 justify-self: center;
 color: var(--botanical-muted);
-    font-size: .34rem;
+    font-size: .3rem;
 }
 
 body .about.block-skin-concept-2 .person .parent:nth-of-type(2) {
@@ -361,7 +361,7 @@ margin-top: .28rem;
 
 body .about.block-skin-concept-3 .parent {
 color: var(--sunset-muted);
-    font-size: .34rem;
+    font-size: .3rem;
     line-height: 1.55;
 }
 
@@ -497,7 +497,7 @@ content: attr(data-side);
 body .about.block-skin-concept-4 .parent {
 color: var(--na01-gold);
     font-family: "Philosopher", "Lora", serif;
-    font-size: .34rem;
+    font-size: .3rem;
     line-height: 1.5;
 }
 
@@ -639,7 +639,7 @@ font-size: .46rem !important;
 
 .about.block-skin-concept-2 .parent {
     color: var(--botanical-muted) !important;
-    font-size: .34rem !important;
+    font-size: .3rem !important;
 }
 
 .about.block-skin-concept-3 .person {
@@ -685,7 +685,7 @@ font-size: .46rem !important;
 
 .about.block-skin-concept-3 .parent {
     color: var(--sunset-muted) !important;
-    font-size: .34rem !important;
+    font-size: .3rem !important;
     line-height: 1.55 !important;
 }
 
@@ -748,7 +748,7 @@ body .about.block-skin-concept-2 .person-name {
 
 .about.block-skin-concept-2 .parent,
 body .about.block-skin-concept-2 .parent {
-    font-size: .34rem !important;
+    font-size: .3rem !important;
     line-height: 1.5 !important;
 }
 

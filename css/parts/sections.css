@@ -494,7 +494,7 @@
     color: #666;
     line-height: 1.6;
     font-weight: 400;
-    font-size: .34rem; /* min floor about parents */
+    font-size: .3rem;
 }
 
 /*================ TIMELINE ================*/

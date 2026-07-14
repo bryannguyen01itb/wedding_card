@@ -289,7 +289,7 @@ body.concept-1 .about .parent {
     margin-top: .08rem;
     color: #6f684f;
     font-family: "Lora", Georgia, serif;
-    font-size: .34rem;
+    font-size: .3rem;
     line-height: 1.55;
 }
 
@@ -314,6 +314,6 @@ body.concept-1 .about::after {
     }
 
     body.concept-1 .about .parent {
-        font-size: .34rem;
+        font-size: .3rem;
     }
 }

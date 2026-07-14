@@ -338,7 +338,7 @@ body .about.block-skin-concept-2 .person-name::before {
 
 body .about.block-skin-concept-2 .parent {
     color: var(--botanical-muted) !important;
-    font-size: .34rem !important;
+    font-size: .3rem !important;
 }
 
 body .about.block-skin-concept-3 .person {
@@ -388,7 +388,7 @@ body .about.block-skin-concept-3 .person-name::before {
 
 body .about.block-skin-concept-3 .parent {
     color: var(--sunset-muted) !important;
-    font-size: .34rem !important;
+    font-size: .3rem !important;
     line-height: 1.55 !important;
 }
 
