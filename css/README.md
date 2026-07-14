@@ -1,21 +1,6 @@
 # CSS structure
 
-CSS hiện được chia thành 2 lớp chính:
-
-1. `parts/` chứa style nền, style concept 1 cố định và một số file legacy cần giữ để tương thích.
-2. `blocks/` chứa CSS chính cho block builder. Khi sửa layout từng block, ưu tiên sửa trong thư mục này.
-
-JS module ownership nằm ở `js/modules/<section>/`. CSS ownership:
-
-```txt
-css/blocks/<section>/skins.css   ← rule skin mới của section đó
-css/blocks/index.css             ← import tất cả module
-css/parts/block-concepts.css     ← legacy (poster/gallery/… cũ)
-```
-
-Thêm skin mới: chỉ sửa `css/blocks/<section>/skins.css` của section cần, không đụng module khác.
-
-Thứ tự import nằm trong `style.css`:
+## Entry (`style.css`)
 
 ```txt
 parts/base.css
@@ -23,27 +8,37 @@ parts/cover.css
 parts/sections.css
 parts/countdown-thanks.css
 parts/animations.css
-parts/concept-1-classic.css      base cố định cho wish/gift/thanks
+parts/concept-1-classic.css   # wish / gift / thanks cố định
 parts/gift-polish.css
-parts/block-concepts.css         lớp chuyển tiếp từ concept cũ sang block
-parts/block-builder.css          font classes + shared block fixes
-blocks/index.css                 CSS block đang được bảo trì chính
+parts/block-builder.css       # font classes + shared fixes
+blocks/index.css              # mọi section skin
 ```
 
-Khi cần sửa block, ưu tiên các file này:
+## Module skins (sửa theo section)
 
-| Block | File |
+Mỗi section một file — concept 1–4 nằm chung trong file đó:
+
+| Module | File |
 | --- | --- |
-| Cover | `blocks/cover-blocks.css` |
-| About | `blocks/about-blocks.css` |
-| Timeline | `blocks/timeline-blocks.css` |
-| Countdown | `blocks/countdown-blocks.css` |
-| Tiêu đề, subtitle, nền chung | `blocks/theme-unifier.css` |
+| cover | `blocks/cover/skins.css` |
+| poster | `blocks/poster/skins.css` |
+| save-date | `blocks/save-date/skins.css` |
+| about | `blocks/about/skins.css` |
+| timeline | `blocks/timeline/skins.css` |
+| gallery | `blocks/gallery/skins.css` |
+| countdown | `blocks/countdown/skins.css` |
+| divider | `blocks/divider/skins.css` |
+| gift / wish / thanks | `blocks/<name>/skins.css` (override; base = concept-1-classic) |
+| nền / title chung | `blocks/theme-unifier.css` |
 
-Ghi chú quan trọng:
+Import order: `blocks/index.css`.
 
-- `theme.concept` không còn dùng nữa.
-- Các section khách chọn sẽ lấy giao diện từ `theme.blocks`.
-- `wish`, `gift`, `thanks` dùng style cố định theo concept 1 để tổng thể không bị lẫn màu/lẫn bố cục.
-- `theme.concepts` vẫn còn cần để lưu media riêng cho từng block concept, ví dụ ảnh cover và ảnh countdown của concept 1-4.
-- Tránh sửa `parts/block-concepts.css` nếu không có nhu cầu migrate CSS cũ, vì file này đang là lớp tương thích cho các block đã tách.
+## Class JS gắn
+
+- `body.block-<section>-concept-N`
+- `.section.block-skin-concept-N`
+
+## Đã migrate
+
+- `parts/block-concepts.css` → tách vào `blocks/*/skins.css` (xong).
+- `parts/concept-2/3/4-*.css` → đã gỡ (không import).

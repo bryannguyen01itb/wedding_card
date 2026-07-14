@@ -1,14 +1,6 @@
 import { wedding } from "../../config.js";
-import { $, setText, createEl } from "../../utils/dom.js";
+import { $, setText, createEl, setOptionalText } from "../../utils/dom.js";
 
-function setOptionalText(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    const text = String(value || "").trim();
-    element.textContent = text;
-    element.hidden = !text;
-}
 
 function createRadioOption({ name, value, icon, color, default: isDefault }) {
     const label = createEl("label", "side-card");

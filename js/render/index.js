@@ -1,2 +1,2 @@
-/** Backward-compatible entry — real implementation lives in js/modules/. */
+/** Entry render — implementation: js/modules/render-all.js */
 export { renderContent } from "../modules/render-all.js";

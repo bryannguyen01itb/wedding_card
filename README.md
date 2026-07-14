@@ -268,26 +268,23 @@ Neu doi anh preview cho tung thiep, sua `preview.image` trong config/Firebase.
 
 ## CSS va block concept
 
-Thu tu CSS trong `css/style.css` rat quan trong. Cac file sau duoc import cuoi de ghi de concept goc:
-
-```txt
-css/parts/block-concepts.css
-css/parts/block-builder.css
-css/blocks/index.css     import toan bo CSS block duoc bao tri
-```
+Thu tu CSS trong `css/style.css` rat quan trong. Skin section nam o `css/blocks/*/skins.css` (import qua `blocks/index.css`).
 
 Quy uoc sua CSS:
 
 | Muon sua | File nen sua |
 | --- | --- |
-| Cover tung concept | `css/blocks/cover-blocks.css` |
-| About concept 2/3 | `css/blocks/about-blocks.css` |
-| Timeline concept 4 | `css/blocks/timeline-blocks.css` |
-| Countdown tung concept | `css/blocks/countdown-blocks.css` |
-| Nen trang, title/subtitle chung | `css/blocks/theme-unifier.css` |
-| CSS concept cu | `css/parts/concept-*.css` |
+| Cover | `css/blocks/cover/skins.css` |
+| Poster | `css/blocks/poster/skins.css` |
+| Save the date | `css/blocks/save-date/skins.css` |
+| About | `css/blocks/about/skins.css` |
+| Timeline | `css/blocks/timeline/skins.css` |
+| Gallery | `css/blocks/gallery/skins.css` |
+| Countdown | `css/blocks/countdown/skins.css` |
+| Divider | `css/blocks/divider/skins.css` |
+| Nen / title chung | `css/blocks/theme-unifier.css` |
 
-Khong nen xoa manh CSS cu trong `css/parts/block-builder.css` va `css/parts/block-concepts.css` neu chua test toan bo Firebase, vi co the con config cu dang tham chieu class cu. Xem them `css/README.md` de nam thu tu cascade.
+Sua skin theo section tai `css/blocks/<section>/skins.css`. Font / fix chung: `css/parts/block-builder.css`. Xem `css/README.md`.
 
 ## Gallery
 

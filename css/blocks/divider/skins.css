@@ -1,10 +1,95 @@
-/*
- * Divider skins — module: js/modules/divider
- *
- * Primary rules currently live in css/parts/block-builder.css / block-concepts.css
- * Prefer adding NEW divider skin rules here.
- *
- * Selectors:
- *   body.block-divider-concept-N .section-divider
- *   .section-divider.block-skin-concept-N
- */
+/* ============================================================
+   Section skins — migrated from parts/block-concepts.css
+   + maintained overrides below (if any).
+   Module ownership: js/modules/<section>/
+   ============================================================ */
+
+/* --- from block-concepts (divider) --- */
+
+/* divider from concept-1 */
+
+/* divider from concept-2 */
+
+body .section-divider.block-skin-concept-2 {
+background: var(--botanical-paper);
+}
+
+body .section-divider.block-skin-concept-2 {
+gap: .2rem;
+    padding: .42rem .55rem;
+    background: var(--botanical-paper);
+}
+
+body .section-divider.block-skin-concept-2::before,
+body .section-divider.block-skin-concept-2::after {
+background: linear-gradient(to right, transparent, rgba(var(--botanical-leaf-rgb), .45));
+}
+
+body .section-divider.block-skin-concept-2::after {
+background: linear-gradient(to left, transparent, rgba(var(--botanical-leaf-rgb), .45));
+}
+
+body .section-divider.block-skin-concept-2 span {
+width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    background: var(--botanical-mint);
+}
+
+body .section-divider.block-skin-concept-2 span::before {
+content: "\F417";
+    color: var(--botanical-rose);
+    filter: none;
+    font-size: .34rem;
+}
+
+/* divider from concept-3 */
+
+body .section-divider.block-skin-concept-3 {
+background: var(--sunset-paper);
+}
+
+body .section-divider.block-skin-concept-3 {
+color: var(--sunset-ink);
+    background: var(--sunset-paper);
+}
+
+body .section-divider.block-skin-concept-3 {
+padding: .42rem .55rem;
+}
+
+body .section-divider.block-skin-concept-3::before,
+body .section-divider.block-skin-concept-3::after {
+background: linear-gradient(to right, transparent, rgba(var(--sunset-coral-rgb), .44));
+}
+
+body .section-divider.block-skin-concept-3::after {
+background: linear-gradient(to left, transparent, rgba(var(--sunset-lavender-rgb), .44));
+}
+
+body .section-divider.block-skin-concept-3 span {
+width: .52rem;
+    height: .52rem;
+    border-radius: .16rem;
+    background: linear-gradient(135deg, var(--sunset-coral), var(--sunset-lavender));
+    transform: rotate(12deg);
+}
+
+body .section-divider.block-skin-concept-3 span::before {
+content: "\F417";
+    color: #fff;
+    font-size: .3rem;
+    filter: none;
+    transform: rotate(-12deg);
+}
+
+/* divider from concept-4 */
+
+body .section-divider.block-skin-concept-4 {
+background: var(--na01-paper);
+}
+
+body .section-divider.block-skin-concept-4 {
+display: none;
+}
+

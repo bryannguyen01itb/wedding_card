@@ -33,6 +33,27 @@ export const SKIN_DEFINITIONS = [
         aliases: ["4", "concept4", "mehappy", "mehappy-soft"],
         openLabel: "Chạm để mở",
         palette: "none"
+    },
+    {
+        id: "concept-5",
+        label: "Concept 5",
+        aliases: ["5", "concept5", "journey", "editorial"],
+        openLabel: "Open",
+        palette: "none"
+    },
+    {
+        id: "concept-6",
+        label: "Concept 6",
+        aliases: ["6", "concept6", "itinerary", "weekend"],
+        openLabel: "Open",
+        palette: "none"
+    },
+    {
+        id: "concept-7",
+        label: "Concept 7",
+        aliases: ["7", "concept7", "line", "schedule"],
+        openLabel: "Open",
+        palette: "none"
     }
 ];
 

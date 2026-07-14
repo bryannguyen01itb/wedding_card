@@ -17,10 +17,9 @@ function getAutoLogo() {
     return [groomInitial, brideInitial].filter(Boolean).join(" & ");
 }
 
+/** Logo header luôn tự sinh từ chữ cái cuối nickname cô dâu & chú rể. */
 function getHeaderLogo() {
-    const configuredLogo = String(wedding.header?.logo || "").trim();
-    const shouldAutoLogo = !configuredLogo || configuredLogo === "C & C";
-    return shouldAutoLogo ? getAutoLogo() || configuredLogo : configuredLogo;
+    return getAutoLogo() || "♥";
 }
 
 const MENU_SECTIONS = [

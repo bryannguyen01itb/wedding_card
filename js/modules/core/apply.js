@@ -12,6 +12,7 @@ import {
     getSkin,
     resolveSectionSkin
 } from "./registry.js";
+import { injectThemeFontStyles } from "../../utils/fonts.js";
 
 const FONT_CLASS_PREFIXES = ["font-body-", "font-nickname-"];
 
@@ -57,8 +58,16 @@ export function applyModuleClasses(themeConfig = {}) {
         body.classList.add(getBodyBlockClass(sectionId, normalizeSkinId(option)));
     });
 
-    body.classList.add(`font-body-${normalizeToken(fonts.body)}`);
-    body.classList.add(`font-nickname-${normalizeToken(fonts.nickname)}`);
+    const bodyFontId = normalizeToken(fonts.body || "quicksand");
+    const nicknameFontId = normalizeToken(fonts.nickname || "great-vibes");
+
+    body.classList.add(`font-body-${bodyFontId}`);
+    body.classList.add(`font-nickname-${nicknameFontId}`);
+    body.dataset.fontBody = bodyFontId;
+    body.dataset.fontNickname = nicknameFontId;
+
+    // Style tag cuối <head> — chắc chắn thắng hardcode Great Vibes của cover/poster
+    injectThemeFontStyles(bodyFontId, nicknameFontId);
 }
 
 /**

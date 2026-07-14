@@ -1,16 +1,6 @@
 import { wedding } from "../../config.js";
-import { setText, setSplitName } from "../../utils/dom.js";
+import { setText, setSplitName, setOptionalText } from "../../utils/dom.js";
 
-function setOptionalText(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    const text = Array.isArray(value)
-        ? value.filter(Boolean).join("\n")
-        : String(value || "").trim();
-    element.textContent = text;
-    element.hidden = !text;
-}
 
 function setOptionalHtml(id, value) {
     const element = document.getElementById(id);

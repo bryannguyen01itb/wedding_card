@@ -1,10 +1,754 @@
-/*
- * Save-the-date skins — module: js/modules/save-date
- *
- * Primary rules currently live in css/parts/block-concepts.css
- * Prefer adding NEW save-date skin rules here.
- *
- * Selectors:
- *   body.block-save-date-concept-N .save-date
- *   .save-date.block-skin-concept-N
- */
+/* ============================================================
+   Section skins — migrated from parts/block-concepts.css
+   + maintained overrides below (if any).
+   Module ownership: js/modules/<section>/
+   ============================================================ */
+
+/* --- from block-concepts (save-date) --- */
+
+/* save-date from concept-1 */
+
+/* save-date from concept-2 — 1 tuần + tim line
+   Màu: tint --primary-color (không hardcode đen)
+   Không nền card */
+
+body.block-save-date-concept-2 .save-date,
+.save-date.block-skin-concept-2,
+body[class*="block-"] .save-date.block-skin-concept-2 {
+    position: relative;
+    padding: .55rem .3rem 1rem !important;
+    color: color-mix(in srgb, var(--primary-color) 42%, #2a221c 58%);
+    background: transparent !important;
+    text-align: center;
+    box-shadow: none !important;
+}
+
+/* Ẩn title section (layout: tim + month + tuần); GIỮ subtitle user */
+body.block-save-date-concept-2 .save-title,
+.save-date.block-skin-concept-2 .save-title,
+body[class*="block-"] .save-date.block-skin-concept-2 .save-title {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    font-size: 0 !important;
+}
+
+body.block-save-date-concept-2 .save-title::before,
+body.block-save-date-concept-2 .save-title::after,
+.save-date.block-skin-concept-2 .save-title::before,
+.save-date.block-skin-concept-2 .save-title::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Subtitle concept-2 — hiện nếu user có nhập */
+body.block-save-date-concept-2 .section-subtitle,
+.save-date.block-skin-concept-2 .section-subtitle,
+body[class*="block-"] .save-date.block-skin-concept-2 .section-subtitle {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-width: 7.2rem;
+    margin: 0 auto .28rem !important;
+    padding: 0 .2rem !important;
+    overflow: visible !important;
+    color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+    font-size: .2rem !important;
+    font-weight: 400 !important;
+    line-height: 1.55 !important;
+    letter-spacing: .02em !important;
+    text-align: center !important;
+    text-transform: none !important;
+}
+
+body.block-save-date-concept-2 .section-subtitle:empty,
+body.block-save-date-concept-2 .section-subtitle[hidden],
+.save-date.block-skin-concept-2 .section-subtitle:empty,
+.save-date.block-skin-concept-2 .section-subtitle[hidden] {
+    display: none !important;
+}
+
+/* Tắt pseudo section — tim dùng SVG element */
+body.block-save-date-concept-2 .save-date::before,
+.save-date.block-skin-concept-2::before {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+}
+
+/* Nét tim — currentColor = primary-tinted ink */
+body.block-save-date-concept-2 .save-date-heart-line,
+.save-date.block-skin-concept-2 .save-date-heart-line {
+    display: block;
+    width: min(5.8rem, 90%);
+    margin: .1rem auto .36rem;
+    color: color-mix(in srgb, var(--primary-color) 55%, #2a221c 45%);
+    line-height: 0;
+    background: none !important;
+}
+
+body.block-save-date-concept-2 .save-date-heart-line svg,
+.save-date.block-skin-concept-2 .save-date-heart-line svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Tháng full name, ẩn năm + chấm */
+body.block-save-date-concept-2 .month-year,
+.save-date.block-skin-concept-2 .month-year {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    margin: 0 0 .36rem;
+    color: color-mix(in srgb, var(--primary-color) 48%, #2a221c 52%);
+    font-family: "Lora", Georgia, serif;
+    font-size: .26rem;
+    font-weight: 500;
+    letter-spacing: .3rem;
+    text-transform: uppercase;
+    background: transparent !important;
+}
+
+body.block-save-date-concept-2 .month-year .dot,
+body.block-save-date-concept-2 .month-year #year,
+.save-date.block-skin-concept-2 .month-year .dot,
+.save-date.block-skin-concept-2 .month-year #year {
+    display: none !important;
+}
+
+body.block-save-date-concept-2 .month-year #month,
+.save-date.block-skin-concept-2 .month-year #month {
+    letter-spacing: .3rem;
+    text-indent: .3rem;
+}
+
+/* Calendar — không nền, không shadow, không gradient */
+body.block-save-date-concept-2 .calendar,
+.save-date.block-skin-concept-2 .calendar,
+body[class*="block-"] .save-date.block-skin-concept-2 .calendar {
+    position: relative;
+    max-width: 6.6rem;
+    margin: 0 auto;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+/* Tắt gradient + pseudo "save the date" cũ trên .calendar */
+body.block-save-date-concept-2 .calendar::before,
+body.block-save-date-concept-2 .calendar::after,
+.save-date.block-skin-concept-2 .calendar::before,
+.save-date.block-skin-concept-2 .calendar::after,
+body[class*="block-"] .save-date.block-skin-concept-2 .calendar::before,
+body[class*="block-"] .save-date.block-skin-concept-2 .calendar::after {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    inset: auto !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.block-save-date-concept-2 .calendar .week,
+.save-date.block-skin-concept-2 .calendar .week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    margin-bottom: .12rem;
+    color: color-mix(in srgb, var(--primary-color) 40%, #3a322c 60%);
+    font-family: "Lora", Georgia, serif;
+    font-size: .15rem;
+    font-weight: 500;
+    letter-spacing: .01rem;
+    text-transform: none;
+    background: transparent !important;
+}
+
+body.block-save-date-concept-2 .calendar .week span,
+.save-date.block-skin-concept-2 .calendar .week span {
+    display: grid;
+    place-items: center;
+    min-height: .36rem;
+    padding: .02rem 0;
+    color: inherit;
+    opacity: 1;
+    background: transparent !important;
+}
+
+/* Chỉ 1 hàng — 7 ô */
+body.block-save-date-concept-2 .calendar .days,
+.save-date.block-skin-concept-2 .calendar .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+}
+
+body.block-save-date-concept-2 .calendar .days span,
+.save-date.block-skin-concept-2 .calendar .days span {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: .56rem;
+    height: auto;
+    color: color-mix(in srgb, var(--primary-color) 38%, #2a221c 62%);
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem;
+    font-weight: 400;
+    line-height: 1;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body.block-save-date-concept-2 .calendar .days span.other-month,
+.save-date.block-skin-concept-2 .calendar .days span.other-month {
+    opacity: .35;
+}
+
+/* Ngày cưới: trái tim nét đứt (mask → currentColor = primary) */
+body.block-save-date-concept-2 .calendar .days span.active,
+.save-date.block-skin-concept-2 .calendar .days span.active {
+    z-index: 2;
+    color: color-mix(in srgb, var(--primary-color) 52%, #2a221c 48%) !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+}
+
+body.block-save-date-concept-2 .calendar .days span.active::before,
+.save-date.block-skin-concept-2 .calendar .days span.active::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    width: .7rem;
+    height: .64rem;
+    transform: translate(-50%, -50%);
+    background-color: color-mix(in srgb, var(--primary-color) 58%, #2a221c 42%);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36'%3E%3Cpath d='M20 32 C20 32 5 22 5 13.5 C5 8.2 9 4.5 13.8 4.5 C16.8 4.5 19 6.2 20 8.6 C21 6.2 23.2 4.5 26.2 4.5 C31 4.5 35 8.2 35 13.5 C35 22 20 32 20 32 Z' fill='none' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' stroke-dasharray='1.5 1.9'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36'%3E%3Cpath d='M20 32 C20 32 5 22 5 13.5 C5 8.2 9 4.5 13.8 4.5 C16.8 4.5 19 6.2 20 8.6 C21 6.2 23.2 4.5 26.2 4.5 C31 4.5 35 8.2 35 13.5 C35 22 20 32 20 32 Z' fill='none' stroke='%23000' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' stroke-dasharray='1.5 1.9'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    border: 0 !important;
+    pointer-events: none;
+}
+
+/* Dây nét đứt rơi xuống — primary */
+body.block-save-date-concept-2 .calendar .days span.active::after,
+.save-date.block-skin-concept-2 .calendar .days span.active::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(50% + .32rem);
+    width: 0;
+    height: 1.1rem;
+    border-left: 1.35px dotted color-mix(in srgb, var(--primary-color) 50%, rgba(42, 34, 28, .45) 50%);
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: none !important;
+}
+
+/* "save the date" — script, primary ink */
+body.block-save-date-concept-2 .save-date-footer-script,
+.save-date.block-skin-concept-2 .save-date-footer-script {
+    display: block;
+    position: relative;
+    z-index: 2;
+    margin: 1.15rem auto 0;
+    padding: 0;
+    width: 100%;
+    color: color-mix(in srgb, var(--primary-color) 50%, #1f1a16 50%);
+    font-family: var(--font-nickname, "Great Vibes", cursive);
+    font-size: .78rem;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: .015em;
+    line-height: 1.2;
+    text-align: center;
+    text-transform: none;
+    background: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+/* save-date from concept-3 — typography "Save the Date" poster
+   Script uốn lượn + palette ảnh hưởng --primary-color (không hardcode đen/trắng) */
+
+body.block-save-date-concept-3 .save-date,
+.save-date.block-skin-concept-3 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: .8rem .36rem 1.05rem !important;
+    color: color-mix(in srgb, var(--primary-color) 70%, #2a221c 30%);
+    background:
+        radial-gradient(ellipse 78% 52% at 50% 16%, rgba(var(--primary-rgb), .16), transparent 64%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(var(--primary-rgb), .07), transparent 55%),
+        color-mix(in srgb, var(--primary-color) 8%, #fffefb 92%) !important;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Headline: 3 dòng script bay, thrish */
+body.block-save-date-concept-3 .save-title,
+.save-date.block-skin-concept-3 .save-title {
+    position: relative;
+    z-index: 1;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 0 !important;
+    padding: .28rem .28rem .16rem !important;
+    max-width: 100%;
+    color: color-mix(in srgb, var(--primary-color) 82%, #1a1210 18%) !important;
+    /* Theo phông nickname user chọn — không ép Parisienne */
+    font-family: var(--font-nickname, "Great Vibes", cursive) !important;
+    font-size: clamp(1.05rem, 15vw, 1.65rem) !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    letter-spacing: .01rem !important;
+    line-height: 1 !important;
+    text-transform: none !important;
+    text-align: center !important;
+    white-space: normal !important;
+    -webkit-text-stroke: .35px color-mix(in srgb, var(--primary-color) 55%, transparent);
+    text-shadow:
+        0 .015rem 0 color-mix(in srgb, var(--primary-color) 28%, transparent),
+        0 .05rem .18rem rgba(var(--primary-rgb), .18),
+        0 0 .4rem rgba(var(--primary-rgb), .08);
+}
+
+body.block-save-date-concept-3 .save-title::before,
+.save-date.block-skin-concept-3 .save-title::before,
+body.block-save-date-concept-3 .save-title::after,
+.save-date.block-skin-concept-3 .save-title::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 50%;
+    width: min(2.4rem, 58vw);
+    height: .28rem;
+    pointer-events: none;
+    border: none;
+    background: transparent;
+    opacity: .75;
+}
+
+/* Swash trên — nét cong primary */
+body.block-save-date-concept-3 .save-title::before,
+.save-date.block-skin-concept-3 .save-title::before {
+    top: 0;
+    transform: translateX(-50%);
+    border-bottom: 1.5px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+    border-radius: 50%;
+    height: .22rem;
+    width: min(1.6rem, 42vw);
+}
+
+/* Swash dưới */
+body.block-save-date-concept-3 .save-title::after,
+.save-date.block-skin-concept-3 .save-title::after {
+    bottom: .02rem;
+    top: auto;
+    transform: translateX(-50%);
+    border-top: 1.5px solid color-mix(in srgb, var(--primary-color) 50%, transparent);
+    border-radius: 50%;
+    height: .2rem;
+    width: min(1.9rem, 48vw);
+}
+
+body.block-save-date-concept-3 .save-title .std-word,
+.save-date.block-skin-concept-3 .save-title .std-word {
+    display: block;
+    position: relative;
+    color: inherit;
+    font: inherit;
+    line-height: .82;
+    text-shadow: inherit;
+    -webkit-text-stroke: inherit;
+}
+
+/* Save / Date: to, hơi nghiêng tạo nét uốn */
+body.block-save-date-concept-3 .save-title .std-save,
+.save-date.block-skin-concept-3 .save-title .std-save {
+    font-size: 1.08em;
+    letter-spacing: .04em;
+    transform: rotate(-3.5deg) translateX(-.06rem);
+    margin-bottom: -.06em;
+}
+
+body.block-save-date-concept-3 .save-title .std-date,
+.save-date.block-skin-concept-3 .save-title .std-date {
+    font-size: 1.12em;
+    letter-spacing: .05em;
+    transform: rotate(2.8deg) translateX(.05rem);
+    margin-top: -.04em;
+}
+
+/* "the" nhỏ, thrish giữa hai thrish */
+body.block-save-date-concept-3 .save-title .std-the,
+.save-date.block-skin-concept-3 .save-title .std-the {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .18rem;
+    margin: .02rem 0 .04rem;
+    font-size: .42em;
+    font-family: inherit !important;
+    letter-spacing: .22em;
+    line-height: 1;
+    font-style: italic;
+    opacity: .92;
+    color: color-mix(in srgb, var(--primary-color) 68%, #3a2e28 32%);
+    transform: rotate(-1deg);
+}
+
+body.block-save-date-concept-3 .save-title .std-the::before,
+body.block-save-date-concept-3 .save-title .std-the::after,
+.save-date.block-skin-concept-3 .save-title .std-the::before,
+.save-date.block-skin-concept-3 .save-title .std-the::after {
+    content: "";
+    display: block;
+    width: .42rem;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--primary-color) 65%, transparent),
+        transparent
+    );
+    opacity: .85;
+}
+
+/* Subtitle nhỏ caps — muted primary */
+body.block-save-date-concept-3 .section-subtitle,
+.save-date.block-skin-concept-3 .section-subtitle {
+    display: block !important;
+    margin: .62rem 0 .36rem !important;
+    padding: 0 .2rem !important;
+    color: color-mix(in srgb, var(--primary-color) 62%, #5a4a40 38%) !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+    font-size: .2rem !important;
+    font-weight: 400 !important;
+    letter-spacing: .02em !important;
+    line-height: 1.55 !important;
+    text-transform: none !important;
+    text-align: center !important;
+}
+
+body.block-save-date-concept-3 .section-subtitle:empty,
+body.block-save-date-concept-3 .section-subtitle[hidden],
+.save-date.block-skin-concept-3 .section-subtitle:empty,
+.save-date.block-skin-concept-3 .section-subtitle[hidden] {
+    display: none !important;
+}
+
+/* Date row: 30  11  24 — ink primary */
+body.block-save-date-concept-3 .month-year,
+body.block-save-date-concept-3 .month-year.save-date-date-row,
+.save-date.block-skin-concept-3 .month-year {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: .34rem;
+    margin: .1rem 0 .48rem !important;
+    color: color-mix(in srgb, var(--primary-color) 78%, #1e1612 22%);
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-size: .5rem;
+    font-weight: 400;
+    letter-spacing: .14rem;
+    line-height: 1;
+    text-transform: none;
+}
+
+body.block-save-date-concept-3 .month-year #month,
+body.block-save-date-concept-3 .month-year .dot,
+body.block-save-date-concept-3 .month-year #year,
+body.block-save-date-concept-3 .month-year .save-date-date-part,
+.save-date.block-skin-concept-3 .month-year #month,
+.save-date.block-skin-concept-3 .month-year .dot,
+.save-date.block-skin-concept-3 .month-year #year {
+    display: inline-block !important;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: .1rem;
+}
+
+body.block-save-date-concept-3 .month-year .dot,
+.save-date.block-skin-concept-3 .month-year .dot {
+    opacity: 1;
+}
+
+/* Ẩn lưới lịch */
+body.block-save-date-concept-3 .calendar,
+.save-date.block-skin-concept-3 .calendar {
+    display: none !important;
+}
+
+/* Box tên — viền/chữ/nền theo primary */
+body.block-save-date-concept-3 .save-date-couple-names,
+.save-date.block-skin-concept-3 .save-date-couple-names {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: .55rem;
+    margin: .08rem auto 0;
+    padding: .14rem .38rem;
+    border: 1.5px solid color-mix(in srgb, var(--primary-color) 72%, #2a221c 28%);
+    border-radius: .04rem;
+    color: color-mix(in srgb, var(--primary-color) 74%, #1c1612 26%);
+    font-family: "Lora", Georgia, serif;
+    font-size: .18rem;
+    font-weight: 500;
+    letter-spacing: .14rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    text-align: center;
+    background: color-mix(in srgb, var(--primary-color) 12%, #ffffff 88%);
+    box-shadow: 0 .04rem .16rem rgba(var(--primary-rgb), .1);
+}
+
+/* save-date from concept-4 — overlay poster:
+   eyebrow (1 dòng, trên cùng) → script + watermark → couple → full date */
+
+body.block-save-date-concept-4 .save-date,
+.save-date.block-skin-concept-4 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 6.2rem;
+    padding: .55rem .36rem 1rem !important;
+    color: color-mix(in srgb, var(--primary-color) 42%, #3a322c 58%);
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 48%, rgba(var(--primary-rgb), .08), transparent 68%),
+        color-mix(in srgb, var(--primary-color) 5%, #faf7f2 95%) !important;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* "you're invited..." — CHỈ 1 dòng, trên cùng, size lớn hơn */
+body.block-save-date-concept-4 .save-date-eyebrow,
+.save-date.block-skin-concept-4 .save-date-eyebrow {
+    position: relative;
+    z-index: 2;
+    order: -2;
+    display: block;
+    width: 100%;
+    max-width: 8rem;
+    margin: 0 auto .2rem;
+    padding: 0 .2rem;
+    color: color-mix(in srgb, var(--primary-color) 48%, #8d7c58 52%);
+    font-family: "Quicksand", "Nunito Sans", system-ui, sans-serif;
+    font-size: .24rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: .05em;
+    text-transform: lowercase;
+    text-align: center;
+}
+
+/* Watermark ngày lớn — nổi, ~2/3 phía trên không bị script che */
+body.block-save-date-concept-4 .save-date-watermark,
+.save-date.block-skin-concept-4 .save-date-watermark {
+    position: absolute;
+    top: 1.7rem;
+    left: 50%;
+    z-index: 0;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0;
+    width: max-content;
+    max-width: 96%;
+    color: color-mix(in srgb, var(--primary-color) 18%, #d0c8be 82%);
+    font-family: "DM Serif Display", "Lora", Georgia, serif;
+    /* to hơn script để phần trên date vẫn lộ rõ */
+    font-size: clamp(1.4rem, 20vw, 2.4rem);
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: .015em;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    opacity: .78;
+}
+
+/* Ẩn .save-title gốc + pseudo (tránh nhân đôi "you're invited...") */
+body.block-save-date-concept-4 .save-title,
+.save-date.block-skin-concept-4 .save-title,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+body.block-save-date-concept-4 .save-title::before,
+body.block-save-date-concept-4 .save-title::after,
+.save-date.block-skin-concept-4 .save-title::before,
+.save-date.block-skin-concept-4 .save-title::after,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title::before,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
+    display: none !important;
+    content: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Script "Save the Date" — chỉ che ~1/3 DƯỚI của watermark date */
+body.block-save-date-concept-4 .save-date-script,
+.save-date.block-skin-concept-4 .save-date-script {
+    position: absolute;
+    z-index: 1;
+    /* watermark top 1.7rem + ~65% chiều cao date → script nằm đáy date */
+    top: calc(1.7rem + clamp(.9rem, 13vw, 1.55rem));
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0 .1rem;
+    max-width: 100%;
+    color: color-mix(in srgb, var(--primary-color) 45%, #2a2420 55%);
+    font-family: var(--font-nickname, "Great Vibes", cursive);
+    /* cỡ ~1/3 watermark để 2/3 trên của date vẫn lộ */
+    font-size: clamp(.62rem, 9.2vw, .98rem);
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: .005em;
+    line-height: 1;
+    text-transform: none;
+    text-align: center;
+    white-space: nowrap;
+    -webkit-text-stroke: .2px color-mix(in srgb, var(--primary-color) 28%, transparent);
+    text-shadow: 0 .02rem .1rem rgba(var(--primary-rgb), .1);
+}
+
+/* Subtitle concept-4 — hiện nếu user có nhập */
+body.block-save-date-concept-4 .section-subtitle,
+.save-date.block-skin-concept-4 .section-subtitle,
+body[class*="block-"] .save-date.block-skin-concept-4 .section-subtitle {
+    display: block !important;
+    position: relative;
+    z-index: 1;
+    visibility: visible !important;
+    height: auto !important;
+    max-width: 7.2rem;
+    margin: .55rem auto .2rem !important;
+    padding: 0 .2rem !important;
+    overflow: visible !important;
+    color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
+    font-family: var(--font-body, "Quicksand", sans-serif) !important;
+    font-size: .2rem !important;
+    font-weight: 400 !important;
+    line-height: 1.55 !important;
+    letter-spacing: .02em !important;
+    text-align: center !important;
+    text-transform: none !important;
+}
+
+body.block-save-date-concept-4 .section-subtitle:empty,
+body.block-save-date-concept-4 .section-subtitle[hidden],
+.save-date.block-skin-concept-4 .section-subtitle:empty,
+.save-date.block-skin-concept-4 .section-subtitle[hidden] {
+    display: none !important;
+}
+
+/* Tên cặp — plain, đẩy xuống dưới stage watermark+script */
+body.block-save-date-concept-4 .save-date-couple-names,
+.save-date.block-skin-concept-4 .save-date-couple-names {
+    position: relative;
+    z-index: 1;
+    display: block;
+    /* clear absolute watermark (~1.7 + 2.4) + script thrish */
+    margin: 3.15rem auto .18rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: color-mix(in srgb, var(--primary-color) 38%, #4a4038 62%);
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-size: .28rem;
+    font-weight: 400;
+    letter-spacing: .04em;
+    line-height: 1.25;
+    text-transform: none;
+    text-align: center;
+}
+
+/* Dòng ngày nhỏ: JANUARY 8, 2025 */
+body.block-save-date-concept-4 .month-year,
+body.block-save-date-concept-4 .month-year.save-date-full-date,
+.save-date.block-skin-concept-4 .month-year {
+    position: relative;
+    z-index: 1;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    margin: .06rem 0 0 !important;
+    color: color-mix(in srgb, var(--primary-color) 32%, #8a7e72 68%);
+    font-family: "Lora", Georgia, serif;
+    font-size: .14rem;
+    font-weight: 500;
+    letter-spacing: .16em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+body.block-save-date-concept-4 .month-year #month,
+.save-date.block-skin-concept-4 .month-year #month {
+    display: inline !important;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+}
+
+body.block-save-date-concept-4 .month-year .dot,
+body.block-save-date-concept-4 .month-year #year,
+.save-date.block-skin-concept-4 .month-year .dot,
+.save-date.block-skin-concept-4 .month-year #year {
+    display: none !important;
+}
+
+/* Ẩn lưới lịch */
+body.block-save-date-concept-4 .calendar,
+.save-date.block-skin-concept-4 .calendar {
+    display: none !important;
+}
+

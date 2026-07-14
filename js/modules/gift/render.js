@@ -1,5 +1,5 @@
 import { wedding } from "../../config.js";
-import { createEl, setText } from "../../utils/dom.js";
+import { createEl, setText, setOptionalText } from "../../utils/dom.js";
 import { setImageWithFallback } from "../../utils/mediaFallback.js";
 
 const GIFT_ORDER = [
@@ -7,14 +7,6 @@ const GIFT_ORDER = [
     { role: "bride", person: "bride" }
 ];
 
-function setOptionalText(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    const text = String(value || "").trim();
-    element.textContent = text;
-    element.hidden = !text;
-}
 
 function createGiftCard(gift, label, role) {
     const card = createEl("div", "gift-card");

@@ -47,7 +47,7 @@
 .cover .cover__footer .man_name,
 .cover .cover__footer .women_name {
     min-width: 0;
-    font-family: "Great Vibes", cursive;
+    font-family: var(--font-nickname, "Great Vibes", cursive);
     font-size: .52rem;
     font-weight: 400;
     line-height: 1.6;

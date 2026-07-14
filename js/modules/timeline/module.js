@@ -10,5 +10,7 @@ export const timelineModule = {
     order: 50,
     buildable: true,
     cssFile: "css/blocks/timeline/skins.css",
+    // Concept 5–7 chỉ cho timeline
+    skins: ["concept-1", "concept-2", "concept-3", "concept-4", "concept-5", "concept-6", "concept-7"],
     render: renderTimeline
 };

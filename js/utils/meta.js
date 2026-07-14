@@ -19,8 +19,8 @@ function setMeta(selector, value) {
 }
 
 export function updateLinkPreview() {
-    const groomName = wedding.groom?.nickname || "CHÚ RỂ";
-    const brideName = wedding.bride?.nickname || "CÔ DÂU";
+    const groomName = String(wedding.groom?.nickname || "CHÚ RỂ").trim().toLocaleUpperCase("vi-VN");
+    const brideName = String(wedding.bride?.nickname || "CÔ DÂU").trim().toLocaleUpperCase("vi-VN");
     const title = `THƯ MỜI CƯỚI ${groomName} & ${brideName}`;
     const description = "Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.";
     const image = resolveUrl(wedding.preview?.image || wedding.poster?.image);

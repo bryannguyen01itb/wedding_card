@@ -138,22 +138,30 @@ export function normalizeSkinId(value, fallback = "concept-1") {
     return skins.has(fallback) ? fallback : (getRegisteredSkins()[0]?.id || "concept-1");
 }
 
+/** Skins 1–4 cho section thường. Section đặc biệt (vd gallery) tự khai báo `skins: [...]`. */
+const DEFAULT_SECTION_SKIN_IDS = ["concept-1", "concept-2", "concept-3", "concept-4"];
+
 export function getSectionSkinIds(sectionId) {
     const section = getSection(sectionId);
-    if (!section) return getRegisteredSkins().map(skin => skin.id);
+    const fallbackList = DEFAULT_SECTION_SKIN_IDS.filter(id => skins.has(id));
+
+    if (!section) return fallbackList;
 
     if (Array.isArray(section.skins) && section.skins.length) {
-        return section.skins.map(id => normalizeSkinId(id, section.defaultSkin));
+        return section.skins
+            .map(id => normalizeSkinId(id, section.defaultSkin))
+            .filter((id, index, list) => list.indexOf(id) === index);
     }
 
-    return getRegisteredSkins().map(skin => skin.id);
+    // Không trả về toàn bộ skin đã đăng ký — tránh concept gallery-only lộ sang cover/poster/...
+    return fallbackList;
 }
 
 export function getSectionSkinOptions(sectionId, skinId) {
     const section = getSection(sectionId);
     if (!section) return {};
 
-    const normalized = normalizeSkinId(skinId, section.defaultSkin);
+    const normalized = resolveSectionSkin(sectionId, { [sectionId]: skinId });
     return {
         ...(section.skinOptions?.default || {}),
         ...(section.skinOptions?.[normalized] || {})
@@ -163,7 +171,11 @@ export function getSectionSkinOptions(sectionId, skinId) {
 export function resolveSectionSkin(sectionId, blocks = {}) {
     const section = getSection(sectionId);
     const fallback = section?.defaultSkin || "concept-1";
-    return normalizeSkinId(blocks?.[sectionId], fallback);
+    const raw = normalizeSkinId(blocks?.[sectionId], fallback);
+    const allowed = getSectionSkinIds(sectionId);
+
+    if (allowed.includes(raw)) return raw;
+    return allowed.includes(fallback) ? fallback : (allowed[0] || "concept-1");
 }
 
 export function getBodyBlockClass(sectionId, skinId) {

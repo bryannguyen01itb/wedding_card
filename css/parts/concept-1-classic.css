@@ -112,7 +112,7 @@ body.concept-1 .cover .cover__footer {
 
 body.concept-1 .cover .cover__footer .man_name,
 body.concept-1 .cover .cover__footer .women_name {
-    font-family: "Great Vibes", cursive;
+    font-family: var(--font-nickname, "Great Vibes", cursive);
     font-size: .72rem;
     line-height: 1.18;
     color: #2f3431;

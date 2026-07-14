@@ -8,9 +8,16 @@ export function setText(id, value) {
     if (el) el.textContent = value;
 }
 
-export function setHtml(id, value) {
+/** Set text and hide element when empty (titles/subtitles). */
+export function setOptionalText(id, value) {
     const el = $(id);
-    if (el) el.innerHTML = value;
+    if (!el) return;
+
+    const text = Array.isArray(value)
+        ? value.filter(Boolean).join("\n")
+        : String(value || "").trim();
+    el.textContent = text;
+    el.hidden = !text;
 }
 
 function getNameLines(name) {

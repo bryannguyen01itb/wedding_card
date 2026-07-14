@@ -1,4 +1,6 @@
-/* Builder block overrides: these classes are generated from theme.blocks and theme.fonts. */
+/* Builder block overrides: classes from theme.blocks + theme.fonts */
+
+/* --- Phông chữ thiệp (body) --- */
 .font-body-quicksand {
     --font-body: "Quicksand", sans-serif;
     --font-heading: "Quicksand", sans-serif;
@@ -17,78 +19,74 @@
     font-family: var(--font-body);
 }
 
-.font-nickname-great-vibes .man_name,
-.font-nickname-great-vibes .women_name,
-.font-nickname-great-vibes .text_1,
-.font-nickname-great-vibes .text_2,
-.font-nickname-great-vibes .poster-name,
-.font-nickname-great-vibes #thanksGroom,
-.font-nickname-great-vibes #thanksBride,
-.font-nickname-dancing-script .man_name,
-.font-nickname-dancing-script .women_name,
-.font-nickname-dancing-script .text_1,
-.font-nickname-dancing-script .text_2,
-.font-nickname-dancing-script .poster-name,
-.font-nickname-dancing-script #thanksGroom,
-.font-nickname-dancing-script #thanksBride {
-    font-family: "Dancing Script", cursive !important;
+.font-body-montserrat {
+    --font-body: "Montserrat", sans-serif;
+    --font-heading: "Montserrat", sans-serif;
+    font-family: var(--font-body);
 }
 
-.font-nickname-playwrite-vn .man_name,
-.font-nickname-playwrite-vn .women_name,
-.font-nickname-playwrite-vn .text_1,
-.font-nickname-playwrite-vn .text_2,
-.font-nickname-playwrite-vn .poster-name,
-.font-nickname-playwrite-vn #thanksGroom,
-.font-nickname-playwrite-vn #thanksBride {
-    font-family: "Playwrite VN", cursive !important;
+.font-body-poppins {
+    --font-body: "Poppins", sans-serif;
+    --font-heading: "Poppins", sans-serif;
+    font-family: var(--font-body);
 }
 
-.font-nickname-pacifico .man_name,
-.font-nickname-pacifico .women_name,
-.font-nickname-pacifico .text_1,
-.font-nickname-pacifico .text_2,
-.font-nickname-pacifico .poster-name,
-.font-nickname-pacifico #thanksGroom,
-.font-nickname-pacifico #thanksBride {
-    font-family: "Pacifico", cursive !important;
+.font-body-raleway {
+    --font-body: "Raleway", sans-serif;
+    --font-heading: "Raleway", sans-serif;
+    font-family: var(--font-body);
 }
 
-.font-nickname-lobster .man_name,
-.font-nickname-lobster .women_name,
-.font-nickname-lobster .text_1,
-.font-nickname-lobster .text_2,
-.font-nickname-lobster .poster-name,
-.font-nickname-lobster #thanksGroom,
-.font-nickname-lobster #thanksBride {
-    font-family: "Lobster", cursive !important;
+.font-body-josefin-sans {
+    --font-body: "Josefin Sans", sans-serif;
+    --font-heading: "Josefin Sans", sans-serif;
+    font-family: var(--font-body);
 }
 
-.font-nickname-parisienne .man_name,
-.font-nickname-parisienne .women_name,
-.font-nickname-parisienne .text_1,
-.font-nickname-parisienne .text_2,
-.font-nickname-parisienne .poster-name,
-.font-nickname-parisienne #thanksGroom,
-.font-nickname-parisienne #thanksBride {
-    font-family: "Parisienne", cursive !important;
+.font-body-cormorant {
+    --font-body: "Cormorant Garamond", Georgia, serif;
+    --font-heading: "Cormorant Garamond", Georgia, serif;
+    font-family: var(--font-body);
 }
 
-.font-nickname-lora .man_name,
-.font-nickname-lora .women_name,
-.font-nickname-lora .text_1,
-.font-nickname-lora .text_2,
-.font-nickname-lora .poster-name,
-.font-nickname-lora #thanksGroom,
-.font-nickname-lora #thanksBride {
-    font-family: "Lora", Georgia, serif !important;
-    font-style: italic;
+.font-body-source-serif {
+    --font-body: "Source Serif 4", Georgia, serif;
+    --font-heading: "Source Serif 4", Georgia, serif;
+    font-family: var(--font-body);
 }
+
+.font-body-roboto {
+    --font-body: "Roboto", system-ui, sans-serif;
+    --font-heading: "Roboto", system-ui, sans-serif;
+    font-family: var(--font-body);
+}
+
+.font-body-open-sans {
+    --font-body: "Open Sans", system-ui, sans-serif;
+    --font-heading: "Open Sans", system-ui, sans-serif;
+    font-family: var(--font-body);
+}
+
+/* --- Phông nickname: set --font-nickname (apply ở theme-unifier, load sau cover skins) --- */
+body.font-nickname-great-vibes { --font-nickname: "Great Vibes", cursive; }
+body.font-nickname-dancing-script { --font-nickname: "Dancing Script", cursive; }
+body.font-nickname-parisienne { --font-nickname: "Parisienne", cursive; }
+body.font-nickname-allura { --font-nickname: "Allura", cursive; }
+body.font-nickname-alex-brush { --font-nickname: "Alex Brush", cursive; }
+body.font-nickname-sacramento { --font-nickname: "Sacramento", cursive; }
+body.font-nickname-pinyon-script { --font-nickname: "Pinyon Script", cursive; }
+body.font-nickname-tangerine { --font-nickname: "Tangerine", cursive; }
+body.font-nickname-satisfy { --font-nickname: "Satisfy", cursive; }
+body.font-nickname-mr-de-haviland { --font-nickname: "Mr De Haviland", cursive; }
+body.font-nickname-playwrite-vn { --font-nickname: "Playwrite VN", cursive; }
+body.font-nickname-pacifico { --font-nickname: "Pacifico", cursive; }
+body.font-nickname-lobster { --font-nickname: "Lobster", cursive; }
+body.font-nickname-lora { --font-nickname: "Lora", Georgia, serif; }
 
 /*
  * Historical builder option classes such as block-cover-soft/editorial/sunset were removed.
  * The live builder now writes theme.blocks values as concept-1..concept-4 only.
- * Keep block-specific layout in css/blocks/*.css and concept extraction in block-concepts.css.
+ * Keep block-specific layout in css/blocks/<section>/skins.css.
  */
 
 /* Final block fixes: keep selected section skins from inheriting awkward base concept spacing. */
@@ -612,7 +610,7 @@ body .cover.block-skin-concept-2 .cover__footer .women_name,
 body .cover.block-skin-concept-3 .cover__footer .man_name,
 body .cover.block-skin-concept-3 .cover__footer .women_name {
     color: #fff !important;
-    font-family: "Great Vibes", cursive !important;
+    /* font-family do --font-nickname (theme-unifier) */
     font-size: .72rem !important;
     line-height: 1.25 !important;
 }

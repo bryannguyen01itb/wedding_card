@@ -1,14 +1,6 @@
 import { wedding } from "../../config.js";
-import { setText, setSrc } from "../../utils/dom.js";
+import { setText, setSrc, setOptionalText } from "../../utils/dom.js";
 
-function setOptionalText(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    const text = String(value || "").trim();
-    element.textContent = text;
-    element.hidden = !text;
-}
 
 export function renderPerson(role, person) {
     const nameElement = document.getElementById(`${role}Name`);

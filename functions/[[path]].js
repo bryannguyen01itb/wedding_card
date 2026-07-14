@@ -118,7 +118,9 @@ function createNotFoundHtml() {
 }
 
 function injectPreviewMeta(html, meta, requestUrl) {
-    const title = `THƯ MỜI CƯỚI ${meta.groomNickname} & ${meta.brideNickname}`;
+    const groom = String(meta.groomNickname || "CHÚ RỂ").trim().toLocaleUpperCase("vi-VN");
+    const bride = String(meta.brideNickname || "CÔ DÂU").trim().toLocaleUpperCase("vi-VN");
+    const title = `THƯ MỜI CƯỚI ${groom} & ${bride}`;
     const imageUrl = toAbsoluteUrl(meta.previewImage, requestUrl);
     const pageUrl = new URL(requestUrl).href;
 

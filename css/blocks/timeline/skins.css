@@ -1,3 +1,430 @@
+/* ============================================================
+   Section skins — migrated from parts/block-concepts.css
+   + maintained overrides below (if any).
+   Module ownership: js/modules/<section>/
+   ============================================================ */
+
+/* --- from block-concepts (timeline) --- */
+
+/* timeline from concept-1 */
+
+/* timeline from concept-2 */
+
+body .timeline.block-skin-concept-2 {
+position: relative;
+    color: var(--botanical-ink);
+    background: var(--botanical-paper);
+}
+
+body .timeline.block-skin-concept-2 {
+padding: .05rem .28rem .25rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card {
+position: relative;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: .22rem;
+    min-height: 4.05rem;
+    margin-bottom: .42rem;
+    padding: .22rem;
+    border-radius: .42rem;
+    overflow: visible;
+    background: #fff;
+    box-shadow: var(--botanical-shadow);
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
+grid-template-columns: 1fr 2.5rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card::before,
+body .timeline.block-skin-concept-2 .timeline-card::after {
+content: "";
+    position: absolute;
+    top: 50%;
+    width: .42rem;
+    height: .42rem;
+    border-radius: 50%;
+    background: var(--botanical-paper);
+    transform: translateY(-50%);
+    box-shadow: inset 0 0 0 1px rgba(var(--botanical-leaf-rgb), .12);
+}
+
+body .timeline.block-skin-concept-2 .timeline-card::before {
+left: -.21rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card::after {
+right: -.21rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card > img {
+width: 100%;
+    height: 100%;
+    min-height: 3.65rem;
+    border-radius: .3rem;
+    object-fit: cover;
+    box-shadow: 0 12px 24px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img {
+grid-column: 2;
+    grid-row: 1;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
+grid-column: 1;
+    grid-row: 1;
+}
+
+body .timeline.block-skin-concept-2 .timeline-content {
+padding: .08rem .06rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-events {
+display: grid;
+    gap: .16rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-event {
+position: relative;
+    padding: .18rem .2rem .18rem .32rem;
+    border-radius: .24rem;
+    background: var(--botanical-mint);
+}
+
+body .timeline.block-skin-concept-2 .timeline-event::before {
+content: "";
+    position: absolute;
+    left: .16rem;
+    top: .22rem;
+    bottom: .22rem;
+    width: 2px;
+    border-radius: 999px;
+    background: var(--botanical-leaf);
+}
+
+body .timeline.block-skin-concept-2 .timeline-event + .timeline-event {
+border-left: 0;
+}
+
+body .timeline.block-skin-concept-2 .timeline-name {
+text-align: left;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .28rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .1rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row {
+gap: .12rem;
+    margin: .12rem 0;
+}
+
+body .timeline.block-skin-concept-2 .timeline-event .timeline-row,
+body .timeline.block-skin-concept-2 .timeline-address {
+justify-content: flex-start;
+    text-align: left;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row i {
+color: var(--botanical-rose);
+    font-size: .3rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-row span {
+color: var(--botanical-muted);
+    font-size: .23rem;
+    line-height: 1.45;
+}
+
+body .timeline.block-skin-concept-2 .timeline-address {
+margin-top: .18rem;
+    padding-top: .18rem;
+    border-top: 1px dashed rgba(var(--botanical-leaf-rgb), .28);
+}
+
+body .timeline.block-skin-concept-2 .timeline-map-link {
+border-radius: 999px;
+    color: #fff;
+    background: var(--botanical-leaf);
+    box-shadow: 0 10px 22px rgba(var(--botanical-leaf-rgb), .2);
+}
+
+body .timeline.block-skin-concept-2 .timeline-map-link:hover {
+background: var(--botanical-rose);
+}
+
+body .timeline.block-skin-concept-2 .timeline-card,
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
+grid-template-columns: 1fr;
+        text-align: center;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card > img,
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img,
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
+grid-column: 1;
+        grid-row: auto;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card > img {
+height: 3rem;
+}
+
+body .timeline.block-skin-concept-2 .timeline-side-badge {
+top: .38rem;
+    left: .38rem;
+    color: var(--botanical-ink);
+    background: rgba(var(--botanical-paper-rgb), .9);
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
+    box-shadow: 0 10px 22px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-side-badge {
+left: auto;
+    right: .38rem;
+}
+
+/* timeline from concept-3 */
+
+body .timeline.block-skin-concept-3 {
+color: var(--sunset-ink);
+    background: var(--sunset-paper);
+}
+
+body .timeline.block-skin-concept-3 {
+padding: .05rem .3rem .24rem;
+}
+
+body .timeline.block-skin-concept-3 .timeline-card {
+position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: .48rem;
+    border-radius: .55rem;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: var(--sunset-shadow);
+}
+
+body .timeline.block-skin-concept-3 .timeline-card > img {
+width: 100%;
+    height: 3.45rem;
+    object-fit: cover;
+    filter: saturate(1.08) brightness(1.04);
+}
+
+body .timeline.block-skin-concept-3 .timeline-content {
+padding: .3rem .28rem .38rem;
+}
+
+body .timeline.block-skin-concept-3 .timeline-events {
+display: grid;
+    grid-template-columns: 1fr;
+    gap: .14rem;
+}
+
+body .timeline.block-skin-concept-3 .timeline-event {
+padding: .18rem .22rem;
+    border-radius: .22rem;
+    background: linear-gradient(135deg, rgba(var(--sunset-lemon-rgb), .34), rgba(var(--sunset-sky-rgb), .18));
+}
+
+body .timeline.block-skin-concept-3 .timeline-event + .timeline-event {
+border-left: 0;
+}
+
+body .timeline.block-skin-concept-3 .timeline-name {
+color: var(--sunset-ink);
+    font-family: "Quicksand", Arial, sans-serif;
+    font-size: .25rem;
+    font-weight: 800;
+    letter-spacing: .02rem;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+body .timeline.block-skin-concept-3 .timeline-event .timeline-row,
+body .timeline.block-skin-concept-3 .timeline-address {
+justify-content: flex-start;
+    text-align: left;
+}
+
+body .timeline.block-skin-concept-3 .timeline-row i {
+color: var(--sunset-coral);
+    font-size: .26rem;
+}
+
+body .timeline.block-skin-concept-3 .timeline-row span {
+color: var(--sunset-muted);
+    font-size: .23rem;
+}
+
+body .timeline.block-skin-concept-3 .timeline-address {
+border-top: 1px dashed rgba(var(--sunset-coral-rgb), .25);
+}
+
+body .timeline.block-skin-concept-3 .timeline-map-link {
+border-radius: 999px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--sunset-coral), var(--sunset-lavender));
+    box-shadow: 0 12px 24px rgba(var(--sunset-coral-rgb), .22);
+}
+
+body .timeline.block-skin-concept-3 .timeline-map-link:hover {
+background: linear-gradient(135deg, var(--sunset-lavender), var(--sunset-sky));
+}
+
+body .timeline.block-skin-concept-3 .timeline-side-badge {
+top: .28rem;
+    left: .28rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--sunset-coral), var(--sunset-lavender));
+    box-shadow: 0 12px 24px rgba(var(--sunset-coral-rgb), .22);
+}
+
+/* timeline from concept-4 */
+
+body .timeline.block-skin-concept-4 {
+position: relative;
+    padding: 0.5rem .46rem 1.15rem .46rem;
+    background: var(--na01-paper);
+    color: var(--na01-gold);
+}
+
+body .timeline.block-skin-concept-4 /* Timeline as thin vertical wedding program */
+ .timeline {
+background: linear-gradient(180deg, #fffdf8, #fbf3e7);
+}
+
+body .timeline.block-skin-concept-4.section-title {
+font-size: 1.25rem;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card {
+position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .4rem;
+    margin: 0 0 .62rem;
+    background: transparent;
+    box-shadow: none;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card > img {
+display: none;
+}
+
+body .timeline.block-skin-concept-4 .timeline-side-badge {
+position: absolute;
+    top: .1rem;
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    min-width: 1.2rem;
+    padding: .08rem .18rem;
+    border: 1px solid rgba(146,131,98,.32);
+    border-radius: 999px;
+    color: var(--na01-gold);
+    background: var(--na01-paper);
+    font-family: "Philosopher", serif;
+    font-size: .2rem;
+    text-align: center;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card:nth-child(odd) .timeline-content {
+grid-column: 2;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-content {
+grid-column: 1;
+    text-align: right;
+}
+
+body .timeline.block-skin-concept-4 .timeline-content {
+padding: .32rem 0 0;
+}
+
+body .timeline.block-skin-concept-4 .timeline-events {
+display: grid;
+    gap: .22rem;
+}
+
+body .timeline.block-skin-concept-4 .timeline-event {
+padding: .18rem .2rem;
+    border: 1px solid rgba(146,131,98,.16);
+    background: rgba(255,255,255,.64);
+}
+
+body .timeline.block-skin-concept-4 .timeline-name {
+color: var(--na01-gold);
+    font-family: "Lora", Georgia, serif;
+    font-size: .27rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+body .timeline.block-skin-concept-4 .timeline-row,
+body .timeline.block-skin-concept-4 .timeline-address {
+display: flex;
+    align-items: flex-start;
+    gap: .12rem;
+    margin-top: .16rem;
+    color: var(--na01-gold);
+    font-family: "Philosopher", serif;
+    font-size: .23rem;
+    line-height: 1.45;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-row,
+body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-address {
+justify-content: flex-end;
+}
+
+body .timeline.block-skin-concept-4 .timeline-row i {
+color: var(--na01-gold);
+}
+
+body .timeline.block-skin-concept-4 .timeline-map-link {
+display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .12rem;
+    width: 100%;
+    min-width: 2.28rem;
+    margin: .24rem auto 0;
+    padding: .16rem .34rem;
+    border: 1px solid rgba(146,131,98,.28);
+    border-radius: 0;
+    color: var(--na01-gold);
+    background: #fff;
+    box-shadow: none;
+    font-family: "Philosopher", serif;
+    font-size: .3rem;
+    text-decoration: none;
+}
+
+body .timeline.block-skin-concept-4 .timeline-card {
+gap: .26rem;
+}
+
+body .timeline.block-skin-concept-4 .timeline-name {
+font-size: .23rem;
+}
+
+body .timeline.block-skin-concept-4 .timeline-row,
+body .timeline.block-skin-concept-4 .timeline-address {
+font-size: .2rem;
+}
+
+
+/* --- maintained overrides (were blocks/*/skins.css) --- */
+
 /* Timeline block skins. Edit timeline layout here, not in concept files. */
 .timeline.block-skin-concept-4 {
     position: relative !important;
@@ -105,4 +532,737 @@
 .timeline.block-skin-concept-2 .timeline-event,
 .timeline.block-skin-concept-3 .timeline-event {
     box-shadow: 0 .12rem .34rem rgba(54, 43, 32, .07) !important;
+}
+
+
+/* ============================================================
+   Concept 5 — Vertical ritual timeline (lễ + bữa cơm)
+   Style: elegant centered steps, copper line, no photo
+   ============================================================ */
+
+body.block-timeline-concept-5 .timeline,
+.timeline.block-skin-concept-5 {
+    position: relative;
+    padding: .35rem .28rem 1rem !important;
+    color: #4a4036;
+    background:
+        radial-gradient(circle at 8% 12%, rgba(180, 140, 100, .08), transparent 40%),
+        radial-gradient(circle at 92% 88%, rgba(180, 140, 100, .07), transparent 38%),
+        #f7f3ec !important;
+    overflow: hidden;
+}
+
+body.block-timeline-concept-5 .timeline .section-title,
+.timeline.block-skin-concept-5 .section-title {
+    color: #3d342c !important;
+    font-family: "Lora", Georgia, serif !important;
+    letter-spacing: .12rem !important;
+}
+
+body.block-timeline-concept-5 .timeline .section-subtitle,
+.timeline.block-skin-concept-5 .section-subtitle {
+    color: #8a7f74 !important;
+}
+
+body.block-timeline-concept-5 #timelineCards.timeline-cards--ritual,
+.timeline.block-skin-concept-5 #timelineCards.timeline-cards--ritual {
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    max-width: 8.6rem;
+    margin: 0 auto;
+}
+
+/* Card = 1 nhà (gái / trai) */
+body.block-timeline-concept-5 .timeline-card--ritual,
+.timeline.block-skin-concept-5 .timeline-card--ritual {
+    position: relative;
+    display: block !important;
+    margin: 0 !important;
+    padding: .42rem .36rem .48rem !important;
+    border: 1px solid rgba(146, 120, 90, .18) !important;
+    border-radius: .2rem !important;
+    background: rgba(255, 252, 247, .92) !important;
+    box-shadow: 0 .14rem .4rem rgba(70, 55, 40, .07) !important;
+    overflow: visible !important;
+}
+
+body.block-timeline-concept-5 .timeline-card--ritual .timeline-side-badge,
+.timeline.block-skin-concept-5 .timeline-card--ritual .timeline-side-badge {
+    position: static !important;
+    display: block !important;
+    width: fit-content;
+    margin: 0 auto .35rem !important;
+    padding: .08rem .28rem !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    border: 1px solid rgba(160, 120, 80, .35) !important;
+    color: #8b6b45 !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .18rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .14rem !important;
+    text-align: center !important;
+}
+
+/* Vertical steps — đường nối CHỈ giữa 2 icon, không cắt chữ */
+body.block-timeline-concept-5 .timeline-ritual,
+.timeline.block-skin-concept-5 .timeline-ritual {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+    padding: .1rem 0 .15rem;
+}
+
+/* Bỏ line full-height xuyên cả block */
+body.block-timeline-concept-5 .timeline-ritual::before,
+.timeline.block-skin-concept-5 .timeline-ritual::before {
+    content: none !important;
+    display: none !important;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-step,
+.timeline.block-skin-concept-5 .timeline-ritual-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: .18rem 0 .2rem;
+    text-align: center;
+}
+
+/* Khoảng trống + gạch nối giữa 2 bước (sau chữ, trước icon kế) */
+body.block-timeline-concept-5 .timeline-ritual-step:not(:last-of-type),
+.timeline.block-skin-concept-5 .timeline-ritual-step:not(:last-of-type) {
+    padding-bottom: .55rem;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-step:not(:last-of-type)::after,
+.timeline.block-skin-concept-5 .timeline-ritual-step:not(:last-of-type)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: .1rem;
+    width: 1.5px;
+    height: .32rem;
+    transform: translateX(-50%);
+    background: #b07850;
+    opacity: .85;
+    pointer-events: none;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-icon,
+.timeline.block-skin-concept-5 .timeline-ritual-icon {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: .78rem;
+    height: .78rem;
+    margin-bottom: .16rem;
+    border-radius: 50%;
+    background: #f7f3ec;
+    border: 1px solid rgba(176, 120, 80, .28);
+    box-shadow: 0 0 0 .1rem #f7f3ec;
+    color: #7a5a38;
+    font-size: .36rem;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-body,
+.timeline.block-skin-concept-5 .timeline-ritual-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .06rem;
+    max-width: 100%;
+    padding: 0 .15rem;
+    background: transparent;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-time,
+.timeline.block-skin-concept-5 .timeline-ritual-time {
+    color: #6a5c4e;
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem;
+    font-weight: 600;
+    letter-spacing: .06rem;
+    line-height: 1.35;
+    text-transform: none;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-title,
+.timeline.block-skin-concept-5 .timeline-ritual-title {
+    color: #3d342c;
+    font-family: "Lora", Georgia, serif;
+    font-size: .26rem;
+    font-weight: 600;
+    letter-spacing: .1rem;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+/* Không vẽ line phụ trên step nữa */
+body.block-timeline-concept-5 .timeline-ritual-step + .timeline-ritual-step::before,
+.timeline.block-skin-concept-5 .timeline-ritual-step + .timeline-ritual-step::before {
+    content: none !important;
+    display: none !important;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-address,
+.timeline.block-skin-concept-5 .timeline-ritual-address {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    width: 100%;
+    margin-top: .2rem;
+    padding: .18rem .12rem 0;
+    border-top: 1px dashed rgba(160, 130, 100, .28);
+    color: #7a6e62;
+    font-family: "Quicksand", sans-serif;
+    font-size: .22rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-address i,
+.timeline.block-skin-concept-5 .timeline-ritual-address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: #b07850;
+    font-size: .2rem;
+}
+
+body.block-timeline-concept-5 .timeline-ritual-map,
+.timeline.block-skin-concept-5 .timeline-ritual-map,
+body.block-timeline-concept-5 .timeline-card--ritual .timeline-map-link,
+.timeline.block-skin-concept-5 .timeline-card--ritual .timeline-map-link {
+    position: relative;
+    z-index: 1;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content;
+    margin: .22rem auto 0 !important;
+    padding: .12rem .28rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(176, 120, 80, .35) !important;
+    background: rgba(255, 255, 255, .75) !important;
+    color: #8b6b45 !important;
+    font-size: .18rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+body.block-timeline-concept-5 .timeline-card--ritual > img,
+.timeline.block-skin-concept-5 .timeline-card--ritual > img {
+    display: none !important;
+}
+
+
+/* ============================================================
+   Concept 6 — Alternating icon itinerary (lễ + bữa cơm)
+   Title/subtitle section: GIỮ style chung (không override riêng)
+   ============================================================ */
+
+body.block-timeline-concept-6 .timeline,
+.timeline.block-skin-concept-6 {
+    position: relative;
+    padding: .3rem .28rem 1rem !important;
+    color: #4a4036;
+    background:
+        radial-gradient(ellipse 55% 40% at 0% 0%, rgba(var(--primary-rgb), .14), transparent 55%),
+        radial-gradient(ellipse 50% 35% at 100% 100%, rgba(var(--primary-rgb), .1), transparent 50%),
+        var(--theme-page-bg, #f7f3ec) !important;
+    overflow: hidden;
+}
+
+/* KHÔNG đụng .section-title / .section-subtitle — dùng theme-unifier + base */
+
+body.block-timeline-concept-6 #timelineCards.timeline-cards--itin,
+.timeline.block-skin-concept-6 #timelineCards.timeline-cards--itin {
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    max-width: 8.8rem;
+    margin: .1rem auto 0;
+}
+
+body.block-timeline-concept-6 .timeline-card--itin,
+.timeline.block-skin-concept-6 .timeline-card--itin {
+    display: block !important;
+    margin: 0 !important;
+    padding: .36rem .28rem .4rem !important;
+    border: 1px solid rgba(var(--primary-rgb), .16) !important;
+    border-radius: .18rem !important;
+    background: rgba(255, 255, 255, .72) !important;
+    box-shadow: 0 .12rem .36rem rgba(var(--primary-rgb), .1) !important;
+    overflow: visible !important;
+}
+
+/* Ngăn cách rõ 2 nhà: card 2 có khoảng + đường trang trí phía trên */
+body.block-timeline-concept-6 .timeline-card--itin + .timeline-card--itin,
+.timeline.block-skin-concept-6 .timeline-card--itin + .timeline-card--itin {
+    position: relative;
+    margin-top: .2rem !important;
+    padding-top: .48rem !important;
+}
+
+body.block-timeline-concept-6 .timeline-card--itin + .timeline-card--itin::before,
+.timeline.block-skin-concept-6 .timeline-card--itin + .timeline-card--itin::before {
+    content: "❀";
+    position: absolute;
+    top: -.38rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    width: .48rem;
+    height: .48rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--theme-page-bg, #f6f2eb);
+    color: var(--primary-color);
+    font-size: .22rem;
+    line-height: 1;
+    box-shadow: 0 0 0 3px var(--theme-page-bg, #f6f2eb);
+}
+
+body.block-timeline-concept-6 .timeline-card--itin + .timeline-card--itin::after,
+.timeline.block-skin-concept-6 .timeline-card--itin + .timeline-card--itin::after {
+    content: "";
+    position: absolute;
+    top: -.18rem;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(var(--primary-rgb), .45) 20%,
+        rgba(var(--primary-rgb), .45) 80%,
+        transparent
+    );
+    pointer-events: none;
+}
+
+body.block-timeline-concept-6 .timeline-card--itin .timeline-side-badge,
+.timeline.block-skin-concept-6 .timeline-card--itin .timeline-side-badge {
+    position: static !important;
+    display: block !important;
+    width: fit-content;
+    margin: 0 auto .32rem !important;
+    padding: .08rem .28rem !important;
+    border: 1px solid rgba(var(--primary-rgb), .35) !important;
+    border-radius: 999px !important;
+    background: rgba(var(--primary-rgb), .12) !important;
+    color: var(--primary-color) !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .18rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .14rem !important;
+    text-align: center !important;
+}
+
+body.block-timeline-concept-6 .timeline-itin,
+.timeline.block-skin-concept-6 .timeline-itin {
+    display: flex;
+    flex-direction: column;
+    gap: .48rem;
+}
+
+/* Hàng: icon | text  hoặc  text | icon */
+body.block-timeline-concept-6 .timeline-itin-row,
+.timeline.block-skin-concept-6 .timeline-itin-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: .28rem;
+    padding: .06rem 0;
+}
+
+body.block-timeline-concept-6 .timeline-itin-row--icon-right,
+.timeline.block-skin-concept-6 .timeline-itin-row--icon-right {
+    grid-template-columns: 1fr auto;
+}
+
+body.block-timeline-concept-6 .timeline-itin-row--icon-left .timeline-itin-main,
+.timeline.block-skin-concept-6 .timeline-itin-row--icon-left .timeline-itin-main {
+    text-align: left;
+}
+
+body.block-timeline-concept-6 .timeline-itin-row--icon-right .timeline-itin-main,
+.timeline.block-skin-concept-6 .timeline-itin-row--icon-right .timeline-itin-main {
+    text-align: right;
+}
+
+body.block-timeline-concept-6 .timeline-itin-main,
+.timeline.block-skin-concept-6 .timeline-itin-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .05rem;
+}
+
+/* Title — theo màu chủ đạo */
+body.block-timeline-concept-6 .timeline-itin-title,
+.timeline.block-skin-concept-6 .timeline-itin-title {
+    color: var(--primary-color);
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-size: .3rem;
+    font-weight: 700;
+    letter-spacing: .04rem;
+    line-height: 1.3;
+    text-transform: none;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* Ngày giờ */
+body.block-timeline-concept-6 .timeline-itin-meta,
+.timeline.block-skin-concept-6 .timeline-itin-meta {
+    color: rgba(var(--primary-rgb), .82);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .2rem;
+    font-weight: 700;
+    letter-spacing: .02rem;
+    line-height: 1.35;
+    text-transform: none;
+}
+
+/* Địa điểm (legacy per-row — không dùng khi đã có timeline-itin-address) */
+body.block-timeline-concept-6 .timeline-itin-place,
+.timeline.block-skin-concept-6 .timeline-itin-place {
+    color: rgba(var(--primary-rgb), .68);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .21rem;
+    font-weight: 600;
+    letter-spacing: .01rem;
+    line-height: 1.4;
+    text-transform: none;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* 1 địa chỉ / nhà — căn giữa dưới 2 sự kiện */
+body.block-timeline-concept-6 .timeline-itin-address,
+.timeline.block-skin-concept-6 .timeline-itin-address {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    margin-top: .12rem;
+    padding-top: .2rem;
+    border-top: 1px dashed rgba(var(--primary-rgb), .22);
+    color: rgba(var(--primary-rgb), .78);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .21rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.block-timeline-concept-6 .timeline-itin-address i,
+.timeline.block-skin-concept-6 .timeline-itin-address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: var(--primary-color);
+    font-size: .2rem;
+}
+
+body.block-timeline-concept-6 .timeline-itin-icon,
+.timeline.block-skin-concept-6 .timeline-itin-icon {
+    display: grid;
+    place-items: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: 0 0 auto;
+    color: var(--primary-color);
+    font-size: .52rem;
+    opacity: .9;
+    filter: drop-shadow(0 2px 4px rgba(var(--primary-rgb), .18));
+}
+
+body.block-timeline-concept-6 .timeline-itin-map,
+.timeline.block-skin-concept-6 .timeline-itin-map,
+body.block-timeline-concept-6 .timeline-card--itin .timeline-map-link,
+.timeline.block-skin-concept-6 .timeline-card--itin .timeline-map-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content;
+    margin: .18rem auto 0 !important;
+    padding: .1rem .24rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(var(--primary-rgb), .32) !important;
+    background: rgba(var(--primary-rgb), .08) !important;
+    color: var(--primary-color) !important;
+    font-size: .16rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+body.block-timeline-concept-6 .timeline-card--itin > img,
+.timeline.block-skin-concept-6 .timeline-card--itin > img {
+    display: none !important;
+}
+
+
+/* ============================================================
+   Concept 7 — Vertical line schedule (icon | rail | text)
+   2 steps: lễ + bữa cơm / nhà. Màu theo primary.
+   Title/subtitle section: style chung.
+   ============================================================ */
+
+body.block-timeline-concept-7 .timeline,
+.timeline.block-skin-concept-7 {
+    position: relative;
+    padding: .3rem .28rem 1rem !important;
+    color: #3a342e;
+    background:
+        radial-gradient(ellipse 50% 35% at 100% 0%, rgba(var(--primary-rgb), .1), transparent 55%),
+        var(--theme-page-bg, #faf8f4) !important;
+    overflow: hidden;
+}
+
+body.block-timeline-concept-7 #timelineCards.timeline-cards--line,
+.timeline.block-skin-concept-7 #timelineCards.timeline-cards--line {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    max-width: 8.6rem;
+    margin: .12rem auto 0;
+}
+
+body.block-timeline-concept-7 .timeline-card--line,
+.timeline.block-skin-concept-7 .timeline-card--line {
+    display: block !important;
+    margin: 0 !important;
+    padding: .36rem .3rem .4rem !important;
+    border: 1px solid rgba(var(--primary-rgb), .14) !important;
+    border-radius: .16rem !important;
+    background: rgba(255, 255, 255, .78) !important;
+    box-shadow: 0 .1rem .32rem rgba(var(--primary-rgb), .08) !important;
+    overflow: visible !important;
+}
+
+/* Tách 2 nhà */
+body.block-timeline-concept-7 .timeline-card--line + .timeline-card--line,
+.timeline.block-skin-concept-7 .timeline-card--line + .timeline-card--line {
+    position: relative;
+    margin-top: .15rem !important;
+}
+
+body.block-timeline-concept-7 .timeline-card--line + .timeline-card--line::before,
+.timeline.block-skin-concept-7 .timeline-card--line + .timeline-card--line::before {
+    content: "";
+    position: absolute;
+    top: -.32rem;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(var(--primary-rgb), .4) 25%,
+        rgba(var(--primary-rgb), .4) 75%,
+        transparent
+    );
+}
+
+body.block-timeline-concept-7 .timeline-card--line .timeline-side-badge,
+.timeline.block-skin-concept-7 .timeline-card--line .timeline-side-badge {
+    position: static !important;
+    display: block !important;
+    width: fit-content;
+    margin: 0 auto .32rem !important;
+    padding: .08rem .26rem !important;
+    border: 1px solid rgba(var(--primary-rgb), .32) !important;
+    border-radius: 999px !important;
+    background: rgba(var(--primary-rgb), .1) !important;
+    color: var(--primary-color) !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .17rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .14rem !important;
+    text-align: center !important;
+}
+
+body.block-timeline-concept-7 .timeline-line,
+.timeline.block-skin-concept-7 .timeline-line {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: .12rem 0 .1rem;
+}
+
+/* Track dọc GIỮA — không cắt chữ (chỉ đoạn sau icon → trước icon kế, qua rail) */
+body.block-timeline-concept-7 .timeline-line::before,
+.timeline.block-skin-concept-7 .timeline-line::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Step căn giữa: icon → chấm → giờ/title */
+body.block-timeline-concept-7 .timeline-line-step,
+.timeline.block-skin-concept-7 .timeline-line-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 0;
+    padding: .2rem 0 .28rem;
+    text-align: center;
+}
+
+body.block-timeline-concept-7 .timeline-line-step:not(:last-of-type),
+.timeline.block-skin-concept-7 .timeline-line-step:not(:last-of-type) {
+    padding-bottom: .5rem;
+}
+
+/* Gạch nối ngắn giữa 2 step (sau chữ, không đè title) */
+body.block-timeline-concept-7 .timeline-line-step:not(:last-of-type)::after,
+.timeline.block-skin-concept-7 .timeline-line-step:not(:last-of-type)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: .08rem;
+    width: 1.5px;
+    height: .28rem;
+    transform: translateX(-50%);
+    background: rgba(var(--primary-rgb), .55);
+    pointer-events: none;
+}
+
+body.block-timeline-concept-7 .timeline-line-icon,
+.timeline.block-skin-concept-7 .timeline-line-icon {
+    display: grid;
+    place-items: center;
+    width: .9rem;
+    height: .9rem;
+    margin-bottom: .08rem;
+    color: var(--primary-color);
+    font-size: .44rem;
+    opacity: .92;
+}
+
+body.block-timeline-concept-7 .timeline-line-rail,
+.timeline.block-skin-concept-7 .timeline-line-rail {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin-bottom: .1rem;
+}
+
+body.block-timeline-concept-7 .timeline-line-dot,
+.timeline.block-skin-concept-7 .timeline-line-dot {
+    display: block;
+    width: .16rem;
+    height: .16rem;
+    border-radius: 50%;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .95);
+    z-index: 2;
+}
+
+body.block-timeline-concept-7 .timeline-line-body,
+.timeline.block-skin-concept-7 .timeline-line-body {
+    min-width: 0;
+    width: 100%;
+    padding: 0 .15rem;
+    text-align: center;
+}
+
+body.block-timeline-concept-7 .timeline-line-time,
+.timeline.block-skin-concept-7 .timeline-line-time {
+    color: rgba(var(--primary-rgb), .9);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .2rem;
+    font-weight: 800;
+    letter-spacing: .03rem;
+    line-height: 1.3;
+    text-align: center;
+}
+
+body.block-timeline-concept-7 .timeline-line-title,
+.timeline.block-skin-concept-7 .timeline-line-title {
+    margin-top: .04rem;
+    color: #2f2a25;
+    font-family: "Lora", Georgia, serif;
+    font-size: .24rem;
+    font-weight: 700;
+    letter-spacing: .06rem;
+    line-height: 1.35;
+    text-transform: uppercase;
+    text-align: center;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+body.block-timeline-concept-7 .timeline-line-address,
+.timeline.block-skin-concept-7 .timeline-line-address {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    margin-top: .22rem;
+    padding-top: .2rem;
+    border-top: 1px dashed rgba(var(--primary-rgb), .22);
+    color: rgba(var(--primary-rgb), .8);
+    font-family: "Quicksand", sans-serif;
+    font-size: .21rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.block-timeline-concept-7 .timeline-line-address i,
+.timeline.block-skin-concept-7 .timeline-line-address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: var(--primary-color);
+    font-size: .2rem;
+}
+
+body.block-timeline-concept-7 .timeline-line-map,
+.timeline.block-skin-concept-7 .timeline-line-map,
+body.block-timeline-concept-7 .timeline-card--line .timeline-map-link,
+.timeline.block-skin-concept-7 .timeline-card--line .timeline-map-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content;
+    margin: .2rem auto 0 !important;
+    padding: .1rem .24rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(var(--primary-rgb), .3) !important;
+    background: rgba(var(--primary-rgb), .08) !important;
+    color: var(--primary-color) !important;
+    font-size: .16rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+body.block-timeline-concept-7 .timeline-card--line > img,
+.timeline.block-skin-concept-7 .timeline-card--line > img {
+    display: none !important;
 }

@@ -196,44 +196,101 @@ function setControlValue(name, value) {
     }
 }
 
-function getMusicLibrary(config = {}) {
-    const library = Array.isArray(config.musicLibrary) ? config.musicLibrary : [];
-    const fallbackLibrary = Array.isArray(fallbackWedding.musicLibrary) ? fallbackWedding.musicLibrary : [];
-    const combined = [...fallbackLibrary, ...remoteMusicLibrary, ...library];
-    const seen = new Set();
+function normalizeMusicItem(item, sourceHint = "") {
+    const url = String(item?.url || "").trim();
+    if (!url) return null;
 
-    return combined.filter(item => {
-        const url = String(item?.url || "").trim();
-        if (!url || seen.has(url)) return false;
-        seen.add(url);
-        return true;
+    const isRemote = /^(https?:)?\/\//i.test(url) || /res\.cloudinary\.com/i.test(url);
+    const source = item?.source || sourceHint || (isRemote ? "cloudinary" : "local");
+
+    return {
+        title: String(item?.title || item?.name || url).trim(),
+        url,
+        source
+    };
+}
+
+/**
+ * Gộp nhạc local (config.js + music/) + Cloudinary/Firebase musicLibrary.
+ * Ưu tiên giữ bản local nếu trùng URL.
+ */
+function getMusicLibrary(config = {}) {
+    const localFromConfig = [
+        ...(Array.isArray(fallbackWedding.musicLibrary) ? fallbackWedding.musicLibrary : []),
+        ...(Array.isArray(config.musicLibrary) ? config.musicLibrary : [])
+    ]
+        .map(item => normalizeMusicItem(item, "local"))
+        .filter(Boolean);
+
+    const remoteItems = remoteMusicLibrary
+        .map(item => normalizeMusicItem(item, "cloudinary"))
+        .filter(Boolean);
+
+    const seen = new Set();
+    const result = [];
+
+    // Local trước, rồi remote (Cloudinary / admin)
+    [...localFromConfig, ...remoteItems].forEach(item => {
+        if (seen.has(item.url)) return;
+        seen.add(item.url);
+        result.push(item);
     });
+
+    return result;
+}
+
+function appendMusicGroup(select, label, items) {
+    if (!items.length) return;
+
+    const group = document.createElement("optgroup");
+    group.label = label;
+    items.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.url;
+        option.textContent = item.title;
+        group.appendChild(option);
+    });
+    select.appendChild(group);
 }
 
 function populateMusicOptions(config = loadedWeddingConfig) {
     if (!musicSelect) return;
 
-    const currentMusic = config.music || fallbackWedding.music || "";
+    const currentMusic = String(config.music || fallbackWedding.music || "").trim();
     const library = getMusicLibrary(config);
+    const localItems = library.filter(item => item.source === "local");
+    const remoteItems = library.filter(item => item.source !== "local");
     const hasCurrentMusic = library.some(item => item.url === currentMusic);
 
     musicSelect.innerHTML = "";
 
-    library.forEach(item => {
-        const option = document.createElement("option");
-        option.value = item.url;
-        option.textContent = item.title || item.name || item.url;
-        musicSelect.appendChild(option);
-    });
+    appendMusicGroup(musicSelect, "Nhạc local (music/)", localItems);
+    appendMusicGroup(musicSelect, "Nhạc Cloudinary / thư viện admin", remoteItems);
 
     if (currentMusic && !hasCurrentMusic) {
         const option = document.createElement("option");
         option.value = currentMusic;
-        option.textContent = "Nhạc hiện tại";
+        option.textContent = "Nhạc hiện tại (custom)";
         musicSelect.prepend(option);
     }
 
+    if (!musicSelect.options.length) {
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = "Chưa có bài nhạc";
+        musicSelect.appendChild(empty);
+    }
+
     musicSelect.value = currentMusic;
+    // Nếu value không khớp (path relative/absolute), chọn option gần nhất
+    if (currentMusic && musicSelect.value !== currentMusic) {
+        const match = Array.from(musicSelect.options).find(opt =>
+            opt.value === currentMusic
+            || opt.value.endsWith(currentMusic)
+            || currentMusic.endsWith(opt.value)
+        );
+        if (match) musicSelect.value = match.value;
+    }
 }
 
 async function loadMusicLibrary() {
@@ -243,7 +300,7 @@ async function loadMusicLibrary() {
             .map(doc => ({ id: doc.id, ...doc.data() }))
             .filter(item => item.active !== false && item.url);
     } catch (error) {
-        console.warn("Khong tai duoc musicLibrary tu Firebase, dung danh sach mac dinh.", error);
+        console.warn("Khong tai duoc musicLibrary tu Firebase, dung danh sach local.", error);
         remoteMusicLibrary = [];
     }
 
@@ -844,8 +901,8 @@ function readBuilderTheme() {
                 ...blocksFromBuilderFields(fieldMap)
             },
             fonts: {
-                body: data.get("fontBody"),
-                nickname: data.get("fontNickname")
+                body: String(data.get("fontBody") || "quicksand").trim(),
+                nickname: String(data.get("fontNickname") || "great-vibes").trim()
             }
         }
     };
@@ -1608,6 +1665,24 @@ function handleBlockConceptChange(event) {
     if (!field || field.tagName !== "SELECT") return;
 
     const name = String(field.name || "").trim();
+
+    // Phông chữ: select thường chỉ fire "change" (không fire "input") → phải refresh ở đây
+    if (name === "fontBody" || name === "fontNickname") {
+        window.clearTimeout(refreshPreview.timer);
+        refreshPreview.timer = window.setTimeout(() => {
+            refreshPreview(true, {
+                focusPreview: false,
+                mode: "cover"
+            });
+            setStatus(
+                name === "fontNickname"
+                    ? `Phông nickname: ${field.options[field.selectedIndex]?.text || field.value}`
+                    : `Phông thiệp: ${field.options[field.selectedIndex]?.text || field.value}`
+            );
+        }, 120);
+        return;
+    }
+
     if (!name.startsWith("block")) return;
 
     jumpPreviewToField(name);

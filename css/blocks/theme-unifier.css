@@ -18,7 +18,8 @@ body[class*="block-"] .section-divider {
     background: transparent !important;
 }
 
-/* Unified section headings for mixed block mode. */
+/* Unified section headings for mixed block mode.
+   (concept-3 save-date tự layout script — không ép heading font ở đây) */
 body[class*="block-"] .save-title,
 body[class*="block-"] .about-title,
 body[class*="block-"] .section-title,
@@ -33,6 +34,21 @@ body[class*="block-"] .thanks-title {
     text-align: center !important;
     text-transform: none !important;
     text-shadow: none !important;
+}
+
+/* Concept 3: headline script theo --font-nickname (user chọn), cỡ/layout do skins.css */
+body[class*="block-"] .save-date.block-skin-concept-3 .save-title {
+    font-family: var(--font-nickname, "Great Vibes", cursive) !important;
+    font-size: clamp(1.05rem, 15vw, 1.65rem) !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    letter-spacing: .01rem !important;
+    text-shadow: none !important;
+}
+
+body[class*="block-"] .save-date.block-skin-concept-3 .save-title::after {
+    display: none !important;
+    content: none !important;
 }
 
 body[class*="block-"] .save-title::before,
@@ -81,18 +97,19 @@ body[class*="block-"] .thanks-title + .section-subtitle {
     margin: .18rem auto .38rem !important;
 }
 
-body[class*="block-"] .save-date.block-skin-concept-4 .save-title::before {
-    content: "you're invited to the wedding of" !important;
-    display: block !important;
-    width: auto !important;
-    height: auto !important;
-    margin: 0 auto .22rem !important;
-    background: transparent !important;
-    color: #8d7c58 !important;
-    font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .2rem !important;
-    font-weight: 400 !important;
-    line-height: 1.35 !important;
-    letter-spacing: .02rem !important;
-    text-transform: lowercase !important;
+/* concept-4 save-date: ẩn .save-title gốc (dùng .save-date-script) —
+   KHÔNG ẩn subtitle user */
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title::before,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
+    content: none !important;
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
 }
+
+/* Nickname fonts: applied via JS inject (#theme-font-overrides) in js/utils/fonts.js
+   so cover/poster hardcodes cannot pin everything to Great Vibes. */

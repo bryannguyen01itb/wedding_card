@@ -1,10 +1,1140 @@
-/*
- * Gallery skins — module: js/modules/gallery
- *
- * Primary rules currently live in css/parts/block-concepts.css
- * Prefer adding NEW gallery skin rules here.
- *
- * Selectors:
- *   body.block-gallery-concept-N .gallery
- *   .gallery.block-skin-concept-N
- */
+/* ============================================================
+   Section skins — migrated from parts/block-concepts.css
+   + maintained overrides below (if any).
+   Module ownership: js/modules/<section>/
+   ============================================================ */
+
+/* --- from block-concepts (gallery) --- */
+
+/* gallery from concept-1 */
+
+/* gallery from concept-2 */
+
+body .gallery.block-skin-concept-2 {
+position: relative;
+    color: var(--botanical-ink);
+    background: var(--botanical-paper);
+}
+
+body .gallery.block-skin-concept-2 {
+padding: .05rem .2rem 1rem;
+    background: linear-gradient(180deg, var(--botanical-paper), rgba(var(--botanical-mint-rgb), .52));
+}
+
+body .gallery.block-skin-concept-2 .gallery-grid {
+border-radius: .42rem;
+    padding: .28rem;
+    gap: .11rem;
+    background: #fff;
+    border: 1px solid rgba(var(--botanical-leaf-rgb), .16);
+    box-shadow: var(--botanical-shadow);
+}
+
+body .gallery.block-skin-concept-2 .gallery-intro,
+body .gallery.block-skin-concept-2 .gallery-intro__eyebrow,
+body .gallery.block-skin-concept-2 .gallery-intro__title {
+color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+}
+
+body .gallery.block-skin-concept-2 .gallery-intro__script {
+color: var(--botanical-rose);
+    font-family: "Parisienne", "Great Vibes", cursive;
+}
+
+body .gallery.block-skin-concept-2 .gallery-intro__line {
+background: var(--botanical-leaf);
+}
+
+body .gallery.block-skin-concept-2 .gallery-intro__date,
+body .gallery.block-skin-concept-2 .gallery-side-text {
+color: var(--botanical-muted);
+}
+
+body .gallery.block-skin-concept-2 .gallery-frame {
+border-radius: .18rem;
+    background: var(--botanical-mint);
+}
+
+body .gallery.block-skin-concept-2 .gallery-frame img {
+filter: saturate(1.04) brightness(1.03);
+}
+
+body .gallery.block-skin-concept-2 .gallery-fan {
+opacity: .18;
+    background: repeating-conic-gradient(from -18deg, rgba(var(--botanical-leaf-rgb), .45) 0deg 2deg, transparent 2deg 10deg);
+}
+
+body .gallery.block-skin-concept-2 /* Concept 2 editorial gallery */
+ .gallery {
+padding: .72rem .22rem 1.1rem;
+    background: #fbfaf6;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid {
+display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: .12rem;
+    padding: .18rem !important;
+    border: 0;
+    border-radius: .18rem;
+    background: #fff;
+    box-shadow: none;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame {
+position: relative;
+    z-index: 1;
+    margin: 0;
+    overflow: hidden;
+    border: .045rem solid #fff;
+    border-radius: 0;
+    background: #f4f1ec;
+    box-shadow: 0 14px 30px rgba(var(--botanical-ink-rgb), .08);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame img {
+display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.04) contrast(1.02) brightness(1.01);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--1 {
+order: 1;
+    flex: 0 0 100%;
+    aspect-ratio: 3 / 2;
+    min-height: 0 !important;
+    height: auto !important;
+    border: .055rem solid #fff;
+    box-shadow: 0 16px 34px rgba(var(--botanical-ink-rgb), .12);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--1::after {
+content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .2), transparent 44%, rgba(0, 0, 0, .14));
+    pointer-events: none;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro {
+order: 2;
+    margin-top: .8rem;
+    position: relative !important;
+    inset: auto !important;
+    flex: 0 0 calc(27% - .08rem);
+    display: grid !important;
+    align-content: center;
+    justify-items: start;
+    min-height: 1.42rem;
+    padding: .08rem .04rem .04rem .08rem;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__eyebrow {
+color: rgba(var(--botanical-ink-rgb), .58);
+    font-family: "Lora", Georgia, serif;
+    font-size: .1rem;
+    letter-spacing: .06rem;
+    text-transform: uppercase;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__script {
+margin-top: .08rem;
+    color: var(--botanical-ink);
+    font-family: "Parisienne", "Great Vibes", cursive;
+    font-size: .36rem;
+    line-height: .8;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__title {
+margin-top: .04rem;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .16rem;
+    font-weight: 600;
+    letter-spacing: .03rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__line {
+width: .7rem;
+    height: 1px;
+    margin: .12rem 0 .08rem;
+    background: rgba(var(--botanical-ink-rgb), .24);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__date {
+color: rgba(var(--botanical-ink-rgb), .52);
+    font-family: "Lora", Georgia, serif;
+    font-size: .1rem;
+    font-weight: 600;
+    letter-spacing: .05rem;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--3 {
+order: 3;
+    margin-top: .8rem;
+    flex: 0 0 calc(46% - .08rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid::before {
+content: "109\A PHOTOS";
+    order: 4;
+    margin-top: .8rem;
+    flex: 0 0 calc(27% - .08rem);
+    display: grid;
+    place-items: center;
+    min-height: 1.42rem;
+    white-space: pre-line;
+    color: var(--botanical-ink);
+    font-family: "Lora", Georgia, serif;
+    font-size: .16rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: center;
+    letter-spacing: .03rem;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--2 {
+order: 5;
+    flex: 0 0 calc(27% - .08rem);
+    aspect-ratio: 2 / 3;
+    height: auto !important;
+    transform: translateY(-1.2rem);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--4 {
+order: 6;
+    flex: 0 0 calc(46% - .08rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--5 {
+order: 7;
+    flex: 0 0 calc(27% - .08rem);
+    aspect-ratio: 1 / 1.2;
+    height: auto !important;
+    transform: translateY(-.5rem);
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid::after {
+content: "SAFE OF DATE";
+    order: 8;
+    flex: 0 0 100%;
+    display: block;
+    margin: 0 0 .34rem 0;
+    color: rgba(var(--botanical-ink-rgb), .45);
+    font-family: "Lora", Georgia, serif;
+    font-size: .18rem;
+    font-weight: 700;
+    letter-spacing: .12rem;
+    text-align: center;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--6 {
+order: 9;
+    flex: 0 0 calc(50% - .06rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--7 {
+order: 10;
+    flex: 0 0 calc(50% - .06rem);
+    aspect-ratio: 3 / 2;
+    height: auto !important;
+}
+
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-side-text,
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-fan {
+display: none !important;
+}
+
+/* gallery from concept-3 */
+
+body .gallery.block-skin-concept-3 {
+color: var(--sunset-ink);
+    background: var(--sunset-paper);
+}
+
+body .gallery.block-skin-concept-3 {
+padding: .05rem .2rem 1rem;
+    background: linear-gradient(180deg, var(--sunset-paper), rgba(var(--sunset-lemon-rgb), .32));
+}
+
+body .gallery.block-skin-concept-3 .gallery-grid {
+border-radius: .54rem;
+    padding: .26rem;
+    gap: .1rem;
+    background: #fff;
+    border: 2px solid rgba(var(--sunset-coral-rgb), .12);
+    box-shadow: var(--sunset-shadow);
+}
+
+body .gallery.block-skin-concept-3 .gallery-intro,
+body .gallery.block-skin-concept-3 .gallery-intro__eyebrow,
+body .gallery.block-skin-concept-3 .gallery-intro__title {
+color: var(--sunset-ink);
+    font-family: "DM Serif Display", Georgia, serif;
+}
+
+body .gallery.block-skin-concept-3 .gallery-intro__script {
+color: var(--sunset-coral);
+}
+
+body .gallery.block-skin-concept-3 .gallery-intro__line {
+background: var(--sunset-lavender);
+}
+
+body .gallery.block-skin-concept-3 .gallery-intro__date,
+body .gallery.block-skin-concept-3 .gallery-side-text {
+color: var(--sunset-muted);
+}
+
+body .gallery.block-skin-concept-3 .gallery-frame {
+border-radius: .24rem;
+    background: rgba(var(--sunset-lemon-rgb), .34);
+}
+
+body .gallery.block-skin-concept-3 .gallery-frame img {
+filter: saturate(1.08) brightness(1.04);
+}
+
+body .gallery.block-skin-concept-3 .gallery-fan {
+opacity: .18;
+    background: repeating-conic-gradient(from -18deg, rgba(var(--sunset-coral-rgb), .5) 0deg 2deg, transparent 2deg 10deg);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid {
+display: grid;
+    grid-template-columns: repeat(12, 1fr) !important;
+    grid-auto-rows: .42rem !important;
+    gap: .16rem !important;
+    min-height: 17.6rem;
+    padding: .12rem .1rem .52rem !important;
+    border: 0;
+    border-radius: 0;
+    background: #f8eddf !important;
+    box-shadow: none;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame {
+position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: .04rem solid rgba(255, 255, 255, .86);
+    border-radius: 0;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame img {
+width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(.92) contrast(1.02) brightness(.96);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--1 {
+grid-column: 1 / -1 !important;
+    grid-row: 1 / span 5 !important;
+    border: .02rem solid #fff;
+    border-radius: .01rem;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--1::after,
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--5::after {
+content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .14), rgba(0, 0, 0, .28));
+    pointer-events: none;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro {
+position: relative !important;
+    inset: auto !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 6 / span 2 !important;
+    display: grid !important;
+    align-content: center;
+    justify-items: center;
+    min-height: 0;
+    padding: .04rem .42rem .02rem;
+    border: 0;
+    border-radius: 0;
+    background: #f8eddf;
+    box-shadow: none;
+    text-align: center;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__eyebrow {
+display: none;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__script {
+color: #7e5a42;
+    font-family: "Great Vibes", cursive;
+    font-size: .32rem;
+    line-height: .9;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__title {
+max-width: 5.8rem;
+    color: #2c251f;
+    font-family: "Lora", Georgia, serif;
+    font-size: .32rem;
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: .01rem;
+    text-transform: none;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__title::before {
+content: "TIMELESS Elegance";
+    display: block;
+    color: #7e5a42;
+    font-family: "Lora", Georgia, serif;
+    font-size: .34rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__line {
+width: 1.05rem;
+    height: 1px;
+    margin: .08rem auto .04rem;
+    background: rgba(44, 37, 31, .28);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__date {
+color: rgba(44, 37, 31, .54);
+    font-size: .15rem;
+    font-weight: 700;
+    letter-spacing: .08rem;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--2,
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--3,
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--4 {
+grid-row: 8 / span 5 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--2 {
+grid-column: 2 / span 3 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--3 {
+grid-column: 5 / span 4 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--4 {
+grid-column: 9 / span 3 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--5 {
+grid-column: 1 / -1 !important;
+    grid-row: 14 / span 6 !important;
+    border: .02rem solid #fff;
+    border-radius: .01rem;
+    box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid::before {
+content: "EXPERTISE and\A ARTISTRY";
+    grid-column: 3 / span 8;
+    grid-row: 16 / span 3;
+    z-index: 3;
+    align-self: center;
+    justify-self: center;
+    white-space: pre-line;
+    color: #fff;
+    font-family: "Lora", Georgia, serif;
+    font-size: .42rem;
+    font-weight: 500;
+    line-height: 1.05;
+    text-align: center;
+    text-shadow: 0 8px 24px rgba(0, 0, 0, .32);
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--6 {
+grid-column: 2 / span 3 !important;
+    grid-row: 21 / span 5 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--7 {
+grid-column: 9 / span 3 !important;
+    grid-row: 21 / span 5 !important;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid::after {
+content: "LET US CAPTURE\A YOUR\A unforgettable\A MOMENTS";
+    grid-column: 5 / span 4;
+    grid-row: 21 / span 5;
+    display: grid;
+    place-items: center;
+    white-space: pre-line;
+    color: #2c251f;
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem;
+    line-height: 1.05;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-side-text,
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-fan {
+display: none !important;
+}
+
+/* gallery from concept-4 */
+
+body .gallery.block-skin-concept-4 {
+position: relative;
+    padding: 0.5rem .46rem 1.15rem .46rem;
+    background: var(--na01-paper);
+    color: var(--na01-gold);
+}
+
+body .gallery.block-skin-concept-4 /* Gallery hero */
+ .gallery {
+padding: 0 0 1rem;
+}
+
+body .gallery.block-skin-concept-4.section-title,
+body .gallery.block-skin-concept-4.section-subtitle {
+display: none;
+}
+
+body .gallery.block-skin-concept-4 .gallery-grid {
+position: relative;
+    width: 100%;
+    min-height: 17.3rem;
+    margin: 0;
+    padding: .52rem .28rem .9rem;
+    background: #fffdf8;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro {
+position: absolute;
+    top: .78rem;
+    left: .62rem;
+    z-index: 4;
+    color: #fff;
+    background: transparent;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__eyebrow,
+body .gallery.block-skin-concept-4 .gallery-intro__date,
+body .gallery.block-skin-concept-4 .gallery-intro__line {
+display: none;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__script {
+color: #fff;
+    font-family: "Great Vibes", cursive;
+    font-size: .92rem;
+    line-height: .9;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__title {
+color: #fff;
+    font-family: "Lora", Georgia, serif;
+    font-size: .78rem;
+    line-height: 1;
+    text-transform: capitalize;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame {
+overflow: hidden;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame img {
+height: 100%;
+    object-fit: cover;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--1 {
+grid-column: 1 / -1 !important;
+    grid-row: span 8 !important;
+    min-height: 8.8rem;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--1::after {
+content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.28), transparent 52%, rgba(0,0,0,.12));
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame:not(.gallery-frame--1) {
+border: .08rem solid #fff;
+    box-shadow: 0 10px 24px rgba(60,45,35,.12);
+}
+
+body .gallery.block-skin-concept-4 .gallery-side-text {
+position: static;
+    grid-column: 1 / -1;
+    color: var(--na01-gold);
+    font-family: "Philosopher", serif;
+    font-size: .26rem;
+    line-height: 1.7;
+    text-align: center;
+    writing-mode: initial;
+    transform: none;
+}
+
+body .gallery.block-skin-concept-4 .gallery-fan {
+display: none;
+}
+
+body .gallery.block-skin-concept-4 {
+padding: .82rem .2rem 1.18rem !important;
+    overflow: hidden;
+    background: #fffdf8;
+}
+
+body .gallery.block-skin-concept-4.section-title,
+body .gallery.block-skin-concept-4.section-subtitle {
+display: block !important;
+}
+
+body .gallery.block-skin-concept-4.section-title {
+margin-bottom: .16rem;
+}
+
+body .gallery.block-skin-concept-4.section-subtitle {
+margin: 0 auto .38rem;
+    color: rgba(var(--primary-rgb), .82);
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--1,
+body .gallery.block-skin-concept-4 .gallery-frame--5 {
+border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid {
+display: grid;
+    grid-template-columns: repeat(12, 1fr) !important;
+    grid-auto-rows: .42rem !important;
+    gap: .1rem !important;
+    min-height: 17rem;
+    padding: .08rem !important;
+    background: #fffdf8 !important;
+    border-radius: .22rem;
+    border: 0;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame {
+position: relative;
+    z-index: 1;
+    margin: 0;
+    overflow: hidden;
+    border: .045rem solid #fff !important;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame img {
+width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--1 {
+grid-column: 1 / -1 !important;
+    grid-row: 1 / span 6 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro {
+position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 2;
+    grid-column: 1 / -1 !important;
+    grid-row: 7 / span 2 !important;
+    display: grid !important;
+    align-content: center;
+    justify-items: center;
+    min-height: 0 !important;
+    padding: .04rem .28rem !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: center;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro::after {
+display: none !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__eyebrow,
+body .gallery.block-skin-concept-4 .gallery-intro__line,
+body .gallery.block-skin-concept-4 .gallery-intro__date {
+display: none !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__script {
+color: #322c28 !important;
+    font-family: "Great Vibes", cursive;
+    font-size: .54rem !important;
+    line-height: .76;
+    text-shadow: none !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-intro__title {
+margin-top: .04rem;
+    color: var(--primary-color) !important;
+    font-family: "Lora", Georgia, serif;
+    font-size: .22rem !important;
+    font-weight: 700;
+    letter-spacing: .12rem;
+    line-height: 1;
+    text-shadow: none !important;
+    text-transform: uppercase;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--2,
+body .gallery.block-skin-concept-4 .gallery-frame--3,
+body .gallery.block-skin-concept-4 .gallery-frame--4 {
+grid-row: 9 / span 6 !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--2 {
+grid-column: 2 / span 3 !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--3 {
+grid-column: 5 / span 4 !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--4 {
+grid-column: 9 / span 3 !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid::before {
+content: "IT MUST\A BE HEAVEN";
+    grid-column: 1 / span 5;
+    grid-row: 17 / span 4;
+    z-index: 2;
+    align-self: center;
+    white-space: pre-line;
+    color: #222;
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    font-family: "Lora", Georgia, serif;
+    font-size: .36rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: .02rem;
+    text-align: center;
+}
+
+body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid::after {
+content: "Cent\A chemins\A sont tous vers toi";
+    grid-column: 7 / -1;
+    grid-row: 27 / span 5;
+    z-index: 3;
+    align-self: center;
+    white-space: pre-line;
+    color: #fff;
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    font-family: "Great Vibes", cursive;
+    font-size: .58rem;
+    font-weight: 400;
+    line-height: .86;
+    text-align: center;
+    text-shadow: 0 5px 18px rgba(0, 0, 0, .32);
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--5 {
+grid-column: 2 / span 4 !important;
+    grid-row: 22 / span 9 !important;
+    border: .065rem solid #fff !important;
+    box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--6 {
+grid-column: 5 / span 4 !important;
+    grid-row: 17 / span 12 !important;
+    z-index: 2;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--7 {
+grid-column: 9 / span 3 !important;
+    grid-row: 20 / span 8 !important;
+    z-index: 2;
+}
+
+body .gallery.block-skin-concept-4 .gallery-frame--5::before,
+body .gallery.block-skin-concept-4 .gallery-frame--6::before,
+body .gallery.block-skin-concept-4 .gallery-frame--7::before {
+content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .16));
+    pointer-events: none;
+}
+
+body .gallery.block-skin-concept-4 .gallery-side-text,
+body .gallery.block-skin-concept-4 .gallery-fan {
+display: none !important;
+}
+
+
+/* ============================================================
+   Concept 5 — Editorial (7 photos)
+   QUAN TRỌNG: reset grid-column/row từ sections.css (gây dính/chồng)
+   ============================================================ */
+
+body.block-gallery-concept-5 .gallery,
+.gallery.block-skin-concept-5 {
+    padding: .25rem .2rem 1.15rem !important;
+    color: #2c2824;
+    background: #f6f2eb !important;
+}
+
+/* Hiện title (và subtitle nếu có) */
+body.block-gallery-concept-5 .gallery .section-title,
+.gallery.block-skin-concept-5 .section-title {
+    display: block !important;
+    margin: 0 0 .18rem;
+    padding: 0 .12rem;
+    color: #2a2520;
+    font-family: "Lora", Georgia, serif;
+    font-size: .36rem;
+    font-weight: 600;
+    letter-spacing: .1rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+body.block-gallery-concept-5 .gallery .section-subtitle,
+.gallery.block-skin-concept-5 .section-subtitle {
+    display: block !important;
+    margin: 0 0 .28rem;
+    padding: 0 .2rem;
+    color: #8a7f74;
+    font-size: .18rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+body.block-gallery-concept-5 .gallery .section-subtitle:empty,
+body.block-gallery-concept-5 .gallery .section-subtitle[hidden],
+.gallery.block-skin-concept-5 .section-subtitle:empty,
+.gallery.block-skin-concept-5 .section-subtitle[hidden] {
+    display: none !important;
+}
+
+body.block-gallery-concept-5 .gallery-side-text,
+body.block-gallery-concept-5 .gallery-fan {
+    display: none !important;
+}
+
+/* Grid container — force override base 6-col layout */
+body.block-gallery-concept-5 .gallery-grid.gallery-poster,
+body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid,
+.gallery.block-skin-concept-5 .gallery-poster--journey.gallery-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1.12fr !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: auto !important;
+    grid-template-areas:
+        "copy hero"
+        "cine cine"
+        "banner banner"
+        "rhead rhead"
+        "p4 p5"
+        "p6 p7" !important;
+    column-gap: .35rem !important;
+    row-gap: .4rem !important;
+    gap: .4rem .35rem !important;
+    padding: .2rem !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: .12rem !important;
+    background: #f6f2eb !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+/* RECENT MOMENTS — full width, 1 hàng, căn giữa thật */
+body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid::before {
+    content: "RECENT MOMENTS";
+    /* Không set grid-column:auto — sẽ phá span 2 cột của grid-area */
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    justify-self: stretch !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: .8rem;
+    padding: .5rem 0 .16rem !important;
+    margin: 0 !important;
+    color: #2a2520;
+    font-family: "Lora", Georgia, serif;
+    font-size: .24rem;
+    font-weight: 600;
+    letter-spacing: .08rem;
+    /* bù letter-spacing để chữ không lệch trái */
+    text-indent: .08rem;
+    line-height: 1.2;
+    white-space: nowrap !important;
+    text-align: center !important;
+    background: transparent !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid::after {
+    content: none !important;
+    display: none !important;
+    grid-area: unset !important;
+}
+
+/* Reset EVERY frame position from sections.css */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    z-index: 1 !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: none !important;
+}
+
+/* Intro */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
+    grid-area: copy !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: .12rem;
+    min-height: 4.8rem;
+    height: 4.8rem;
+    padding: .4rem .32rem !important;
+    background: #efe9e0 !important;
+    border: 0 !important;
+    border-radius: .12rem !important;
+    box-shadow: none !important;
+    text-align: left;
+    overflow: hidden;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__eyebrow {
+    margin: 0 !important;
+    color: #1f1c19;
+    font-family: "Lora", Georgia, serif;
+    font-size: .3rem;
+    font-weight: 600;
+    letter-spacing: .04rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    word-break: normal !important;
+    white-space: normal !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__script {
+    display: block !important;
+    margin: 0 !important;
+    color: #1f1c19;
+    font-family: "Great Vibes", "Parisienne", cursive;
+    font-size: .56rem;
+    line-height: 1.05;
+    letter-spacing: 0 !important;
+    text-transform: none;
+    word-break: normal !important;
+    white-space: normal !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__title {
+    margin: .12rem 0 0 !important;
+    color: #6f675e;
+    font-family: "Quicksand", sans-serif;
+    font-size: .17rem;
+    font-weight: 600;
+    letter-spacing: 0 !important;
+    line-height: 1.45;
+    text-transform: none;
+    word-break: normal !important;
+    overflow-wrap: break-word;
+    white-space: normal !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__line {
+    width: .7rem;
+    height: 1px;
+    margin: .1rem 0 .04rem !important;
+    background: rgba(60, 50, 40, .28);
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__date {
+    margin: 0 !important;
+    color: #8a7f74;
+    font-size: .15rem;
+    font-weight: 700;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+/* Frames */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame {
+    border: 0 !important;
+    border-radius: .12rem !important;
+    overflow: hidden !important;
+    background: #d8d2c8 !important;
+    box-shadow: 0 6px 18px rgba(40, 32, 24, .1) !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* 1 hero portrait */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1 {
+    grid-area: hero !important;
+    height: 4.8rem !important;
+    min-height: 4.8rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1 img {
+    object-position: center 12% !important;
+}
+
+/* 2 cinematic */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2 {
+    grid-area: cine !important;
+    height: 3.55rem !important;
+    min-height: 3.55rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2 img {
+    filter: brightness(.78) saturate(1.03) !important;
+    object-position: center 40% !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2::after {
+    content: "PHOTOGRAPHY ROOTED in FEELING";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 88%;
+    max-width: 7rem;
+    color: #fff;
+    font-family: "Lora", Georgia, serif;
+    font-size: .26rem;
+    font-weight: 500;
+    letter-spacing: .06rem;
+    line-height: 1.4;
+    text-align: center;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, .5);
+    pointer-events: none;
+}
+
+/* 3 banner */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3 {
+    grid-area: banner !important;
+    height: 2.75rem !important;
+    min-height: 2.75rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3 img {
+    filter: brightness(.48) saturate(.92) !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3::after {
+    content: "Words from our happy clients";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 88%;
+    max-width: 6.5rem;
+    color: #f7f2ea;
+    font-family: "Great Vibes", "Parisienne", cursive;
+    font-size: .4rem;
+    line-height: 1.25;
+    text-align: center;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+    pointer-events: none;
+}
+
+/* 4–7: 2x2 với khoảng trống THẬT (gap + ô cao) */
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4 {
+    grid-area: p4 !important;
+    height: 3.15rem !important;
+    min-height: 3.15rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5 {
+    grid-area: p5 !important;
+    height: 3.15rem !important;
+    min-height: 3.15rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6 {
+    grid-area: p6 !important;
+    height: 3.15rem !important;
+    min-height: 3.15rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7 {
+    grid-area: p7 !important;
+    height: 3.15rem !important;
+    min-height: 3.15rem !important;
+}
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4 img,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5 img,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6 img,
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7 img {
+    object-position: center 22% !important;
+    filter: none !important;
+}

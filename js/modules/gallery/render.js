@@ -1,5 +1,5 @@
 import { wedding } from "../../config.js";
-import { createEl, setText } from "../../utils/dom.js";
+import { createEl, setText, setOptionalText } from "../../utils/dom.js";
 import { formatDate } from "../../utils/date.js";
 import { setImageWithFallback } from "../../utils/mediaFallback.js";
 import { getSectionSkinOptions, resolveSectionSkin } from "../core/registry.js";
@@ -11,24 +11,25 @@ const DEFAULT_INTRO = {
     sideText: "SAVE THE DATE"
 };
 
+/** Intro mặc định cho gallery concept-5 (editorial). */
+const JOURNEY_INTRO = {
+    eyebrow: "CAPTURING",
+    script: "Moments",
+    title: "Khoảnh khắc chân thật của chúng mình",
+    sideText: ""
+};
+
 const GALLERY_LAYOUT_CLASSES = [
     "gallery-poster--few",
     "gallery-poster--medium",
     "gallery-poster--full",
     "gallery-poster--many",
-    "gallery-poster--fixed"
+    "gallery-poster--fixed",
+    "gallery-poster--journey"
 ];
 
 const DEFAULT_FIXED_PHOTO_LIMIT = 7;
 
-function setOptionalText(id, value) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
-    const text = String(value || "").trim();
-    element.textContent = text;
-    element.hidden = !text;
-}
 
 function normalizePhoto(item) {
     return typeof item === "string" ? { src: item, alt: "" } : item;
@@ -67,8 +68,9 @@ function createIntroBlock(intro, weddingDate) {
     return introBlock;
 }
 
-function getGalleryLayout(photoCount, fixedLayout) {
-    if (fixedLayout) return "gallery-poster--fixed";
+function getGalleryLayout(photoCount, options = {}) {
+    if (options.layoutClass) return options.layoutClass;
+    if (options.fixedLayout) return "gallery-poster--fixed";
     if (photoCount >= 10) return "gallery-poster--many";
     if (photoCount >= 8) return "gallery-poster--full";
     if (photoCount >= 6) return "gallery-poster--medium";
@@ -102,8 +104,19 @@ export function renderGallery(config, weddingDate) {
     const grid = document.querySelector(".gallery-grid");
     if (!grid) return;
 
-    const { intro, photos } = normalizeGalleryConfig(config);
+    const normalized = normalizeGalleryConfig(config);
     const options = getActiveGalleryOptions();
+    const isJourney = options.layoutClass === "gallery-poster--journey";
+    // Concept 5: dùng intro editorial nếu config vẫn là default cũ
+    const intro = isJourney
+        ? {
+            ...JOURNEY_INTRO,
+            ...(normalized.intro?.eyebrow && normalized.intro.eyebrow !== DEFAULT_INTRO.eyebrow
+                ? normalized.intro
+                : {})
+        }
+        : normalized.intro;
+    const photos = normalized.photos;
     const fixedLayout = Boolean(options.fixedLayout);
     const photoLimit = Number.isFinite(options.photoLimit)
         ? options.photoLimit
@@ -113,7 +126,7 @@ export function renderGallery(config, weddingDate) {
     const visiblePhotos = photoLimit
         ? validPhotos.slice(0, photoLimit)
         : validPhotos;
-    const layoutClass = getGalleryLayout(visiblePhotos.length, fixedLayout);
+    const layoutClass = getGalleryLayout(visiblePhotos.length, options);
 
     grid.textContent = "";
     grid.classList.remove(...GALLERY_LAYOUT_CLASSES);
@@ -124,7 +137,9 @@ export function renderGallery(config, weddingDate) {
         grid.appendChild(createGalleryPhoto(photo, index));
     });
 
-    addGalleryDecorations(grid, intro.sideText);
+    if (!options.hideDecorations) {
+        addGalleryDecorations(grid, intro.sideText);
+    }
 }
 
 export function renderGallerySection() {
