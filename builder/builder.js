@@ -16,16 +16,51 @@ const modalInvitationLink = document.getElementById("modalInvitationLink");
 const modalEditLink = document.getElementById("modalEditLink");
 const copyInvitationLink = document.getElementById("copyInvitationLink");
 const copyEditLink = document.getElementById("copyEditLink");
+const builderGalleryFields = document.getElementById("builderGalleryFields");
+const mapPickerModal = document.getElementById("mapPickerModal");
+const mapPickerCanvas = document.getElementById("mapPickerCanvas");
+const mapPickerSearch = document.getElementById("mapPickerSearch");
+const mapPickerSearchBtn = document.getElementById("mapPickerSearchBtn");
+const saveMapPointBtn = document.getElementById("saveMapPointBtn");
 
 const WEDDING_QUERY_KEY = "wedding";
 const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
+const GALLERY_SIZE = 7;
+
+// Cloudinary chỉ cho upload trực tiếp từ trình duyệt bằng unsigned upload preset.
+// Vào Cloudinary > Settings > Upload > Upload presets, tạo preset unsigned tên "wedding_unsigned".
+const CLOUDINARY_CLOUD_NAME = "dndcuen0";
+const CLOUDINARY_UPLOAD_PRESET = "wedding_unsigned";
+const CLOUDINARY_FOLDER_PREFIX = "wedding-builder";
 
 let editingWeddingId = "";
+let originalEditingWeddingId = "";
 let loadedWeddingConfig = clone(fallbackWedding);
 let remoteMusicLibrary = [];
+let activeMapPickerRole = "";
+let mapPicker = null;
+let mapPickerMarker = null;
+let selectedMapPoint = null;
+const qrCropStates = new Map();
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
+}
+
+function isPlainObject(value) {
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
+
+function mergeConfig(base, override) {
+    if (!isPlainObject(base) || !isPlainObject(override)) {
+        return override === undefined ? base : override;
+    }
+
+    const result = { ...base };
+    Object.keys(override).forEach(key => {
+        result[key] = mergeConfig(base[key], override[key]);
+    });
+    return result;
 }
 
 function removeVietnamese(value) {
@@ -277,6 +312,411 @@ function syncUrlForEdit(weddingId) {
     window.history.replaceState({}, "", editUrl);
 }
 
+
+function buildCloudinaryFolder() {
+    const data = new FormData(form);
+    const weddingId = editingWeddingId || buildWeddingId(data) || "draft";
+    return `${CLOUDINARY_FOLDER_PREFIX}/${weddingId}`;
+}
+
+function getField(name) {
+    return form.elements[name];
+}
+
+function readField(name) {
+    return String(getField(name)?.value || "").trim();
+}
+
+function setField(name, value) {
+    const field = getField(name);
+    if (field && value !== undefined && value !== null) {
+        field.value = value;
+    }
+}
+
+function renderBuilderGalleryFields() {
+    if (!builderGalleryFields) return;
+    builderGalleryFields.textContent = "";
+
+    Array.from({ length: GALLERY_SIZE }, (_, index) => {
+        const number = index + 1;
+        const row = document.createElement("div");
+        row.className = "builder-gallery-row";
+        row.innerHTML = `
+            <div class="gallery-index">Ảnh ${number}</div>
+            <label>Link ảnh<input name="galleryPhoto${number}" placeholder="Dán link hoặc upload file"></label>
+            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="galleryPhoto${number}"><button type="button" data-upload-button="galleryPhoto${number}"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+        `;
+        builderGalleryFields.appendChild(row);
+    });
+}
+
+function getConceptMedia(config, blockName, imageKey) {
+    const blockValue = config.theme?.blocks?.[blockName] || fallbackWedding.theme?.blocks?.[blockName] || "concept-1";
+    return config.theme?.concepts?.[blockValue]?.images?.[imageKey] || "";
+}
+
+function getSelectedBlockValue(name) {
+    return readField(name) || "concept-1";
+}
+
+function setConceptImage(concepts, conceptName, imageKey, imageUrl) {
+    if (!imageUrl) return;
+    concepts[conceptName] = mergeConfig(concepts[conceptName] || {}, {
+        images: { [imageKey]: imageUrl }
+    });
+}
+
+function getGalleryPhotosFromForm() {
+    return Array.from({ length: GALLERY_SIZE }, (_, index) => {
+        const src = readField(`galleryPhoto${index + 1}`);
+        return src ? { src, alt: `Ảnh cưới ${index + 1}` } : null;
+    }).filter(Boolean);
+}
+
+function normalizeMapSearchAddress(address) {
+    return String(address || "")
+        .replace(/^\s*nh[aà]\s*(g[aá]i|trai)\s*[-–:]\s*/i, "")
+        .trim();
+}
+
+function buildMapSearchUrl(address) {
+    const query = normalizeMapSearchAddress(address);
+    if (!query) return "";
+    const url = new URL("https://www.google.com/maps/search/");
+    url.searchParams.set("api", "1");
+    url.searchParams.set("query", query);
+    return url.toString();
+}
+
+function syncMapUrl(role) {
+    const addressName = role === "bride" ? "brideAddress" : "groomAddress";
+    const searchName = role === "bride" ? "brideMapSearch" : "groomMapSearch";
+    const mapName = role === "bride" ? "brideMapUrl" : "groomMapUrl";
+    const keyword = readField(searchName) || readField(addressName);
+    const mapUrl = buildMapSearchUrl(keyword);
+    if (!mapUrl) {
+        setStatus("Nhap tu khoa hoac dia chi truoc khi mo Maps.", "error");
+        return;
+    }
+
+    setField(mapName, mapUrl);
+    window.open(mapUrl, "_blank", "noopener,noreferrer");
+    setStatus("Da tao link Maps tam thoi. Neu can dung dung diem, hay copy link chia se tren Google Maps va dan lai vao o Link Maps.", "success");
+    refreshPreview(false);
+}
+
+function loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = URL.createObjectURL(file);
+    });
+}
+
+function canvasToBlob(canvas, type = "image/jpeg", quality = 0.86) {
+    return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+}
+
+async function compressImageFile(file, options = {}) {
+    const image = await loadImageFromFile(file);
+    const maxSize = options.maxSize || 1800;
+    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { alpha: false });
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    URL.revokeObjectURL(image.src);
+
+    return canvasToBlob(canvas, "image/jpeg", options.quality || 0.86);
+}
+
+async function uploadBlobToCloudinary(blob, filename) {
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+        throw new Error("Chua cau hinh CLOUDINARY_CLOUD_NAME hoac CLOUDINARY_UPLOAD_PRESET trong builder.js");
+    }
+
+    const data = new FormData();
+    data.append("file", blob, filename);
+    data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    data.append("folder", buildCloudinaryFolder());
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: data
+    });
+
+    if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || "Upload Cloudinary that bai");
+    }
+
+    const result = await response.json();
+    return result.secure_url;
+}
+
+async function uploadImageForField(fieldName, file, options = {}) {
+    const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
+    const oldLabel = button?.innerHTML;
+
+    try {
+        if (!file) {
+            setStatus("Chon file anh truoc khi upload.", "error");
+            return;
+        }
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading';
+        }
+        setStatus("Dang nen anh va upload Cloudinary...");
+        const blob = await compressImageFile(file, options);
+        const url = await uploadBlobToCloudinary(blob, `${fieldName}.jpg`);
+        setField(fieldName, url);
+        setStatus("Da upload anh va dien URL vao form.", "success");
+        refreshPreview(false);
+    } catch (error) {
+        console.error(error);
+        setStatus(error.message || "Upload Cloudinary that bai.", "error");
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = oldLabel;
+        }
+    }
+}
+
+function getQrBox(fieldName) {
+    return document.querySelector(`[data-qr-box="${fieldName}"]`);
+}
+
+function renderQrCrop(fieldName) {
+    const state = qrCropStates.get(fieldName);
+    const box = getQrBox(fieldName);
+    const crop = box?.querySelector(".qr-crop");
+    const canvas = crop?.querySelector("canvas");
+    if (!state || !canvas) return;
+
+    crop.hidden = false;
+    const context = canvas.getContext("2d");
+    const size = canvas.width;
+    const zoom = Number(crop.querySelector("[data-qr-zoom]")?.value || 1);
+    const shiftX = Number(crop.querySelector("[data-qr-x]")?.value || 0) / 100;
+    const shiftY = Number(crop.querySelector("[data-qr-y]")?.value || 0) / 100;
+    const image = state.image;
+    const baseScale = Math.max(size / image.naturalWidth, size / image.naturalHeight);
+    const drawWidth = image.naturalWidth * baseScale * zoom;
+    const drawHeight = image.naturalHeight * baseScale * zoom;
+    const maxMoveX = Math.max(0, (drawWidth - size) / 2);
+    const maxMoveY = Math.max(0, (drawHeight - size) / 2);
+    const x = (size - drawWidth) / 2 + maxMoveX * shiftX;
+    const y = (size - drawHeight) / 2 + maxMoveY * shiftY;
+
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, size, size);
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, x, y, drawWidth, drawHeight);
+}
+
+async function loadQrFile(fieldName, file) {
+    if (!file) return;
+    const image = await loadImageFromFile(file);
+    qrCropStates.set(fieldName, { image, file });
+    renderQrCrop(fieldName);
+}
+
+async function uploadQrForField(fieldName) {
+    const state = qrCropStates.get(fieldName);
+    const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
+    const oldLabel = button?.innerHTML;
+
+    if (!state) {
+        const input = document.querySelector(`[data-qr-input="${fieldName}"]`);
+        if (input?.files?.[0]) await loadQrFile(fieldName, input.files[0]);
+    }
+
+    const box = getQrBox(fieldName);
+    const canvas = box?.querySelector("canvas");
+    if (!canvas || !qrCropStates.has(fieldName)) {
+        setStatus("Chon file QR truoc khi upload.", "error");
+        return;
+    }
+
+    try {
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading';
+        }
+        setStatus("Dang cat QR va upload Cloudinary...");
+        renderQrCrop(fieldName);
+        const blob = await canvasToBlob(canvas, "image/png", 0.95);
+        const url = await uploadBlobToCloudinary(blob, `${fieldName}.png`);
+        setField(fieldName, url);
+        setStatus("Da upload QR va dien URL vao form.", "success");
+        refreshPreview(false);
+    } catch (error) {
+        console.error(error);
+        setStatus(error.message || "Upload QR that bai.", "error");
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = oldLabel;
+        }
+    }
+}
+
+
+function parseLatLngFromMapUrl(value) {
+    const text = String(value || "");
+    const atMatch = text.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (atMatch) return { lat: Number(atMatch[1]), lng: Number(atMatch[2]) };
+
+    const qMatch = text.match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (qMatch) return { lat: Number(qMatch[1]), lng: Number(qMatch[2]) };
+
+    return null;
+}
+
+function buildCoordinateMapUrl(point) {
+    return `https://www.google.com/maps?q=${point.lat.toFixed(6)},${point.lng.toFixed(6)}`;
+}
+
+function getDefaultMapCenter(role) {
+    const urlPoint = parseLatLngFromMapUrl(readField(role === "bride" ? "brideMapUrl" : "groomMapUrl"));
+    if (urlPoint) return urlPoint;
+    return { lat: 20.8449, lng: 106.6881 };
+}
+
+
+function setMapPoint(point, zoom = 16) {
+    selectedMapPoint = point;
+    if (!mapPicker) return;
+
+    mapPicker.setView([point.lat, point.lng], zoom);
+    if (!mapPickerMarker) {
+        mapPickerMarker = window.L.marker([point.lat, point.lng]).addTo(mapPicker);
+    } else {
+        mapPickerMarker.setLatLng([point.lat, point.lng]);
+    }
+}
+
+async function searchMapPickerLocation() {
+    const keyword = String(mapPickerSearch?.value || "").trim();
+    if (!keyword) {
+        setStatus("Nhap ten khu vuc gan do de tim tren ban do.", "error");
+        return;
+    }
+
+    try {
+        if (mapPickerSearchBtn) {
+            mapPickerSearchBtn.disabled = true;
+            mapPickerSearchBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tìm';
+        }
+
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "jsonv2");
+        url.searchParams.set("limit", "1");
+        url.searchParams.set("q", keyword);
+
+        const response = await fetch(url.toString(), {
+            headers: { "Accept": "application/json" }
+        });
+        const results = await response.json();
+        if (!Array.isArray(results) || !results.length) {
+            setStatus("Khong tim thay khu vuc nay. Thu nhap ten xa/phuong hoac dia diem gan do.", "error");
+            return;
+        }
+
+        setMapPoint({ lat: Number(results[0].lat), lng: Number(results[0].lon) }, 17);
+        setStatus("Da dua ban do toi khu vuc gan dung. Hay zoom/keo va click dung diem can chi duong.", "success");
+    } catch (error) {
+        console.error(error);
+        setStatus("Khong tim duoc vi tri. Ban van co the keo ban do thu cong.", "error");
+    } finally {
+        if (mapPickerSearchBtn) {
+            mapPickerSearchBtn.disabled = false;
+            mapPickerSearchBtn.innerHTML = '<i class="bi bi-search"></i> Tìm';
+        }
+    }
+}
+
+function ensureMapPicker(role) {
+    if (!window.L || !mapPickerCanvas) {
+        setStatus("Khong tai duoc ban do. Hay dan truc tiep link chia se Google Maps vao o Link Maps.", "error");
+        return false;
+    }
+
+    const center = getDefaultMapCenter(role);
+    if (!mapPicker) {
+        mapPicker = window.L.map(mapPickerCanvas).setView([center.lat, center.lng], 15);
+        const streetLayer = window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap"
+        }).addTo(mapPicker);
+        const satelliteLayer = window.L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+            maxZoom: 19,
+            attribution: "Tiles &copy; Esri"
+        });
+        window.L.control.layers({ "Bản đồ": streetLayer, "Vệ tinh": satelliteLayer }, null, { position: "topright" }).addTo(mapPicker);
+        mapPicker.on("click", event => {
+            selectedMapPoint = { lat: event.latlng.lat, lng: event.latlng.lng };
+            if (!mapPickerMarker) {
+                mapPickerMarker = window.L.marker(event.latlng).addTo(mapPicker);
+            } else {
+                mapPickerMarker.setLatLng(event.latlng);
+            }
+        });
+    } else {
+        mapPicker.setView([center.lat, center.lng], 15);
+    }
+
+    setMapPoint(center, 15);
+
+    window.setTimeout(() => mapPicker.invalidateSize(), 80);
+    return true;
+}
+
+function openMapPicker(role) {
+    activeMapPickerRole = role;
+    if (!mapPickerModal) return;
+    if (mapPickerSearch) {
+        mapPickerSearch.value = readField(role === "bride" ? "brideMapSearch" : "groomMapSearch") || normalizeMapSearchAddress(readField(role === "bride" ? "brideAddress" : "groomAddress"));
+    }
+    mapPickerModal.hidden = false;
+    document.body.classList.add("modal-open");
+    if (!ensureMapPicker(role)) {
+        closeMapPicker();
+    }
+}
+
+function closeMapPicker() {
+    if (!mapPickerModal) return;
+    mapPickerModal.hidden = true;
+    activeMapPickerRole = "";
+    document.body.classList.remove("modal-open");
+}
+
+function saveSelectedMapPoint() {
+    if (!activeMapPickerRole || !selectedMapPoint) {
+        setStatus("Hay click vao vi tri tren ban do truoc khi luu.", "error");
+        return;
+    }
+
+    const fieldName = activeMapPickerRole === "bride" ? "brideMapUrl" : "groomMapUrl";
+    setField(fieldName, buildCoordinateMapUrl(selectedMapPoint));
+    closeMapPicker();
+    setStatus("Da luu link Google Maps theo toa do da chon.", "success");
+    refreshPreview(false);
+}
+
 function readBuilderTheme() {
     const data = new FormData(form);
     const weddingId = editingWeddingId || buildWeddingId(data);
@@ -317,18 +757,37 @@ function createCustomerConfig() {
         date: builderTheme.date,
         location: normalizeLocationProvince(data.get("locationProvince")),
         music: readText(data, "music") || loadedWeddingConfig.music || fallbackWedding.music,
-        theme: builderTheme.theme,
+        theme: {
+            ...builderTheme.theme,
+            concepts: (() => {
+                const concepts = {};
+                setConceptImage(concepts, getSelectedBlockValue("blockCover"), "cover", readText(data, "coverPosterImage"));
+                setConceptImage(concepts, getSelectedBlockValue("blockCountdown"), "countdown", readText(data, "countdownImage"));
+                return concepts;
+            })()
+        },
+        poster: {
+            image: readText(data, "coverPosterImage")
+        },
+        preview: {
+            image: readText(data, "previewImage")
+        },
+        aboutCard: {
+            image: readText(data, "aboutImage")
+        },
         groom: {
             nickname: groomNickname,
             fullName: readText(data, "groomFullName"),
             father: readText(data, "groomFather"),
-            mother: readText(data, "groomMother")
+            mother: readText(data, "groomMother"),
+            avatar: readText(data, "groomAvatar")
         },
         bride: {
             nickname: brideNickname,
             fullName: readText(data, "brideFullName"),
             father: readText(data, "brideFather"),
-            mother: readText(data, "brideMother")
+            mother: readText(data, "brideMother"),
+            avatar: readText(data, "brideAvatar")
         },
         sectionSubtitles: {
             about: readText(data, "subtitleAbout"),
@@ -340,9 +799,11 @@ function createCustomerConfig() {
             thanks: readText(data, "subtitleThanks")
         },
         ceremony: {
+            image: readText(data, "timelineImage"),
             bride: {
                 time: readText(data, "brideCeremonyTime"),
                 address: readText(data, "brideAddress"),
+                mapUrl: readText(data, "brideMapUrl"),
                 meal: {
                     time: formatMealTime(data.get("brideMealDate"), data.get("brideMealTime"))
                 }
@@ -350,9 +811,27 @@ function createCustomerConfig() {
             groom: {
                 time: readText(data, "groomCeremonyTime"),
                 address: readText(data, "groomAddress"),
+                mapUrl: readText(data, "groomMapUrl"),
                 meal: {
                     time: formatMealTime(data.get("groomMealDate"), data.get("groomMealTime"))
                 }
+            }
+        },
+        gallery: {
+            photos: getGalleryPhotosFromForm()
+        },
+        gift: {
+            groom: {
+                qr: readText(data, "giftGroomQr"),
+                bank: readText(data, "giftGroomBank"),
+                accountName: readText(data, "giftGroomAccountName"),
+                accountNumber: readText(data, "giftGroomAccountNumber")
+            },
+            bride: {
+                qr: readText(data, "giftBrideQr"),
+                bank: readText(data, "giftBrideBank"),
+                accountName: readText(data, "giftBrideAccountName"),
+                accountNumber: readText(data, "giftBrideAccountNumber")
             }
         },
         builder: {
@@ -362,16 +841,69 @@ function createCustomerConfig() {
     };
 }
 
+
+function removeEmptyMediaFields(config) {
+    const next = clone(config);
+    const removeIfBlank = (object, key) => {
+        if (object && String(object[key] || "").trim() === "") {
+            delete object[key];
+        }
+    };
+
+    removeIfBlank(next.poster, "image");
+    removeIfBlank(next.preview, "image");
+    removeIfBlank(next.aboutCard, "image");
+    removeIfBlank(next.groom, "avatar");
+    removeIfBlank(next.bride, "avatar");
+    removeIfBlank(next.ceremony, "image");
+    removeIfBlank(next.ceremony?.bride, "mapUrl");
+    removeIfBlank(next.ceremony?.groom, "mapUrl");
+    ["qr", "bank", "accountName", "accountNumber"].forEach(key => {
+        removeIfBlank(next.gift?.groom, key);
+        removeIfBlank(next.gift?.bride, key);
+    });
+
+    if (!next.gallery?.photos?.length) delete next.gallery;
+
+    if (!next.poster?.image) delete next.poster;
+    if (!next.preview?.image) delete next.preview;
+    if (!next.aboutCard?.image) delete next.aboutCard;
+    if (!Object.keys(next.gift?.groom || {}).length && !Object.keys(next.gift?.bride || {}).length) delete next.gift;
+
+    return next;
+}
+
 function createPreviewConfig() {
     const config = clone(loadedWeddingConfig || fallbackWedding);
-    const customerConfig = createCustomerConfig();
+    const customerConfig = removeEmptyMediaFields(createCustomerConfig());
 
     return {
         ...config,
         ...customerConfig,
         theme: {
             ...(config.theme || {}),
-            ...(customerConfig.theme || {})
+            ...(customerConfig.theme || {}),
+            blocks: {
+                ...(config.theme?.blocks || {}),
+                ...(customerConfig.theme?.blocks || {})
+            },
+            fonts: {
+                ...(config.theme?.fonts || {}),
+                ...(customerConfig.theme?.fonts || {})
+            },
+            concepts: mergeConfig(config.theme?.concepts || {}, customerConfig.theme?.concepts || {})
+        },
+        poster: {
+            ...(config.poster || {}),
+            ...(customerConfig.poster || {})
+        },
+        preview: {
+            ...(config.preview || {}),
+            ...(customerConfig.preview || {})
+        },
+        aboutCard: {
+            ...(config.aboutCard || {}),
+            ...(customerConfig.aboutCard || {})
         },
         groom: {
             ...(config.groom || {}),
@@ -385,9 +917,26 @@ function createPreviewConfig() {
             ...(config.sectionSubtitles || {}),
             ...(customerConfig.sectionSubtitles || {})
         },
+        gallery: {
+            ...(config.gallery || {}),
+            ...(customerConfig.gallery || {}),
+            photos: customerConfig.gallery?.photos?.length ? customerConfig.gallery.photos : config.gallery?.photos
+        },
+        gift: {
+            ...(config.gift || {}),
+            groom: {
+                ...(config.gift?.groom || {}),
+                ...(customerConfig.gift?.groom || {})
+            },
+            bride: {
+                ...(config.gift?.bride || {}),
+                ...(customerConfig.gift?.bride || {})
+            }
+        },
         musicLibrary: getMusicLibrary(config),
         ceremony: {
             ...(config.ceremony || {}),
+            ...(customerConfig.ceremony || {}),
             bride: {
                 ...(config.ceremony?.bride || {}),
                 ...(customerConfig.ceremony?.bride || {}),
@@ -408,8 +957,37 @@ function createPreviewConfig() {
     };
 }
 
+
+async function findAvailableWeddingId(baseWeddingId) {
+    const base = String(baseWeddingId || "").trim();
+    if (!base) return "";
+
+    if (originalEditingWeddingId) {
+        return originalEditingWeddingId;
+    }
+
+    for (let index = 0; index < 50; index += 1) {
+        const candidate = index === 0 ? base : `${base}-${index + 1}`;
+        const doc = await db.collection("weddings").doc(candidate).get();
+        if (!doc.exists) return candidate;
+    }
+
+    return `${base}-${Date.now()}`;
+}
+
+function applyWeddingIdToPayload(payload, weddingId) {
+    return {
+        ...payload,
+        weddingId,
+        builder: {
+            ...(payload.builder || {}),
+            generatedBaseWeddingId: payload.weddingId
+        }
+    };
+}
+
 function createSavePayload() {
-    return createCustomerConfig();
+    return removeEmptyMediaFields(createCustomerConfig());
 }
 
 function fillBuilderForm(config = {}) {
@@ -431,11 +1009,37 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideMother", config.bride?.mother);
     setControlValue("groomAddress", config.ceremony?.groom?.address);
     setControlValue("brideAddress", config.ceremony?.bride?.address);
+    setControlValue("groomMapSearch", normalizeMapSearchAddress(config.ceremony?.groom?.address));
+    setControlValue("brideMapSearch", normalizeMapSearchAddress(config.ceremony?.bride?.address));
+    setControlValue("groomMapUrl", config.ceremony?.groom?.mapUrl);
+    setControlValue("brideMapUrl", config.ceremony?.bride?.mapUrl);
     setControlValue("date", config.date);
     setControlValue("locationProvince", getProvinceFromLocation(config.location));
     setControlValue("primaryColor", theme.primaryColor);
     populateMusicOptions(config);
     setControlValue("music", config.music);
+    setControlValue("coverPosterImage", config.poster?.image || getConceptMedia(config, "cover", "cover"));
+    setControlValue("previewImage", config.preview?.image);
+    setControlValue("aboutImage", config.aboutCard?.image);
+    setControlValue("timelineImage", config.ceremony?.image);
+    setControlValue("countdownImage", getConceptMedia(config, "countdown", "countdown"));
+    setControlValue("groomAvatar", config.groom?.avatar);
+    setControlValue("brideAvatar", config.bride?.avatar);
+    setControlValue("giftGroomQr", config.gift?.groom?.qr);
+    setControlValue("giftGroomBank", config.gift?.groom?.bank);
+    setControlValue("giftGroomAccountName", config.gift?.groom?.accountName);
+    setControlValue("giftGroomAccountNumber", config.gift?.groom?.accountNumber);
+    setControlValue("giftBrideQr", config.gift?.bride?.qr);
+    setControlValue("giftBrideBank", config.gift?.bride?.bank);
+    setControlValue("giftBrideAccountName", config.gift?.bride?.accountName);
+    setControlValue("giftBrideAccountNumber", config.gift?.bride?.accountNumber);
+    Array.from({ length: GALLERY_SIZE }, (_, index) => {
+        setControlValue(`galleryPhoto${index + 1}`, "");
+    });
+    const galleryPhotos = config.gallery?.photos?.length ? config.gallery.photos : fallbackWedding.gallery?.photos || [];
+    galleryPhotos.slice(0, GALLERY_SIZE).forEach((photo, index) => {
+        setControlValue(`galleryPhoto${index + 1}`, photo.src);
+    });
     setControlValue("blockCover", blocks.cover);
     setControlValue("blockPoster", blocks.poster);
     setControlValue("blockSaveDate", blocks.saveDate);
@@ -470,11 +1074,13 @@ async function loadConfigForEdit() {
     const weddingId = getWeddingIdFromUrl();
 
     if (!weddingId) {
+        originalEditingWeddingId = "";
         refreshPreview();
         return;
     }
 
     editingWeddingId = weddingId;
+    originalEditingWeddingId = weddingId;
     weddingIdInput.value = weddingId;
     setStatus(`Dang tai cau hinh: ${weddingId}`);
 
@@ -496,6 +1102,37 @@ async function loadConfigForEdit() {
                 bride: {
                     ...(fallbackWedding.bride || {}),
                     ...(doc.data().bride || {})
+                },
+                poster: {
+                    ...(fallbackWedding.poster || {}),
+                    ...(doc.data().poster || {})
+                },
+                preview: {
+                    ...(fallbackWedding.preview || {}),
+                    ...(doc.data().preview || {})
+                },
+                aboutCard: {
+                    ...(fallbackWedding.aboutCard || {}),
+                    ...(doc.data().aboutCard || {})
+                },
+                gallery: {
+                    ...(fallbackWedding.gallery || {}),
+                    ...(doc.data().gallery || {}),
+                    photos: doc.data().gallery?.photos?.length
+                        ? doc.data().gallery.photos
+                        : fallbackWedding.gallery?.photos
+                },
+                gift: {
+                    ...(fallbackWedding.gift || {}),
+                    ...(doc.data().gift || {}),
+                    groom: {
+                        ...(fallbackWedding.gift?.groom || {}),
+                        ...(doc.data().gift?.groom || {})
+                    },
+                    bride: {
+                        ...(fallbackWedding.gift?.bride || {}),
+                        ...(doc.data().gift?.bride || {})
+                    }
                 },
                 sectionSubtitles: {
                     ...(fallbackWedding.sectionSubtitles || {}),
@@ -625,7 +1262,7 @@ function refreshPreview(updateStatus = true) {
 
 async function saveConfig(event) {
     event.preventDefault();
-    const payload = createSavePayload();
+    let payload = createSavePayload();
 
     if (!payload.weddingId) {
         setStatus("Nhap ten co dau va chu re de tao weddingId.", "error");
@@ -633,6 +1270,16 @@ async function saveConfig(event) {
     }
 
     try {
+        const availableWeddingId = await findAvailableWeddingId(payload.weddingId);
+        if (!availableWeddingId) {
+            setStatus("Khong tao duoc weddingId. Hay kiem tra lai ten co dau chu re.", "error");
+            return;
+        }
+        if (availableWeddingId !== payload.weddingId) {
+            setStatus(`WeddingId da ton tai, tu dong luu thanh: ${availableWeddingId}`);
+        }
+        payload = applyWeddingIdToPayload(payload, availableWeddingId);
+
         if (saveBtn) {
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Dang luu';
@@ -641,6 +1288,7 @@ async function saveConfig(event) {
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
         loadedWeddingConfig = createPreviewConfig();
         editingWeddingId = payload.weddingId;
+        originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
         syncUrlForEdit(payload.weddingId);
         updateResultLinks(payload.weddingId);
@@ -658,6 +1306,46 @@ async function saveConfig(event) {
     }
 }
 
+
+function handleUploadClick(event) {
+    const button = event.target.closest("[data-upload-button]");
+    if (!button) return;
+
+    const fieldName = button.dataset.uploadButton;
+    if (document.querySelector(`[data-qr-input="${fieldName}"]`)) {
+        uploadQrForField(fieldName);
+        return;
+    }
+
+    const input = document.querySelector(`[data-upload-target="${fieldName}"]`);
+    uploadImageForField(fieldName, input?.files?.[0]);
+}
+
+function handleQrInputChange(event) {
+    const input = event.target.closest("[data-qr-input]");
+    if (!input) return;
+    loadQrFile(input.dataset.qrInput, input.files?.[0]);
+}
+
+function handleQrCropInput(event) {
+    const box = event.target.closest("[data-qr-box]");
+    if (!box || !event.target.matches("[data-qr-zoom], [data-qr-x], [data-qr-y]")) return;
+    renderQrCrop(box.dataset.qrBox);
+}
+
+function handleMapButton(event) {
+    const searchButton = event.target.closest("[data-map-role]");
+    if (searchButton) {
+        syncMapUrl(searchButton.dataset.mapRole);
+        return;
+    }
+
+    const pickerButton = event.target.closest("[data-map-picker]");
+    if (pickerButton) {
+        openMapPicker(pickerButton.dataset.mapPicker);
+    }
+}
+
 form.addEventListener("input", () => {
     window.clearTimeout(refreshPreview.timer);
     refreshPreview.timer = window.setTimeout(refreshPreview, 250);
@@ -665,6 +1353,11 @@ form.addEventListener("input", () => {
 previewBtn.addEventListener("click", refreshPreview);
 frame.addEventListener("load", syncPreviewStateFromFrame);
 form.addEventListener("submit", saveConfig);
+form.addEventListener("click", handleUploadClick);
+form.addEventListener("change", handleQrInputChange);
+form.addEventListener("input", handleQrCropInput);
+form.addEventListener("click", handleMapButton);
+renderBuilderGalleryFields();
 Promise.all([
     loadMusicLibrary(),
     loadConfigForEdit()
@@ -684,6 +1377,20 @@ copyInvitationLink?.addEventListener("click", () => {
 
 copyEditLink?.addEventListener("click", () => {
     copyText(modalEditLink?.href || "", copyEditLink);
+});
+
+saveMapPointBtn?.addEventListener("click", saveSelectedMapPoint);
+mapPickerSearchBtn?.addEventListener("click", searchMapPickerLocation);
+mapPickerSearch?.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        searchMapPickerLocation();
+    }
+});
+mapPickerModal?.addEventListener("click", event => {
+    if (event.target.closest("[data-close-map-picker]")) {
+        closeMapPicker();
+    }
 });
 
 window.addEventListener("keydown", event => {

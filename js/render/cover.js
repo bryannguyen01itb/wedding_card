@@ -87,7 +87,7 @@ export function renderCover() {
 export function renderPoster() {
     const { groom, bride } = wedding;
 
-    setSrc("posterImage", wedding.poster.image);
+    setSrc("posterImage", wedding.poster.image, "poster");
     setText("posterGroom", groom.nickname);
     setText("posterBride", bride.nickname);
     setText("posterDate", formatDate(wedding.date));

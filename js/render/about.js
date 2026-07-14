@@ -7,7 +7,7 @@ export function renderPerson(role, person) {
         ? wedding.aboutCard?.groomLabel || "NHÀ TRAI"
         : wedding.aboutCard?.brideLabel || "NHÀ GÁI";
 
-    setSrc(`${role}Avatar`, person.avatar);
+    setSrc(`${role}Avatar`, person.avatar, role);
     setText(`${role}Name`, person.fullName);
     setText(`${role}Father`, `Con ông: ${person.father}`);
     setText(`${role}Mother`, `và bà: ${person.mother}`);
@@ -19,7 +19,7 @@ export function renderPerson(role, person) {
 
 export function renderAboutCard() {
     const card = wedding.aboutCard || {};
-    setSrc("aboutPortraitImage", card.image || wedding.poster?.image);
+    setSrc("aboutPortraitImage", card.image || wedding.poster?.image, "about");
     setText("aboutPortraitScript", card.script || "First");
     setText("aboutPortraitTitle", card.title || "Married");
 }

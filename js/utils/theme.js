@@ -1,3 +1,5 @@
+import { getLocalImageFallback, shouldTryRemoteFallback } from "./mediaFallback.js";
+
 const DEFAULT_PRIMARY_COLOR = "#8fb8a8";
 
 const CONCEPT_ALIASES = {
@@ -243,30 +245,56 @@ function applySharedThemeSurface(rootStyle, primaryColor) {
     setColorVar(rootStyle, "--theme-surface", mixHex(primaryColor, "#ffffff", .9));
 }
 
+
+function preloadImage(url) {
+    return new Promise(resolve => {
+        if (!url || !shouldTryRemoteFallback(url)) {
+            resolve(true);
+            return;
+        }
+
+        const image = new Image();
+        image.onload = () => resolve(true);
+        image.onerror = () => resolve(false);
+        image.src = resolveAssetUrl(url);
+    });
+}
+
+function setImageVarWithFallback(target, name, value, fallbackKey) {
+    setImageVar(target, name, value);
+    if (!fallbackKey || !shouldTryRemoteFallback(value)) return;
+
+    preloadImage(value).then(isOk => {
+        if (isOk) return;
+        const fallback = getLocalImageFallback(fallbackKey);
+        if (fallback) setImageVar(target, name, fallback);
+    });
+}
+
 function applyBuilderBlockMedia(themeConfig, rootStyle, bodyStyle) {
     const blocks = themeConfig?.blocks || {};
     const coverConfig = getConceptConfig(themeConfig, blocks.cover);
     const countdownConfig = getConceptConfig(themeConfig, blocks.countdown);
 
-    setImageVar(bodyStyle, "--concept-cover-image", coverConfig?.images?.cover);
+    setImageVarWithFallback(bodyStyle, "--concept-cover-image", coverConfig?.images?.cover, "poster");
     setVar(bodyStyle, "--concept-cover-label", toCssString(coverConfig?.cover?.openLabel || "Mở thiệp"));
-    setImageVar(rootStyle, "--countdown-image", countdownConfig?.images?.countdown);
-    setImageVar(bodyStyle, "--concept-countdown-image", countdownConfig?.images?.countdown);
+    setImageVarWithFallback(rootStyle, "--countdown-image", countdownConfig?.images?.countdown, "countdown");
+    setImageVarWithFallback(bodyStyle, "--concept-countdown-image", countdownConfig?.images?.countdown, "countdown");
 }
 
 function applyConceptMediaConfig(config, rootStyle, bodyStyle, defaultCoverLabel) {
-    setImageVar(rootStyle, "--site-background-image", config?.images?.background);
-    setImageVar(rootStyle, "--countdown-image", config?.images?.countdown);
-    setImageVar(bodyStyle, "--concept-background-image", config?.images?.background);
-    setImageVar(bodyStyle, "--concept-cover-image", config?.images?.cover);
-    setImageVar(bodyStyle, "--concept-countdown-image", config?.images?.countdown);
+    setImageVarWithFallback(rootStyle, "--site-background-image", config?.images?.background, "background");
+    setImageVarWithFallback(rootStyle, "--countdown-image", config?.images?.countdown, "countdown");
+    setImageVarWithFallback(bodyStyle, "--concept-background-image", config?.images?.background, "background");
+    setImageVarWithFallback(bodyStyle, "--concept-cover-image", config?.images?.cover, "poster");
+    setImageVarWithFallback(bodyStyle, "--concept-countdown-image", config?.images?.countdown, "countdown");
     setVar(bodyStyle, "--concept-cover-label", toCssString(config?.cover?.openLabel || defaultCoverLabel));
 }
 
 function applyConceptOneConfig(config, rootStyle, bodyStyle) {
-    setImageVar(rootStyle, "--site-background-image", config?.images?.background);
-    setImageVar(rootStyle, "--countdown-image", config?.images?.countdown);
-    setImageVar(bodyStyle, "--concept-cover-image", config?.images?.cover);
+    setImageVarWithFallback(rootStyle, "--site-background-image", config?.images?.background, "background");
+    setImageVarWithFallback(rootStyle, "--countdown-image", config?.images?.countdown, "countdown");
+    setImageVarWithFallback(bodyStyle, "--concept-cover-image", config?.images?.cover, "poster");
     setVar(bodyStyle, "--concept-cover-label", toCssString(config?.cover?.openLabel || "Mở thiệp"));
 }
 

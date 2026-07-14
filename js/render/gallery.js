@@ -1,5 +1,6 @@
 import { createEl } from "../utils/dom.js";
 import { formatDate } from "../utils/date.js";
+import { setImageWithFallback } from "../utils/mediaFallback.js";
 
 const DEFAULT_INTRO = {
     eyebrow: "WELCOME TO OUR",
@@ -67,7 +68,7 @@ function createGalleryPhoto(photo, index) {
     const frame = createEl("figure", `gallery-frame gallery-frame--${index + 1} gallery-item`);
     const img = document.createElement("img");
 
-    img.src = photo.src;
+    setImageWithFallback(img, photo.src, `gallery-${index + 1}`);
     img.alt = photo.alt || "";
     img.loading = "lazy";
 

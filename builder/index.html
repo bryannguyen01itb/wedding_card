@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Great+Vibes&family=Lobster&family=Lora:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800&family=Pacifico&family=Parisienne&family=Playwrite+VN:wght@300;400&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="builder.css">
 </head>
 <body>
@@ -15,7 +16,7 @@
         <section class="builder-panel">
             <div class="builder-heading">
                 <h1>Khách tự chọn giao diện thiệp</h1>
-                <span>Khách chọn giao diện và nhập thông tin chữ. Ảnh, nhạc, maps admin sẽ hoàn thiện sau.</span>
+                <span>Khách chọn giao diện, nhập thông tin, upload ảnh/QR và tạo link Maps. Admin vẫn có thể sửa lại mọi thông tin sau.</span>
             </div>
             <form id="builderForm" class="builder-form">
                 <section class="card">
@@ -68,6 +69,87 @@
                             <div class="grid two compact-grid">
                                 <label>Ngày bữa cơm<input name="groomMealDate" type="date" value="2026-09-12"></label>
                                 <label>Giờ bữa cơm<input name="groomMealTime" type="time" value="16:00"></label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <section class="card media-card">
+                    <h2>Ảnh & QR</h2>
+                    <p class="hint">Có thể dán link ảnh như cũ, hoặc chọn file để tự nén và upload Cloudinary. QR nên dùng nút cắt vuông để đúng khung hiển thị.</p>
+                    <div class="media-grid">
+                        <label>Ảnh đầu thiệp/ ảnh poster<input name="coverPosterImage" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh preview khi gửi link cho khách<input name="previewImage" placeholder="Ảnh ngang đẹp để hiện link Zalo/Facebook"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage"><button type="button" data-upload-button="previewImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh đôi (chỉ tải lên nếu dùng concept 1 hoặc 4 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input name="aboutImage" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage"><button type="button" data-upload-button="aboutImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh ở phần lịch trình<input name="timelineImage" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage"><button type="button" data-upload-button="timelineImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh đếm ngược đến ngày<input name="countdownImage" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage"><button type="button" data-upload-button="countdownImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh chú rể (chỉ tải lên nếu dùng concept 2 hoặc 3 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input name="groomAvatar" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <label>Ảnh cô dâu (chỉ tải lên nếu dùng concept 2 hoặc 3 trong phần ĐÔI NÉT VỀ CHÚNG TÔI)<input name="brideAvatar" placeholder="Dán link hoặc upload file"></label>
+                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+
+                        <div class="qr-upload" data-qr-box="giftGroomQr">
+                            <label>QR chú rể<input name="giftGroomQr" placeholder="Dán link QR hoặc upload file"></label>
+                            <div class="upload-row"><input type="file" accept="image/*" data-qr-input="giftGroomQr"><button type="button" data-upload-button="giftGroomQr"><i class="bi bi-crop"></i> Cắt & upload QR</button></div>
+                            <div class="grid two compact-grid">
+                                <label>Ngân hàng chú rể<input name="giftGroomBank" placeholder="vd: Vietcombank"></label>
+                                <label>Số tài khoản chú rể<input name="giftGroomAccountNumber" placeholder="vd: 0123456789"></label>
+                            </div>
+                            <label>Tên tài khoản chú rể<input name="giftGroomAccountName" placeholder="vd: NGUYỄN VĂN A"></label>
+                            <div class="qr-crop" hidden><canvas width="240" height="240"></canvas><label>Zoom<input type="range" min="1" max="2.5" step="0.05" value="1" data-qr-zoom></label><div class="grid two compact-grid"><label>Dịch ngang<input type="range" min="-100" max="100" step="1" value="0" data-qr-x></label><label>Dịch dọc<input type="range" min="-100" max="100" step="1" value="0" data-qr-y></label></div></div>
+                        </div>
+
+                        <div class="qr-upload" data-qr-box="giftBrideQr">
+                            <label>QR cô dâu<input name="giftBrideQr" placeholder="Dán link QR hoặc upload file"></label>
+                            <div class="upload-row"><input type="file" accept="image/*" data-qr-input="giftBrideQr"><button type="button" data-upload-button="giftBrideQr"><i class="bi bi-crop"></i> Cắt & upload QR</button></div>
+                            <div class="grid two compact-grid">
+                                <label>Ngân hàng cô dâu<input name="giftBrideBank" placeholder="vd: Techcombank"></label>
+                                <label>Số tài khoản cô dâu<input name="giftBrideAccountNumber" placeholder="vd: 9876543210"></label>
+                            </div>
+                            <label>Tên tài khoản cô dâu<input name="giftBrideAccountName" placeholder="vd: TRẦN THỊ B"></label>
+                            <div class="qr-crop" hidden><canvas width="240" height="240"></canvas><label>Zoom<input type="range" min="1" max="2.5" step="0.05" value="1" data-qr-zoom></label><div class="grid two compact-grid"><label>Dịch ngang<input type="range" min="-100" max="100" step="1" value="0" data-qr-x></label><label>Dịch dọc<input type="range" min="-100" max="100" step="1" value="0" data-qr-y></label></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card gallery-media-card">
+                    <h2>Gallery 7 ảnh</h2>
+                    <p class="hint">Dán link từng ảnh hoặc upload từng file. Ảnh sẽ được nén về kích thước hợp lý trước khi lưu Cloudinary.</p>
+                    <div id="builderGalleryFields" class="builder-gallery-fields"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Maps chỉ đường</h2>
+                    <p class="hint">Nhập từ khóa cần tìm, bấm mở Google Maps để kiểm tra. Có thể dùng link tự tạo hoặc dán link chia sẻ Maps chính xác hơn.</p>
+                    <div class="split-builder">
+                        <div class="mini-card">
+                            <h3>Nhà gái</h3>
+                            <label>Từ khóa tìm Maps nhà gái<input name="brideMapSearch" placeholder="vd: Nhà văn hóa thôn..., Hải Phòng"></label>
+                            <label>Link Maps nhà gái<input name="brideMapUrl" placeholder="Dán link chia sẻ Maps hoặc bấm nút bên dưới"></label>
+                            <div class="map-actions">
+                                <button type="button" class="map-button" data-map-role="bride"><i class="bi bi-search-heart-fill"></i> Tìm bằng từ khóa</button>
+                                <button type="button" class="map-button" data-map-picker="bride"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
+                            </div>
+                        </div>
+                        <div class="mini-card">
+                            <h3>Nhà trai</h3>
+                            <label>Từ khóa tìm Maps nhà trai<input name="groomMapSearch" placeholder="vd: Nhà văn hóa thôn..., Hải Phòng"></label>
+                            <label>Link Maps nhà trai<input name="groomMapUrl" placeholder="Dán link chia sẻ Maps hoặc bấm nút bên dưới"></label>
+                            <div class="map-actions">
+                                <button type="button" class="map-button" data-map-role="groom"><i class="bi bi-search-heart-fill"></i> Tìm bằng từ khóa</button>
+                                <button type="button" class="map-button" data-map-picker="groom"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
                             </div>
                         </div>
                     </div>
@@ -152,8 +234,33 @@
         </section>
     </div>
 
+
+    <div id="mapPickerModal" class="map-picker-modal" hidden>
+        <div class="map-picker-modal__backdrop" data-close-map-picker></div>
+        <section class="map-picker-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle">
+            <div class="map-picker-modal__header">
+                <div>
+                    <p>Chọn điểm chỉ đường</p>
+                    <h2 id="mapPickerTitle">Click đúng vị trí trên bản đồ</h2>
+                </div>
+                <button type="button" class="map-picker-modal__close" data-close-map-picker aria-label="Đóng bản đồ"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="map-picker-search">
+                <input id="mapPickerSearch" type="text" placeholder="Tìm khu vực gần đó, vd: tên xã, chùa, trường học, nhà văn hóa...">
+                <button type="button" id="mapPickerSearchBtn"><i class="bi bi-search"></i> Tìm</button>
+            </div>
+            <div id="mapPickerCanvas" class="map-picker-canvas"></div>
+            <p id="mapPickerHint" class="map-picker-hint">Có thể tìm khu vực gần đó, bật lớp vệ tinh nếu cần, rồi click đúng điểm nhà trai hoặc nhà gái và bấm lưu tọa độ.</p>
+            <div class="map-picker-modal__actions">
+                <button type="button" class="ghost" data-close-map-picker>Hủy</button>
+                <button type="button" id="saveMapPointBtn"><i class="bi bi-check2-circle"></i> Lưu điểm này</button>
+            </div>
+        </section>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="builder.js"></script>
 </body>
 </html>

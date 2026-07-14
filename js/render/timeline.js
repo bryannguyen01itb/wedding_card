@@ -1,6 +1,7 @@
 import { wedding } from "../config.js";
 import { createEl } from "../utils/dom.js";
 import { formatEventTime } from "../utils/date.js";
+import { setImageWithFallback } from "../utils/mediaFallback.js";
 
 const TIMELINE_ORDER = [
     { role: "bride", person: "bride", side: "NHÀ GÁI" },
@@ -22,7 +23,7 @@ function createTimelineEvent(title, time) {
 
 function createTimelineImage(label) {
     const img = document.createElement("img");
-    img.src = wedding.ceremony.image;
+    setImageWithFallback(img, wedding.ceremony.image, "timeline");
     img.alt = label;
     return img;
 }

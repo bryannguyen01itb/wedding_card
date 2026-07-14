@@ -1,3 +1,4 @@
+import { setImageWithFallback } from "./mediaFallback.js";
 export function $(id) {
     return document.getElementById(id);
 }
@@ -34,9 +35,16 @@ export function setSplitName(id, value) {
     });
 }
 
-export function setSrc(id, value) {
+export function setSrc(id, value, fallbackKey = "") {
     const el = $(id);
-    if (el) el.src = value;
+    if (!el) return;
+
+    if (fallbackKey) {
+        setImageWithFallback(el, value, fallbackKey);
+        return;
+    }
+
+    el.src = value;
 }
 
 export function bindClick(element, handler) {
