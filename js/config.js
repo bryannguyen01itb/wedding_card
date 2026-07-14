@@ -1,13 +1,42 @@
 /**
- * Cấu hình nội dung thiệp cưới.
- * Chỉnh sửa file này để thay đổi toàn bộ thông tin hiển thị trên thiệp.
+ * Cấu hình nội dung thiệp cưới (mẫu local + tham chiếu field Firebase).
+ *
+ * === Field MỚI / LƯU Ý khi sửa tay trên Firebase ===
+ *
+ * 1) Poster location theo nhà trai / nhà gái (2 link thiệp)
+ *    - ceremony.groom.location  — tỉnh/TP nhà trai (vd: "Hải Phòng" hoặc "HẢI PHÒNG, VIỆT NAM")
+ *    - ceremony.bride.location  — tỉnh/TP nhà gái (vd: "Hà Nội")
+ *    - Để trống → app lấy cụm cuối trong ceremony.*.address rồi uppercase + ", VIỆT NAM"
+ *    - (Đã bỏ wedding.location root — không dùng nữa)
+ *
+ * 2) Link thiệp sau thanh toán (không đoán được)
+ *    - payment.accessToken      — chuỗi hex 32 ký tự (random)
+ *    - payment.unlocked / payment.status — "paid" + unlocked:true mới mở thiệp public
+ *    - payment.amount, payment.currency — số tiền snapshot lúc tạo đơn
+ *    Link nhà trai:  /?t=<accessToken>&side=groom
+ *    Link nhà gái:   /?t=<accessToken>&side=bride
+ *    Link sửa:       /builder/?wedding=<weddingId>
+ *
+ * 3) Public ?wedding=<id> chỉ xem được khi đã paid (chống đoán id bỏ qua thanh toán)
  */
 export let wedding = {
     // --- Thông tin chung ---
     weddingId: "wedding-cp-4",
     date: "2026-09-12",
-    location: "HẢI PHÒNG, VIỆT NAM",
     music: "music/1_doi.mp3",
+
+    /**
+     * Thanh toán / mở khóa (Firebase: weddings/{id}.payment)
+     * Thêm tay khi cần test local hoặc sửa Firebase.
+     */
+    payment: {
+        status: "pending", // "pending" | "paid" | "locked"
+        unlocked: false,
+        amount: 99000,
+        currency: "VND",
+        /** Random 32 hex — generate khi lưu builder / admin mở khóa */
+        accessToken: ""
+    },
 
     // --- Thư viện nhạc local (folder music/) ---
     // Thêm file mp3 vào music/ rồi khai báo ở đây. Builder gộp thêm bài từ Firebase musicLibrary (Cloudinary).
@@ -206,7 +235,14 @@ export let wedding = {
                 title: "BỮA CƠM THÂN MẬT",
                 time: "17:00 • 11.09.2026"
             },
-            address: "Nhà gái - Thôn ABC, Xã DEF, Hải Phòng",
+            address: "Nhà gái - Thôn ABC, Xã DEF, Hà Nội",
+            /**
+             * NEW — Tỉnh/TP poster khi mở link ?side=bride
+             * Firebase path: ceremony.bride.location
+             * Ví dụ: "Hà Nội" → hiển thị "HÀ NỘI, VIỆT NAM"
+             * Để "" → suy ra từ address (phần sau dấu phẩy cuối)
+             */
+            location: "Hà Nội",
             mapUrl: "https://maps.app.goo.gl/YSFromJyb9d6s9wi6"
         },
         groom: {
@@ -217,6 +253,11 @@ export let wedding = {
                 time: "16:00 • 12.09.2026"
             },
             address: "Nhà trai - Thôn ABC, Xã DEF, Hải Phòng",
+            /**
+             * NEW — Tỉnh/TP poster khi mở link ?side=groom
+             * Firebase path: ceremony.groom.location
+             */
+            location: "Hải Phòng",
             mapUrl: "https://maps.app.goo.gl/kNT9o3enxq8bn2ow5"
         }
     },

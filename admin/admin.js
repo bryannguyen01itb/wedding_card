@@ -1,5 +1,6 @@
 import { wedding as fallbackWedding } from "../js/config.js";
 import { db } from "../js/firebase.js";
+import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/access.js";
 
 const DEFAULT_PRIMARY = "#c9974f";
 const DEFAULT_MEDIA_CONCEPT = "concept-1";
@@ -153,17 +154,22 @@ function fillGalleryFields() {
     });
 }
 
-function updatePreviewLink(weddingId) {
-    if (!weddingId) {
+function updatePreviewLink(weddingId, accessToken = "") {
+    if (!weddingId && !accessToken) {
         previewLink.textContent = "chưa có weddingId";
         previewLink.href = "#";
         return;
     }
 
-    const url = new URL("../index.html", window.location.href);
-    url.searchParams.set("wedding", weddingId);
-    previewLink.href = url.href;
-    previewLink.textContent = url.href;
+    // Link khách: ưu tiên token (?t=) — không đoán được từ weddingId
+    const token = accessToken || currentConfig?.payment?.accessToken || "";
+    const url = buildInvitationUrlFromBase(new URL("../index.html", window.location.href).href, {
+        accessToken: token,
+        // fallback weddingId chỉ khi chưa có token (thiệp cũ)
+        weddingId: token ? "" : weddingId
+    });
+    previewLink.href = url;
+    previewLink.textContent = url;
 }
 
 function getPaymentSettingAmount() {
@@ -181,12 +187,12 @@ function getPaymentSettingCurrency() {
 }
 
 function formatMoney(amount, currency = "VND") {
-    const rawAmount = amount ?? getPaymentSettingAmount();
-    if (rawAmount === undefined || rawAmount === null || rawAmount === "") {
+    // amount phải truyền từ wedding.payment; không fallback settings (tránh hiển thị sai)
+    if (amount === undefined || amount === null || amount === "") {
         return "Chưa đặt số tiền";
     }
 
-    const value = Number(rawAmount);
+    const value = Number(amount);
     if (Number.isNaN(value)) return "Chưa đặt số tiền";
     return new Intl.NumberFormat("vi-VN").format(value) + ` ${currency || getPaymentSettingCurrency() || "VND"}`;
 }
@@ -258,12 +264,21 @@ async function setWeddingPaymentStatus(status) {
     }
 
     const unlocked = status === "paid";
+    const prev = currentConfig.payment || {};
+    // Giữ amount/currency đã snapshot trên wedding; chỉ fallback settings nếu wedding chưa có
+    const amount = hasStoredAmount(prev.amount)
+        ? Number(prev.amount)
+        : (getPaymentSettingAmount() ?? 0);
+    const currency = prev.currency || getPaymentSettingCurrency() || "VND";
+    const accessToken = prev.accessToken || generateAccessToken();
+
     const payload = {
         payment: {
             status,
             unlocked,
-            amount: getPaymentSettingAmount() ?? Number(currentConfig.payment?.amount ?? 0),
-            currency: getPaymentSettingCurrency() || currentConfig.payment?.currency || "VND",
+            amount,
+            currency,
+            accessToken,
             confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }
@@ -273,12 +288,17 @@ async function setWeddingPaymentStatus(status) {
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
         currentConfig = mergeConfig(currentConfig, payload);
         updatePaymentWeddingInfo(currentConfig);
+        updatePreviewLink(weddingId, unlocked ? accessToken : "");
         await loadPaymentList();
         showToast(unlocked ? "Đã mở khóa thiệp cho khách." : "Đã cập nhật trạng thái chờ thanh toán.");
     } catch (error) {
         console.error(error);
         showToast("Không cập nhật được trạng thái thanh toán.", "error");
     }
+}
+
+function hasStoredAmount(amount) {
+    return amount !== undefined && amount !== null && amount !== "" && !Number.isNaN(Number(amount));
 }
 
 function getPaymentStatusLabel(payment = {}) {
@@ -342,22 +362,33 @@ async function loadPaymentList() {
 async function updateWeddingPaymentById(weddingId, status) {
     if (!weddingId) return;
     const unlocked = status === "paid";
-    const payload = {
-        payment: {
-            status,
-            unlocked,
-            amount: getPaymentSettingAmount(),
-            currency: getPaymentSettingCurrency(),
-            confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }
-    };
 
     try {
+        const doc = await db.collection("weddings").doc(weddingId).get();
+        const prev = doc.exists ? (doc.data().payment || {}) : {};
+        const amount = hasStoredAmount(prev.amount)
+            ? Number(prev.amount)
+            : (getPaymentSettingAmount() ?? 0);
+        const currency = prev.currency || getPaymentSettingCurrency() || "VND";
+        const accessToken = prev.accessToken || generateAccessToken();
+
+        const payload = {
+            payment: {
+                status,
+                unlocked,
+                amount,
+                currency,
+                accessToken,
+                confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }
+        };
+
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
         if (currentConfig.weddingId === weddingId) {
             currentConfig = mergeConfig(currentConfig, payload);
             updatePaymentWeddingInfo(currentConfig);
+            updatePreviewLink(weddingId, unlocked ? accessToken : "");
         }
         await loadPaymentList();
         showToast(unlocked ? `Đã mở khóa ${weddingId}.` : `Đã khóa ${weddingId}.`);
@@ -599,7 +630,7 @@ async function saveConfig(event) {
         await db.collection("weddings").doc(config.weddingId).set(config, { merge: true });
         currentConfig = config;
         loadInput.value = config.weddingId;
-        updatePreviewLink(config.weddingId);
+        updatePreviewLink(config.weddingId, config.payment?.accessToken || "");
         showToast("Đã lưu config lên Firebase.");
     } catch (error) {
         console.error(error);

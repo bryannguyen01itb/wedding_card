@@ -80,7 +80,7 @@ body[class*="block-"] .gift-description,
 body[class*="block-"] .thanks-content {
     color: #6f6a62 !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .24rem !important;
+    font-size: .32rem !important;
     font-weight: 400 !important;
     line-height: 1.7 !important;
     letter-spacing: 0 !important;
@@ -113,3 +113,79 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
 
 /* Nickname fonts: applied via JS inject (#theme-font-overrides) in js/utils/fonts.js
    so cover/poster hardcodes cannot pin everything to Great Vibes. */
+
+/* ============================================================
+   ABOUT + TIMELINE — sàn .3rem cho date/time & location
+   (body mặc định .28rem → .parent / address hay bị inherit nhỏ)
+   Title/name đang > .3rem giữ nguyên (không gộp vào rule này).
+   ============================================================ */
+
+/* About: tên cô dâu/chú rể — cỡ đọc rõ (mọi concept) */
+body .about .person-name,
+body[class*="block-about"] .about .person-name,
+.about .person-name,
+.about.block-skin-concept-1 .person-name,
+.about.block-skin-concept-2 .person-name,
+.about.block-skin-concept-3 .person-name,
+.about.block-skin-concept-4 .person-name,
+body .about.block-skin-concept-1 .person-name,
+body .about.block-skin-concept-2 .person-name,
+body .about.block-skin-concept-3 .person-name,
+body .about.block-skin-concept-4 .person-name {
+    font-size: .4rem !important;
+}
+
+/* About: bố mẹ — cỡ rõ, không inherit body .28rem */
+body .about .parent,
+body[class*="block-about"] .about .parent,
+.about .parent,
+.about.block-skin-concept-1 .parent,
+.about.block-skin-concept-2 .parent,
+.about.block-skin-concept-3 .parent,
+.about.block-skin-concept-4 .parent,
+body .about.block-skin-concept-1 .parent,
+body .about.block-skin-concept-2 .parent,
+body .about.block-skin-concept-3 .parent,
+body .about.block-skin-concept-4 .parent {
+    font-size: .34rem !important;
+}
+
+/* Timeline: giờ + địa chỉ — mọi concept layout */
+body .timeline .timeline-row span,
+body .timeline .timeline-address,
+body .timeline .timeline-address span,
+body .timeline .timeline-ritual-time,
+body .timeline .timeline-ritual-address,
+body .timeline .timeline-itin-meta,
+body .timeline .timeline-itin-place,
+body .timeline .timeline-itin-address,
+body .timeline .timeline-line-time,
+body .timeline .timeline-line-address,
+body[class*="block-timeline"] .timeline-row span,
+body[class*="block-timeline"] .timeline-address,
+body[class*="block-timeline"] .timeline-ritual-time,
+body[class*="block-timeline"] .timeline-ritual-address,
+body[class*="block-timeline"] .timeline-itin-meta,
+body[class*="block-timeline"] .timeline-itin-place,
+body[class*="block-timeline"] .timeline-itin-address,
+body[class*="block-timeline"] .timeline-line-time,
+body[class*="block-timeline"] .timeline-line-address,
+.timeline.block-skin-concept-1 .timeline-row span,
+.timeline.block-skin-concept-1 .timeline-address,
+.timeline.block-skin-concept-2 .timeline-row span,
+.timeline.block-skin-concept-2 .timeline-address,
+.timeline.block-skin-concept-3 .timeline-row span,
+.timeline.block-skin-concept-3 .timeline-address,
+.timeline.block-skin-concept-4 .timeline-row span,
+.timeline.block-skin-concept-4 .timeline-address,
+.timeline.block-skin-concept-4 .timeline-row,
+.timeline.block-skin-concept-4 .timeline-address,
+.timeline.block-skin-concept-5 .timeline-ritual-time,
+.timeline.block-skin-concept-5 .timeline-ritual-address,
+.timeline.block-skin-concept-6 .timeline-itin-meta,
+.timeline.block-skin-concept-6 .timeline-itin-place,
+.timeline.block-skin-concept-6 .timeline-itin-address,
+.timeline.block-skin-concept-7 .timeline-line-time,
+.timeline.block-skin-concept-7 .timeline-line-address {
+    font-size: .3rem !important;
+}

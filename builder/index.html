@@ -32,7 +32,6 @@
                         <label>Nickname chú rể<input name="groomNickname" value="Phạm Hùng" required></label>
                         <label>Nickname cô dâu<input name="brideNickname" value="Thanh Hằng" required></label>
                         <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
-                        <label>Tỉnh/Thành phố<input name="locationProvince" value="Hải Phòng" placeholder="vd: Hải Phòng"></label>
                         <label>Màu sắc thiệp<input name="primaryColor" type="color" value="#c9974f"></label>
                         <label>Nhạc nền (Liên hệ admin thêm bài yêu thích)<select name="music" id="musicSelect"></select></label>
                         <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
@@ -50,6 +49,7 @@
                             <label>Con ông<input name="groomFather" value="Nguyễn Văn C"></label>
                             <label>Và bà<input name="groomMother" value="Trần Thị D"></label>
                             <label>Địa chỉ nhà trai<textarea name="groomAddress" rows="2">Nhà trai - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
+                            <label>Tỉnh/TP nhà trai (poster)<input name="groomLocation" value="Hải Phòng" placeholder="vd: Hải Phòng — để trống sẽ lấy từ địa chỉ"></label>
                         </div>
                         <div class="mini-card">
                             <h3>Cô dâu</h3>
@@ -57,6 +57,7 @@
                             <label>Con ông<input name="brideFather" value="Trần Văn E"></label>
                             <label>Và bà<input name="brideMother" value="Nguyễn Thị F"></label>
                             <label>Địa chỉ nhà gái<textarea name="brideAddress" rows="2">Nhà gái - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
+                            <label>Tỉnh/TP nhà gái (poster)<input name="brideLocation" value="Hải Phòng" placeholder="vd: Hà Nội — để trống sẽ lấy từ địa chỉ"></label>
                         </div>
                     </div>
                     </div>
@@ -281,8 +282,9 @@
                 </div>
                 <p id="status" class="status"></p>
                 <div id="resultLinks" class="result-links" hidden>
-                    <p>Đã lưu thành công. Gửi cho khách link xem thiệp và link sửa thiệp bên dưới.</p>
-                    <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link xem thiệp</a>
+                    <p>Đã lưu thành công. Gửi link thiệp nhà trai / nhà gái (poster tỉnh/TP tương ứng) và link sửa thiệp.</p>
+                    <a id="invitationLinkGroom" href="#" target="_blank" rel="noopener noreferrer">Link thiệp nhà trai</a>
+                    <a id="invitationLinkBride" href="#" target="_blank" rel="noopener noreferrer">Link thiệp nhà gái</a>
                     <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sửa thiệp</a>
                 </div>
             </form>
@@ -309,9 +311,14 @@
             <h2 id="saveModalTitle">Vui lòng lưu lại link thiệp</h2>
             <div class="save-modal__links">
                 <div class="save-modal__link-card">
-                    <span>Link xem thiệp</span>
-                    <a id="modalInvitationLink" href="#" target="_blank" rel="noopener noreferrer"></a>
-                    <button id="copyInvitationLink" type="button"><i class="bi bi-copy"></i> Copy</button>
+                    <span>Link thiệp nhà trai</span>
+                    <a id="modalInvitationLinkGroom" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyInvitationLinkGroom" type="button"><i class="bi bi-copy"></i> Copy</button>
+                </div>
+                <div class="save-modal__link-card">
+                    <span>Link thiệp nhà gái</span>
+                    <a id="modalInvitationLinkBride" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyInvitationLinkBride" type="button"><i class="bi bi-copy"></i> Copy</button>
                 </div>
                 <div class="save-modal__link-card save-modal__link-card--important">
                     <span>Link sửa thiệp</span>
@@ -334,7 +341,7 @@
             <img id="paymentQrPreview" class="payment-modal__qr" alt="QR thanh toán" hidden>
             <div class="payment-modal__summary">
                 <div><span>Số tiền</span><strong id="paymentAmountText">Đang cập nhật</strong></div>
-                <div><span>Mã đơn</span><strong id="paymentWeddingIdText">-</strong></div>
+                <div><span>wedding id</span><strong id="paymentWeddingIdText">-</strong></div>
                 <div id="paymentReceiverRow" hidden><span>Thông tin nhận</span><strong id="paymentReceiverText"></strong></div>
             </div>
             <div class="save-modal__links">

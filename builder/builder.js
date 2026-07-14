@@ -8,6 +8,15 @@ import {
     populateBuilderBlockSelects,
     normalizeSkinId
 } from "../js/modules/index.js";
+import {
+    generateAccessToken,
+    isWeddingPaymentUnlocked,
+    buildInvitationUrlFromBase
+} from "../js/utils/access.js";
+import {
+    extractProvinceFromAddress,
+    formatPosterLocation
+} from "../js/utils/location.js";
 
 const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
@@ -17,12 +26,15 @@ const musicSelect = document.getElementById("musicSelect");
 const previewBtn = document.getElementById("previewBtn");
 const saveBtn = document.getElementById("saveBtn");
 const resultLinks = document.getElementById("resultLinks");
-const invitationLink = document.getElementById("invitationLink");
+const invitationLinkGroom = document.getElementById("invitationLinkGroom");
+const invitationLinkBride = document.getElementById("invitationLinkBride");
 const editLink = document.getElementById("editLink");
 const saveModal = document.getElementById("saveModal");
-const modalInvitationLink = document.getElementById("modalInvitationLink");
+const modalInvitationLinkGroom = document.getElementById("modalInvitationLinkGroom");
+const modalInvitationLinkBride = document.getElementById("modalInvitationLinkBride");
 const modalEditLink = document.getElementById("modalEditLink");
-const copyInvitationLink = document.getElementById("copyInvitationLink");
+const copyInvitationLinkGroom = document.getElementById("copyInvitationLinkGroom");
+const copyInvitationLinkBride = document.getElementById("copyInvitationLinkBride");
 const copyEditLink = document.getElementById("copyEditLink");
 const paymentModal = document.getElementById("paymentModal");
 const paymentQrPreview = document.getElementById("paymentQrPreview");
@@ -158,18 +170,27 @@ function splitMealTime(value) {
 }
 
 function normalizeLocationProvince(value) {
-    const province = String(value || "")
-        .replace(/,?\s*vi[eệ]t\s*nam\s*$/i, "")
-        .trim()
-        .toLocaleUpperCase("vi-VN");
-
-    return province ? `${province}, VIỆT NAM` : fallbackWedding.location;
+    return formatPosterLocation(value) || "VIỆT NAM";
 }
 
 function getProvinceFromLocation(value) {
+    // Ô input builder: chỉ tỉnh/TP, không kèm ", VIỆT NAM"
+    const fromFormat = extractProvinceFromAddress(String(value || "").replace(/,?\s*VIỆT\s*NAM\s*$/i, ""));
+    if (fromFormat) return fromFormat;
     return String(value || "")
         .replace(/,?\s*VIỆT\s*NAM\s*$/i, "")
         .trim();
+}
+
+/** Resolve tỉnh/TP: field riêng → extract address → fallback config house */
+function resolveHouseLocationInput(data, houseKey, addressField, locationField) {
+    const explicit = readText(data, locationField);
+    if (explicit) return formatPosterLocation(explicit);
+
+    const fromAddress = formatPosterLocation(readText(data, addressField));
+    if (fromAddress) return fromAddress;
+
+    return formatPosterLocation(fallbackWedding.ceremony?.[houseKey]?.location) || "VIỆT NAM";
 }
 
 function readText(data, name) {
@@ -335,10 +356,16 @@ function markWeddingEditable() {
     setBuilderLocked(false);
 }
 
-function buildInvitationUrl(weddingId) {
-    const url = new URL("../", window.location.href);
-    url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
-    return url.toString();
+function getWeddingAccessToken(config = loadedWeddingConfig) {
+    return String(config?.payment?.accessToken || "").trim();
+}
+
+function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), side = "") {
+    return buildInvitationUrlFromBase(new URL("../", window.location.href).href, {
+        accessToken,
+        weddingId,
+        side
+    });
 }
 
 function buildEditUrl(weddingId) {
@@ -356,41 +383,63 @@ function applyLink(anchor, url) {
     anchor.textContent = url;
 }
 
-function getShareUrls(weddingId) {
+function getShareUrls(weddingId, accessToken = getWeddingAccessToken()) {
     return {
-        invitationUrl: buildInvitationUrl(weddingId),
+        invitationUrlGroom: buildInvitationUrl(weddingId, accessToken, "groom"),
+        invitationUrlBride: buildInvitationUrl(weddingId, accessToken, "bride"),
         editUrl: buildEditUrl(weddingId)
     };
 }
 
-function updateResultLinks(weddingId) {
-    if (!weddingId || !resultLinks || !invitationLink || !editLink) {
+function updateResultLinks(weddingId, accessToken = getWeddingAccessToken()) {
+    if (!weddingId || !resultLinks || !editLink) {
         return;
     }
 
-    const { invitationUrl, editUrl } = getShareUrls(weddingId);
+    const { invitationUrlGroom, invitationUrlBride, editUrl } = getShareUrls(weddingId, accessToken);
 
-    applyLink(invitationLink, invitationUrl);
+    applyLink(invitationLinkGroom, invitationUrlGroom);
+    applyLink(invitationLinkBride, invitationUrlBride);
     applyLink(editLink, editUrl);
-    applyLink(modalInvitationLink, invitationUrl);
+    applyLink(modalInvitationLinkGroom, invitationUrlGroom);
+    applyLink(modalInvitationLinkBride, invitationUrlBride);
     applyLink(modalEditLink, editUrl);
     resultLinks.hidden = false;
 }
 
-function hasPaymentAmount(settings = paymentSettings) {
-    return settings.amount !== undefined && settings.amount !== null && settings.amount !== "";
+function hasPaymentAmount(source = {}) {
+    return source.amount !== undefined && source.amount !== null && source.amount !== "";
 }
 
-function formatPaymentAmount(settings = paymentSettings) {
-    if (!hasPaymentAmount(settings)) return "Chưa cấu hình số tiền";
+/** Ưu tiên amount gắn trên wedding.payment; fallback settings global */
+function resolvePaymentAmountSource(config = loadedWeddingConfig) {
+    const weddingPayment = config?.payment || {};
+    if (hasPaymentAmount(weddingPayment)) {
+        return {
+            amount: Number(weddingPayment.amount),
+            currency: weddingPayment.currency || paymentSettings.currency || "VND"
+        };
+    }
+    if (hasPaymentAmount(paymentSettings)) {
+        return {
+            amount: Number(paymentSettings.amount),
+            currency: paymentSettings.currency || "VND"
+        };
+    }
+    return null;
+}
 
-    const amount = Number(settings.amount);
-    if (Number.isNaN(amount)) return "Chưa cấu hình số tiền";
-    return new Intl.NumberFormat("vi-VN").format(amount) + ` ${settings.currency || "VND"}`;
+function formatPaymentAmount(source) {
+    const resolved = source && hasPaymentAmount(source)
+        ? { amount: Number(source.amount), currency: source.currency || "VND" }
+        : resolvePaymentAmountSource();
+
+    if (!resolved || Number.isNaN(resolved.amount)) return "Chưa cấu hình số tiền";
+    return new Intl.NumberFormat("vi-VN").format(resolved.amount) + ` ${resolved.currency || "VND"}`;
 }
 
 function isPaymentUnlocked(config = loadedWeddingConfig) {
-    return config.payment?.unlocked === true || config.payment?.status === "paid";
+    return isWeddingPaymentUnlocked(config.payment);
 }
 
 function hidePaymentModal() {
@@ -406,7 +455,8 @@ function showPaymentModal(weddingId) {
 
     const { editUrl } = getShareUrls(weddingId);
     paymentWeddingIdText.textContent = weddingId;
-    paymentAmountText.textContent = formatPaymentAmount();
+    // Số tiền theo payment của wedding này (đã snapshot lúc lưu), không đọc settings live
+    paymentAmountText.textContent = formatPaymentAmount(resolvePaymentAmountSource(loadedWeddingConfig));
     paymentMessageText.textContent = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
     applyLink(paymentEditLink, editUrl);
 
@@ -438,22 +488,30 @@ function showPaymentModal(weddingId) {
     document.body.classList.add("modal-open");
 }
 
-function showUnlockedLinks(weddingId) {
+function showUnlockedLinks(weddingId, accessToken = getWeddingAccessToken()) {
     hidePaymentModal();
+    updateResultLinks(weddingId, accessToken);
     showSaveModal(weddingId);
 }
 
 function buildPendingPayment(weddingId) {
     const current = loadedWeddingConfig.payment || {};
     if (current.unlocked === true || current.status === "paid") {
-        return current;
+        // Giữ amount + token đã có; chỉ bổ sung token nếu thiếu
+        if (current.accessToken) return current;
+        return {
+            ...current,
+            accessToken: generateAccessToken()
+        };
     }
 
     return {
         status: "pending",
         unlocked: false,
+        // Snapshot số tiền settings tại thời điểm tạo đơn — không đổi khi admin sửa settings sau
         amount: hasPaymentAmount(paymentSettings) ? Number(paymentSettings.amount) : 0,
         currency: paymentSettings.currency || "VND",
+        accessToken: current.accessToken || generateAccessToken(),
         weddingId,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -472,7 +530,7 @@ function listenWeddingPayment(weddingId) {
         loadedWeddingConfig = mergeConfig(loadedWeddingConfig, data);
         if (data.payment?.unlocked === true || data.payment?.status === "paid") {
             setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
-            showUnlockedLinks(weddingId);
+            showUnlockedLinks(weddingId, data.payment?.accessToken || "");
         }
     });
 }
@@ -917,7 +975,6 @@ function createCustomerConfig() {
     return {
         weddingId: builderTheme.weddingId,
         date: builderTheme.date,
-        location: normalizeLocationProvince(data.get("locationProvince")),
         music: readText(data, "music") || loadedWeddingConfig.music || fallbackWedding.music,
         theme: {
             ...builderTheme.theme,
@@ -1006,6 +1063,7 @@ function createCustomerConfig() {
                     || "LỄ VU QUY",
                 time: readText(data, "brideCeremonyTime"),
                 address: readText(data, "brideAddress"),
+                location: resolveHouseLocationInput(data, "bride", "brideAddress", "brideLocation"),
                 mapUrl: readText(data, "brideMapUrl"),
                 meal: {
                     title: readText(data, "brideMealTitle")
@@ -1022,6 +1080,7 @@ function createCustomerConfig() {
                     || "LỄ THÀNH HÔN",
                 time: readText(data, "groomCeremonyTime"),
                 address: readText(data, "groomAddress"),
+                location: resolveHouseLocationInput(data, "groom", "groomAddress", "groomLocation"),
                 mapUrl: readText(data, "groomMapUrl"),
                 meal: {
                     title: readText(data, "groomMealTitle")
@@ -1224,10 +1283,20 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideMother", config.bride?.mother);
     setControlValue("groomAddress", config.ceremony?.groom?.address);
     setControlValue("brideAddress", config.ceremony?.bride?.address);
+    setControlValue(
+        "groomLocation",
+        getProvinceFromLocation(config.ceremony?.groom?.location)
+            || extractProvinceFromAddress(config.ceremony?.groom?.address)
+    );
+    setControlValue(
+        "brideLocation",
+        getProvinceFromLocation(config.ceremony?.bride?.location)
+            || extractProvinceFromAddress(config.ceremony?.bride?.address)
+    );
     setControlValue("groomMapUrl", config.ceremony?.groom?.mapUrl);
     setControlValue("brideMapUrl", config.ceremony?.bride?.mapUrl);
     setControlValue("date", config.date);
-    setControlValue("locationProvince", getProvinceFromLocation(config.location));
+
     setControlValue("primaryColor", theme.primaryColor);
     populateMusicOptions(config);
     setControlValue("music", config.music);
@@ -1887,8 +1956,12 @@ if (saveModal) {
     });
 }
 
-copyInvitationLink?.addEventListener("click", () => {
-    copyText(modalInvitationLink?.href || "", copyInvitationLink);
+copyInvitationLinkGroom?.addEventListener("click", () => {
+    copyText(modalInvitationLinkGroom?.href || "", copyInvitationLinkGroom);
+});
+
+copyInvitationLinkBride?.addEventListener("click", () => {
+    copyText(modalInvitationLinkBride?.href || "", copyInvitationLinkBride);
 });
 
 copyEditLink?.addEventListener("click", () => {

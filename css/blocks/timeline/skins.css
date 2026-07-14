@@ -113,7 +113,7 @@ body .timeline.block-skin-concept-2 .timeline-name {
 text-align: left;
     color: var(--botanical-ink);
     font-family: "Lora", Georgia, serif;
-    font-size: .28rem;
+    font-size: .3rem;
     font-weight: 700;
     line-height: 1.25;
     margin-bottom: .1rem;
@@ -136,8 +136,10 @@ color: var(--botanical-rose);
 }
 
 body .timeline.block-skin-concept-2 .timeline-row span {
-color: var(--botanical-muted);
-    font-size: .23rem;
+/* đậm hơn botanical-muted (nhìn rõ time/location) */
+color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%);
+    font-size: .3rem;
+    font-weight: 600;
     line-height: 1.45;
 }
 
@@ -145,6 +147,12 @@ body .timeline.block-skin-concept-2 .timeline-address {
 margin-top: .18rem;
     padding-top: .18rem;
     border-top: 1px dashed rgba(var(--botanical-leaf-rgb), .28);
+    color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%);
+}
+
+body .timeline.block-skin-concept-2 .timeline-address span {
+color: inherit;
+    font-weight: 600;
 }
 
 body .timeline.block-skin-concept-2 .timeline-map-link {
@@ -242,7 +250,7 @@ border-left: 0;
 body .timeline.block-skin-concept-3 .timeline-name {
 color: var(--sunset-ink);
     font-family: "Quicksand", Arial, sans-serif;
-    font-size: .25rem;
+    font-size: .3rem;
     font-weight: 800;
     letter-spacing: .02rem;
     text-align: left;
@@ -257,16 +265,24 @@ justify-content: flex-start;
 
 body .timeline.block-skin-concept-3 .timeline-row i {
 color: var(--sunset-coral);
-    font-size: .26rem;
+    font-size: .3rem;
 }
 
 body .timeline.block-skin-concept-3 .timeline-row span {
-color: var(--sunset-muted);
-    font-size: .23rem;
+/* đậm hơn sunset-muted */
+color: color-mix(in srgb, var(--sunset-ink, #34283d) 70%, var(--sunset-muted, #7d7186) 30%);
+    font-size: .3rem;
+    font-weight: 600;
 }
 
 body .timeline.block-skin-concept-3 .timeline-address {
 border-top: 1px dashed rgba(var(--sunset-coral-rgb), .25);
+    color: color-mix(in srgb, var(--sunset-ink, #34283d) 70%, var(--sunset-muted, #7d7186) 30%);
+}
+
+body .timeline.block-skin-concept-3 .timeline-address span {
+color: inherit;
+    font-weight: 600;
 }
 
 body .timeline.block-skin-concept-3 .timeline-map-link {
@@ -333,7 +349,7 @@ position: absolute;
     color: var(--na01-gold);
     background: var(--na01-paper);
     font-family: "Philosopher", serif;
-    font-size: .2rem;
+    font-size: .3rem;
     text-align: center;
 }
 
@@ -364,7 +380,7 @@ padding: .18rem .2rem;
 body .timeline.block-skin-concept-4 .timeline-name {
 color: var(--na01-gold);
     font-family: "Lora", Georgia, serif;
-    font-size: .27rem;
+    font-size: .3rem;
     font-weight: 500;
     line-height: 1.35;
 }
@@ -377,7 +393,7 @@ display: flex;
     margin-top: .16rem;
     color: var(--na01-gold);
     font-family: "Philosopher", serif;
-    font-size: .23rem;
+    font-size: .3rem;
     line-height: 1.45;
 }
 
@@ -414,12 +430,12 @@ gap: .26rem;
 }
 
 body .timeline.block-skin-concept-4 .timeline-name {
-font-size: .23rem;
+font-size: .3rem;
 }
 
 body .timeline.block-skin-concept-4 .timeline-row,
 body .timeline.block-skin-concept-4 .timeline-address {
-font-size: .2rem;
+font-size: .3rem;
 }
 
 
@@ -486,7 +502,7 @@ font-size: .2rem;
     color: var(--na01-gold, #928362) !important;
     background: var(--na01-paper, #fffdf8) !important;
     font-family: "Philosopher", serif !important;
-    font-size: .2rem !important;
+    font-size: .3rem !important;
     text-align: center !important;
 }
 
@@ -599,7 +615,7 @@ body.block-timeline-concept-5 .timeline-card--ritual .timeline-side-badge,
     border: 1px solid rgba(160, 120, 80, .35) !important;
     color: #8b6b45 !important;
     font-family: "Lora", Georgia, serif !important;
-    font-size: .18rem !important;
+    font-size: .3rem !important;
     font-weight: 600 !important;
     letter-spacing: .14rem !important;
     text-align: center !important;
@@ -689,7 +705,7 @@ body.block-timeline-concept-5 .timeline-ritual-time,
 .timeline.block-skin-concept-5 .timeline-ritual-time {
     color: #6a5c4e;
     font-family: "Lora", Georgia, serif;
-    font-size: .22rem;
+    font-size: .3rem;
     font-weight: 600;
     letter-spacing: .06rem;
     line-height: 1.35;
@@ -700,7 +716,7 @@ body.block-timeline-concept-5 .timeline-ritual-title,
 .timeline.block-skin-concept-5 .timeline-ritual-title {
     color: #3d342c;
     font-family: "Lora", Georgia, serif;
-    font-size: .26rem;
+    font-size: .3rem;
     font-weight: 600;
     letter-spacing: .1rem;
     line-height: 1.35;
@@ -728,7 +744,7 @@ body.block-timeline-concept-5 .timeline-ritual-address,
     border-top: 1px dashed rgba(160, 130, 100, .28);
     color: #7a6e62;
     font-family: "Quicksand", sans-serif;
-    font-size: .22rem;
+    font-size: .3rem;
     font-weight: 600;
     line-height: 1.45;
     text-align: center;
@@ -739,7 +755,7 @@ body.block-timeline-concept-5 .timeline-ritual-address i,
     flex: 0 0 auto;
     margin-top: .02rem;
     color: #b07850;
-    font-size: .2rem;
+    font-size: .3rem;
 }
 
 body.block-timeline-concept-5 .timeline-ritual-map,
@@ -759,7 +775,7 @@ body.block-timeline-concept-5 .timeline-card--ritual .timeline-map-link,
     border: 1px solid rgba(176, 120, 80, .35) !important;
     background: rgba(255, 255, 255, .75) !important;
     color: #8b6b45 !important;
-    font-size: .18rem !important;
+    font-size: .3rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;
 }
@@ -833,7 +849,7 @@ body.block-timeline-concept-6 .timeline-card--itin + .timeline-card--itin::befor
     border-radius: 50%;
     background: var(--theme-page-bg, #f6f2eb);
     color: var(--primary-color);
-    font-size: .22rem;
+    font-size: .3rem;
     line-height: 1;
     box-shadow: 0 0 0 3px var(--theme-page-bg, #f6f2eb);
 }
@@ -868,7 +884,7 @@ body.block-timeline-concept-6 .timeline-card--itin .timeline-side-badge,
     background: rgba(var(--primary-rgb), .12) !important;
     color: var(--primary-color) !important;
     font-family: "Lora", Georgia, serif !important;
-    font-size: .18rem !important;
+    font-size: .3rem !important;
     font-weight: 700 !important;
     letter-spacing: .14rem !important;
     text-align: center !important;
@@ -933,7 +949,7 @@ body.block-timeline-concept-6 .timeline-itin-meta,
 .timeline.block-skin-concept-6 .timeline-itin-meta {
     color: rgba(var(--primary-rgb), .82);
     font-family: "Quicksand", "Nunito Sans", sans-serif;
-    font-size: .2rem;
+    font-size: .3rem;
     font-weight: 700;
     letter-spacing: .02rem;
     line-height: 1.35;
@@ -945,7 +961,7 @@ body.block-timeline-concept-6 .timeline-itin-place,
 .timeline.block-skin-concept-6 .timeline-itin-place {
     color: rgba(var(--primary-rgb), .68);
     font-family: "Quicksand", "Nunito Sans", sans-serif;
-    font-size: .21rem;
+    font-size: .3rem;
     font-weight: 600;
     letter-spacing: .01rem;
     line-height: 1.4;
@@ -966,7 +982,7 @@ body.block-timeline-concept-6 .timeline-itin-address,
     border-top: 1px dashed rgba(var(--primary-rgb), .22);
     color: rgba(var(--primary-rgb), .78);
     font-family: "Quicksand", "Nunito Sans", sans-serif;
-    font-size: .21rem;
+    font-size: .3rem;
     font-weight: 600;
     line-height: 1.45;
     text-align: center;
@@ -977,7 +993,7 @@ body.block-timeline-concept-6 .timeline-itin-address i,
     flex: 0 0 auto;
     margin-top: .02rem;
     color: var(--primary-color);
-    font-size: .2rem;
+    font-size: .3rem;
 }
 
 body.block-timeline-concept-6 .timeline-itin-icon,
@@ -1008,7 +1024,7 @@ body.block-timeline-concept-6 .timeline-card--itin .timeline-map-link,
     border: 1px solid rgba(var(--primary-rgb), .32) !important;
     background: rgba(var(--primary-rgb), .08) !important;
     color: var(--primary-color) !important;
-    font-size: .16rem !important;
+    font-size: .3rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;
 }
@@ -1093,7 +1109,7 @@ body.block-timeline-concept-7 .timeline-card--line .timeline-side-badge,
     background: rgba(var(--primary-rgb), .1) !important;
     color: var(--primary-color) !important;
     font-family: "Lora", Georgia, serif !important;
-    font-size: .17rem !important;
+    font-size: .3rem !important;
     font-weight: 700 !important;
     letter-spacing: .14rem !important;
     text-align: center !important;
@@ -1195,7 +1211,7 @@ body.block-timeline-concept-7 .timeline-line-time,
 .timeline.block-skin-concept-7 .timeline-line-time {
     color: rgba(var(--primary-rgb), .9);
     font-family: "Quicksand", "Nunito Sans", sans-serif;
-    font-size: .2rem;
+    font-size: .3rem;
     font-weight: 800;
     letter-spacing: .03rem;
     line-height: 1.3;
@@ -1207,7 +1223,7 @@ body.block-timeline-concept-7 .timeline-line-title,
     margin-top: .04rem;
     color: #2f2a25;
     font-family: "Lora", Georgia, serif;
-    font-size: .24rem;
+    font-size: .3rem;
     font-weight: 700;
     letter-spacing: .06rem;
     line-height: 1.35;
@@ -1228,7 +1244,7 @@ body.block-timeline-concept-7 .timeline-line-address,
     border-top: 1px dashed rgba(var(--primary-rgb), .22);
     color: rgba(var(--primary-rgb), .8);
     font-family: "Quicksand", sans-serif;
-    font-size: .21rem;
+    font-size: .3rem;
     font-weight: 600;
     line-height: 1.45;
     text-align: center;
@@ -1239,7 +1255,7 @@ body.block-timeline-concept-7 .timeline-line-address i,
     flex: 0 0 auto;
     margin-top: .02rem;
     color: var(--primary-color);
-    font-size: .2rem;
+    font-size: .3rem;
 }
 
 body.block-timeline-concept-7 .timeline-line-map,
@@ -1257,7 +1273,7 @@ body.block-timeline-concept-7 .timeline-card--line .timeline-map-link,
     border: 1px solid rgba(var(--primary-rgb), .3) !important;
     background: rgba(var(--primary-rgb), .08) !important;
     color: var(--primary-color) !important;
-    font-size: .16rem !important;
+    font-size: .3rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;
 }

@@ -106,7 +106,7 @@ Cac nhom config hay sua:
 | --- | --- |
 | `weddingId` | Ma rieng cua thiep |
 | `date` | Ngay cuoi dang `YYYY-MM-DD` |
-| `location` | Dia diem hien o poster |
+| `ceremony.groom.location` / `ceremony.bride.location` | Tinh/TP poster theo nha trai / nha gai (`?side=groom|bride`) |
 | `music` | Link nhac local/GitHub Release/Cloudinary |
 | `preview.image` | Anh preview khi gui link |
 | `theme.primaryColor` | Mau chu dao |

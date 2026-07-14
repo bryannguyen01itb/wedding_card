@@ -329,7 +329,7 @@ body .about.block-skin-concept-2 .parent {
 body .about.block-skin-concept-2 .person-name {
     margin: 0 0 .08rem !important;
     color: var(--botanical-leaf) !important;
-    font: 600 .38rem/1.25 "Lora", Georgia, serif !important;
+    font: 600 .4rem/1.25 "Lora", Georgia, serif !important;
 }
 
 body .about.block-skin-concept-2 .person-name::before {
@@ -338,7 +338,7 @@ body .about.block-skin-concept-2 .person-name::before {
 
 body .about.block-skin-concept-2 .parent {
     color: var(--botanical-muted) !important;
-    font-size: .23rem !important;
+    font-size: .34rem !important;
 }
 
 body .about.block-skin-concept-3 .person {
@@ -378,7 +378,7 @@ body .about.block-skin-concept-3 .person img {
 body .about.block-skin-concept-3 .person-name {
     margin-top: .28rem !important;
     color: var(--sunset-coral) !important;
-    font: 800 .36rem/1.25 "Quicksand", Arial, sans-serif !important;
+    font: 800 .4rem/1.25 "Quicksand", Arial, sans-serif !important;
     text-transform: none !important;
 }
 
@@ -388,6 +388,8 @@ body .about.block-skin-concept-3 .person-name::before {
 
 body .about.block-skin-concept-3 .parent {
     color: var(--sunset-muted) !important;
+    font-size: .34rem !important;
+    line-height: 1.55 !important;
 }
 
 body .timeline.block-skin-concept-2 {
@@ -445,7 +447,7 @@ body .timeline.block-skin-concept-2 .timeline-event {
 
 body .timeline.block-skin-concept-2 .timeline-name {
     color: var(--botanical-ink) !important;
-    font: 700 .28rem/1.25 "Lora", Georgia, serif !important;
+    font: 700 .3rem/1.25 "Lora", Georgia, serif !important;
     text-align: left !important;
 }
 
@@ -461,8 +463,9 @@ body .timeline.block-skin-concept-2 .timeline-row i {
 
 body .timeline.block-skin-concept-2 .timeline-row span,
 body .timeline.block-skin-concept-2 .timeline-address {
-    color: var(--botanical-muted) !important;
-    font-size: .23rem !important;
+    color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%) !important;
+    font-size: .3rem !important;
+    font-weight: 600 !important;
 }
 
 /* Hard isolation layer: stop concept 1 pieces leaking into concept 2/3 block skins. */

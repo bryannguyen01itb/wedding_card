@@ -519,14 +519,14 @@ body.block-save-date-concept-3 .save-date-couple-names,
     justify-content: center;
     min-height: .55rem;
     margin: .08rem auto 0;
-    padding: .14rem .38rem;
+    padding: .16rem .42rem;
     border: 1.5px solid color-mix(in srgb, var(--primary-color) 72%, #2a221c 28%);
     border-radius: .04rem;
     color: color-mix(in srgb, var(--primary-color) 74%, #1c1612 26%);
     font-family: "Lora", Georgia, serif;
-    font-size: .18rem;
+    font-size: .28rem;
     font-weight: 500;
-    letter-spacing: .14rem;
+    letter-spacing: .12rem;
     line-height: 1.2;
     text-transform: uppercase;
     text-align: center;
@@ -554,25 +554,26 @@ body.block-save-date-concept-4 .save-date,
     overflow: hidden;
 }
 
-/* "you're invited..." — CHỈ 1 dòng, trên cùng, size lớn hơn */
+/* "you're invited..." — trên cùng, cỡ đọc rõ */
 body.block-save-date-concept-4 .save-date-eyebrow,
-.save-date.block-skin-concept-4 .save-date-eyebrow {
+.save-date.block-skin-concept-4 .save-date-eyebrow,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-date-eyebrow {
     position: relative;
     z-index: 2;
     order: -2;
-    display: block;
+    display: block !important;
     width: 100%;
-    max-width: 8rem;
-    margin: 0 auto .2rem;
-    padding: 0 .2rem;
-    color: color-mix(in srgb, var(--primary-color) 48%, #8d7c58 52%);
-    font-family: "Quicksand", "Nunito Sans", system-ui, sans-serif;
-    font-size: .24rem;
-    font-weight: 400;
-    line-height: 1.4;
-    letter-spacing: .05em;
-    text-transform: lowercase;
-    text-align: center;
+    max-width: 9rem;
+    margin: 0 auto .28rem !important;
+    padding: 0 .2rem !important;
+    color: color-mix(in srgb, var(--primary-color) 55%, #3a322c 45%) !important;
+    font-family: "Quicksand", "Nunito Sans", system-ui, sans-serif !important;
+    font-size: .36rem !important;
+    font-weight: 600 !important;
+    line-height: 1.45 !important;
+    letter-spacing: .04em !important;
+    text-transform: lowercase !important;
+    text-align: center !important;
 }
 
 /* Watermark ngày lớn — nổi, ~2/3 phía trên không bị script che */
@@ -630,28 +631,27 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
     padding: 0 !important;
 }
 
-/* Script "Save the Date" — chỉ che ~1/3 DƯỚI của watermark date */
+/* Script "Save the Date" — đè phần dưới watermark, to hơn */
 body.block-save-date-concept-4 .save-date-script,
-.save-date.block-skin-concept-4 .save-date-script {
+.save-date.block-skin-concept-4 .save-date-script,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-date-script {
     position: absolute;
     z-index: 1;
-    /* watermark top 1.7rem + ~65% chiều cao date → script nằm đáy date */
-    top: calc(1.7rem + clamp(.9rem, 13vw, 1.55rem));
+    top: calc(1.7rem + clamp(.85rem, 12vw, 1.45rem));
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
     padding: 0 .1rem;
     max-width: 100%;
-    color: color-mix(in srgb, var(--primary-color) 45%, #2a2420 55%);
-    font-family: var(--font-nickname, "Great Vibes", cursive);
-    /* cỡ ~1/3 watermark để 2/3 trên của date vẫn lộ */
-    font-size: clamp(.62rem, 9.2vw, .98rem);
-    font-weight: 400;
-    font-style: normal;
-    letter-spacing: .005em;
-    line-height: 1;
-    text-transform: none;
-    text-align: center;
+    color: color-mix(in srgb, var(--primary-color) 45%, #2a2420 55%) !important;
+    font-family: var(--font-nickname, "Great Vibes", cursive) !important;
+    font-size: clamp(.78rem, 11.5vw, 1.2rem) !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    letter-spacing: .005em !important;
+    line-height: 1 !important;
+    text-transform: none !important;
+    text-align: center !important;
     white-space: nowrap;
     -webkit-text-stroke: .2px color-mix(in srgb, var(--primary-color) 28%, transparent);
     text-shadow: 0 .02rem .1rem rgba(var(--primary-rgb), .1);
@@ -687,56 +687,59 @@ body.block-save-date-concept-4 .section-subtitle[hidden],
     display: none !important;
 }
 
-/* Tên cặp — plain, đẩy xuống dưới stage watermark+script */
+/* Tên cặp — .4rem */
 body.block-save-date-concept-4 .save-date-couple-names,
-.save-date.block-skin-concept-4 .save-date-couple-names {
+.save-date.block-skin-concept-4 .save-date-couple-names,
+body[class*="block-"] .save-date.block-skin-concept-4 .save-date-couple-names {
     position: relative;
     z-index: 1;
-    display: block;
-    /* clear absolute watermark (~1.7 + 2.4) + script thrish */
-    margin: 3.15rem auto .18rem;
-    padding: 0;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    color: color-mix(in srgb, var(--primary-color) 38%, #4a4038 62%);
-    font-family: "Lora", Georgia, "Times New Roman", serif;
-    font-size: .28rem;
-    font-weight: 400;
-    letter-spacing: .04em;
-    line-height: 1.25;
-    text-transform: none;
-    text-align: center;
+    display: block !important;
+    margin: 3.25rem auto .22rem !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: color-mix(in srgb, var(--primary-color) 42%, #3a322c 58%) !important;
+    font-family: "Lora", Georgia, "Times New Roman", serif !important;
+    font-size: .4rem !important;
+    font-weight: 500 !important;
+    letter-spacing: .04em !important;
+    line-height: 1.25 !important;
+    text-transform: none !important;
+    text-align: center !important;
 }
 
-/* Dòng ngày nhỏ: JANUARY 8, 2025 */
+/* Dòng ngày SEPTEMBER… — .3rem */
 body.block-save-date-concept-4 .month-year,
 body.block-save-date-concept-4 .month-year.save-date-full-date,
-.save-date.block-skin-concept-4 .month-year {
+.save-date.block-skin-concept-4 .month-year,
+body[class*="block-"] .save-date.block-skin-concept-4 .month-year {
     position: relative;
     z-index: 1;
     display: flex !important;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-    margin: .06rem 0 0 !important;
-    color: color-mix(in srgb, var(--primary-color) 32%, #8a7e72 68%);
-    font-family: "Lora", Georgia, serif;
-    font-size: .14rem;
-    font-weight: 500;
-    letter-spacing: .16em;
-    line-height: 1.3;
-    text-transform: uppercase;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0 !important;
+    margin: .12rem 0 0 !important;
+    color: color-mix(in srgb, var(--primary-color) 48%, #2f2a25 52%) !important;
+    font-family: "Lora", Georgia, serif !important;
+    font-size: .3rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .1em !important;
+    line-height: 1.35 !important;
+    text-transform: uppercase !important;
 }
 
 body.block-save-date-concept-4 .month-year #month,
-.save-date.block-skin-concept-4 .month-year #month {
+.save-date.block-skin-concept-4 .month-year #month,
+body[class*="block-"] .save-date.block-skin-concept-4 .month-year #month {
     display: inline !important;
-    margin: 0;
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
+    margin: 0 !important;
+    color: inherit !important;
+    font: inherit !important;
+    font-size: inherit !important;
+    letter-spacing: inherit !important;
 }
 
 body.block-save-date-concept-4 .month-year .dot,

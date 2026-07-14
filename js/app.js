@@ -1,4 +1,4 @@
-import { loadWeddingConfig, getWeddingIdFromUrl } from "./services/weddingData.js";
+import { loadWeddingConfig, getWeddingIdFromUrl, getAccessTokenFromUrl } from "./services/weddingData.js";
 import { renderContent } from "./render/index.js";
 import { initCover } from "./features/cover.js";
 import { initMusic, playMusic } from "./features/music.js";
@@ -51,18 +51,26 @@ function showLandingPage() {
 }
 
 function showWeddingError(error) {
-    const isNotFound = error?.code === "not-found";
-    const title = isNotFound ? "Không tìm thấy thiệp cưới" : "Chưa tải được thiệp cưới";
-    const message = isNotFound
-        ? "Đường dẫn thiệp này không còn tồn tại hoặc weddingId đã được đổi."
-        : "Vui lòng thử tải lại trang sau ít phút.";
+    const code = error?.code;
+    const isNotFound = code === "not-found";
+    const isLocked = code === "payment-locked";
+    const title = isLocked
+        ? "Thiệp chưa được mở khóa"
+        : isNotFound
+            ? "Không tìm thấy thiệp cưới"
+            : "Chưa tải được thiệp cưới";
+    const message = isLocked
+        ? (error.message || "Vui lòng hoàn tất thanh toán. Link thiệp chính thức chỉ hoạt động sau khi admin xác nhận.")
+        : isNotFound
+            ? "Đường dẫn thiệp này không còn tồn tại, sai mã truy cập, hoặc weddingId đã được đổi."
+            : "Vui lòng thử tải lại trang sau ít phút.";
 
     document.title = title;
     document.body.classList.remove("concept-loading");
     document.body.innerHTML = `
         <main class="wedding-error" role="main">
             <div class="wedding-error__card">
-                <i class="bi bi-heartbreak-fill" aria-hidden="true"></i>
+                <i class="bi bi-${isLocked ? "lock-fill" : "heartbreak-fill"}" aria-hidden="true"></i>
                 <h1>${title}</h1>
                 <p>${message}</p>
             </div>
@@ -137,8 +145,9 @@ function restoreBuilderPreviewState() {
 
 async function bootstrap() {
     try {
-        // Không có weddingId và không phải preview builder → trang quảng cáo
-        if (!getWeddingIdFromUrl() && !isBuilderPreview()) {
+        // Không có weddingId / access token (?t=) và không phải preview builder → trang quảng cáo
+        const hasInviteQuery = Boolean(getWeddingIdFromUrl() || getAccessTokenFromUrl());
+        if (!hasInviteQuery && !isBuilderPreview()) {
             showLandingPage();
             return;
         }

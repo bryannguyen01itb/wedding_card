@@ -35,7 +35,25 @@ function decodeFirestoreFields(fields = {}) {
     );
 }
 
-async function getWeddingMeta(weddingId) {
+function isPaymentUnlocked(payment = {}) {
+    return payment?.unlocked === true || payment?.status === "paid";
+}
+
+function metaFromWeddingData(data = {}, weddingId = "") {
+    if (!isPaymentUnlocked(data.payment)) {
+        return { paymentLocked: true };
+    }
+
+    return {
+        groomNickname: data.groom?.nickname || FALLBACK_META.groomNickname,
+        brideNickname: data.bride?.nickname || FALLBACK_META.brideNickname,
+        previewImage: data.preview?.image || data.poster?.image || FALLBACK_META.previewImage,
+        description: FALLBACK_META.description,
+        weddingId
+    };
+}
+
+async function getWeddingMetaById(weddingId) {
     if (!weddingId) return FALLBACK_META;
 
     const encodedId = encodeURIComponent(weddingId);
@@ -51,16 +69,60 @@ async function getWeddingMeta(weddingId) {
 
         const document = await response.json();
         const data = decodeFirestoreFields(document.fields || {});
-
-        return {
-            groomNickname: data.groom?.nickname || FALLBACK_META.groomNickname,
-            brideNickname: data.bride?.nickname || FALLBACK_META.brideNickname,
-            previewImage: data.preview?.image || data.poster?.image || FALLBACK_META.previewImage,
-            description: FALLBACK_META.description
-        };
+        return metaFromWeddingData(data, weddingId);
     } catch (_error) {
         return { notFound: true };
     }
+}
+
+/** Resolve wedding meta by unguessable access token (?t=) */
+async function getWeddingMetaByAccessToken(token) {
+    if (!token) return FALLBACK_META;
+
+    const runQueryUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery?key=${FIREBASE_API_KEY}`;
+    const body = {
+        structuredQuery: {
+            from: [{ collectionId: WEDDING_COLLECTION }],
+            where: {
+                fieldFilter: {
+                    field: { fieldPath: "payment.accessToken" },
+                    op: "EQUAL",
+                    value: { stringValue: token }
+                }
+            },
+            limit: 1
+        }
+    };
+
+    try {
+        const response = await fetch(runQueryUrl, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body),
+            cf: { cacheTtl: 60, cacheEverything: true }
+        });
+
+        if (!response.ok) return { notFound: true };
+
+        const rows = await response.json();
+        const doc = Array.isArray(rows) ? rows.find(row => row.document)?.document : null;
+        if (!doc) return { notFound: true };
+
+        const data = decodeFirestoreFields(doc.fields || {});
+        const weddingId = String(doc.name || "").split("/").pop() || "";
+        return metaFromWeddingData(data, weddingId);
+    } catch (_error) {
+        return { notFound: true };
+    }
+}
+
+async function getWeddingMeta({ weddingId = "", accessToken = "" } = {}) {
+    if (accessToken) return getWeddingMetaByAccessToken(accessToken);
+    if (weddingId) return getWeddingMetaById(weddingId);
+    return FALLBACK_META;
 }
 
 function toAbsoluteUrl(path, requestUrl) {
@@ -153,15 +215,24 @@ export async function onRequest(context) {
 
     const url = new URL(context.request.url);
     const weddingId = (url.searchParams.get("wedding") || "").trim();
-    const meta = await getWeddingMeta(weddingId);
+    const accessToken = (url.searchParams.get("t") || "").trim();
+    const meta = await getWeddingMeta({ weddingId, accessToken });
     const headers = new Headers(response.headers);
     headers.set("content-type", "text/html; charset=UTF-8");
     headers.set("cache-control", "public, max-age=60");
 
-    if (weddingId && meta.notFound) {
+    if ((weddingId || accessToken) && meta.notFound) {
         return new Response(createNotFoundHtml(), {
             status: 404,
             statusText: "Not Found",
+            headers
+        });
+    }
+
+    if ((weddingId || accessToken) && meta.paymentLocked) {
+        return new Response(createNotFoundHtml(), {
+            status: 403,
+            statusText: "Payment Required",
             headers
         });
     }

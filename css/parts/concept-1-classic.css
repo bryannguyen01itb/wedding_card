@@ -268,7 +268,7 @@ body.concept-1 .about .person-name {
     margin: 0 0 .2rem;
     color: #817858;
     font-family: "Lora", Georgia, serif;
-    font-size: .36rem;
+    font-size: .4rem;
     font-weight: 600;
     line-height: 1.35;
 }
@@ -279,7 +279,7 @@ body.concept-1 .about .person-name::before {
     margin-bottom: .18rem;
     color: #948b69;
     font-family: "Nunito Sans", Arial, sans-serif;
-    font-size: .22rem;
+    font-size: .3rem;
     font-weight: 800;
     letter-spacing: .08rem;
     text-transform: uppercase;
@@ -289,7 +289,7 @@ body.concept-1 .about .parent {
     margin-top: .08rem;
     color: #6f684f;
     font-family: "Lora", Georgia, serif;
-    font-size: .25rem;
+    font-size: .34rem;
     line-height: 1.55;
 }
 
@@ -310,10 +310,10 @@ body.concept-1 .about::after {
     }
 
     body.concept-1 .about .person-name {
-        font-size: .31rem;
+        font-size: .4rem;
     }
 
     body.concept-1 .about .parent {
-        font-size: .22rem;
+        font-size: .34rem;
     }
 }
