@@ -839,6 +839,8 @@ function getOrderCode(config = loadedWeddingConfig) {
 
 function showPaymentModal(weddingId) {
     if (!paymentModal || !weddingId) return;
+    // Đã mở sẵn → chỉ refresh nội dung, không “bật lại” lần 2
+    const alreadyOpen = paymentModal.hidden === false;
     if (saveModal) saveModal.hidden = true;
     if (resultLinks) resultLinks.hidden = true;
 
@@ -890,8 +892,11 @@ function showPaymentModal(weddingId) {
 
     paymentModal.hidden = false;
     document.body.classList.add("modal-open");
-    // Bắt đầu nghe unlock (SePay webhook → paymentStatus)
+    // Bắt đầu nghe unlock (SePay webhook → paymentStatus) — luôn (re)subscribe
     listenWeddingPayment(weddingId);
+    if (alreadyOpen) {
+        /* nội dung đã refresh ở trên */
+    }
 }
 
 function showUnlockedLinks(weddingId, accessToken = getWeddingAccessToken()) {
@@ -943,6 +948,9 @@ function buildPendingPayment(weddingId) {
     };
 }
 
+/** Tránh snapshot paymentStatus/wedding bật lại popup đã đóng (hoặc bật 2 lần sau Lưu). */
+let paymentUnlockPopupShown = false;
+
 function applyPaymentSnapshot(payment = {}, weddingId = "") {
     if (!payment || typeof payment !== "object") return;
     loadedWeddingConfig = {
@@ -951,10 +959,16 @@ function applyPaymentSnapshot(payment = {}, weddingId = "") {
         plan: payment.plan || loadedWeddingConfig.plan
     };
     syncInvitePlanUI();
-    if (payment.unlocked === true || payment.status === "paid") {
-        setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
-        showUnlockedLinks(weddingId, payment.accessToken || "");
+    const paid = payment.unlocked === true || payment.status === "paid";
+    if (!paid) {
+        paymentUnlockPopupShown = false;
+        return;
     }
+    // Chỉ hiện popup "đã mở khóa" một lần khi chuyển sang paid (SePay/admin)
+    if (paymentUnlockPopupShown) return;
+    paymentUnlockPopupShown = true;
+    setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
+    showUnlockedLinks(weddingId, payment.accessToken || "");
 }
 
 function listenWeddingPayment(weddingId) {
@@ -1016,6 +1030,7 @@ function showSaveModal(weddingId) {
     }
 
     hidePaymentModal();
+    const alreadyOpen = saveModal.hidden === false;
     saveModal.hidden = false;
     document.body.classList.add("modal-open");
 
@@ -1026,6 +1041,7 @@ function showSaveModal(weddingId) {
             ? `Đã tạo ${guests.length} link thiệp theo khách mời`
             : "Vui lòng lưu lại link thiệp";
     }
+    void alreadyOpen;
 }
 
 function hideSaveModal() {
@@ -3278,8 +3294,12 @@ function handleTitleSubtitleFocusOut(event) {
     }, 0);
 }
 
+/** Chặn double-submit (Enter / double-click) → popup Lưu 2 lần. */
+let saveConfigInFlight = false;
+
 async function saveConfig(event) {
     event.preventDefault();
+    if (saveConfigInFlight) return;
     if (missingWeddingConfig) {
         setStatus("Link sửa thiệp không hợp lệ (thiệp không tồn tại). Không thể lưu.", "error");
         return;
@@ -3292,6 +3312,7 @@ async function saveConfig(event) {
         return;
     }
 
+    saveConfigInFlight = true;
     try {
         if (saveBtn) {
             saveBtn.disabled = true;
@@ -3454,7 +3475,6 @@ async function saveConfig(event) {
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
         syncUrlForEdit(payload.weddingId, editToken);
-        listenWeddingPayment(payload.weddingId);
         // Lưu nháp xong → khóa gói ngay (không chờ admin duyệt)
         setInvitePlan(payload.plan || "single");
         syncInvitePlanUI();
@@ -3466,9 +3486,15 @@ async function saveConfig(event) {
             "success"
         );
         refreshPreview(false);
+        // Một lần hiện popup: paid → link thiệp; chưa paid → chờ TT.
+        // Không gọi listenWeddingPayment trước — showPaymentModal / snapshot SePay tự listen.
+        // Đánh dấu unlock đã “xử lý UI” nếu đã paid để onSnapshot không bật lại popup.
         if (isPaymentUnlocked(payload)) {
+            paymentUnlockPopupShown = true;
             showUnlockedLinks(payload.weddingId, payload.payment?.accessToken || "");
+            listenWeddingPayment(payload.weddingId);
         } else {
+            paymentUnlockPopupShown = false;
             showPaymentModal(payload.weddingId);
         }
     } catch (error) {
@@ -3481,6 +3507,7 @@ async function saveConfig(event) {
             "error"
         );
     } finally {
+        saveConfigInFlight = false;
         if (saveBtn) {
             saveBtn.disabled = false;
             saveBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Luu Firebase';
