@@ -1,11 +1,18 @@
 import { wedding } from "../config.js";
 import { db } from "../firebase.js";
 import { createEl } from "../utils/dom.js";
+import {
+    WISH_LIMITS,
+    assertWishPayload,
+    canSendWishNow,
+    markWishSent
+} from "../utils/security.js";
 
 const WISH_LIMIT = 3;
 
 let allWishes = [];
 let expanded = false;
+let sending = false;
 
 const form = {
     name: document.getElementById("wishName"),
@@ -87,25 +94,66 @@ function validate(data) {
         return false;
     }
 
+    if (data.name.length > WISH_LIMITS.nameMax) {
+        showWishToast(`Tên tối đa ${WISH_LIMITS.nameMax} ký tự.`, "error");
+        return false;
+    }
+
+    if (data.message.length > WISH_LIMITS.messageMax) {
+        showWishToast(`Lời chúc tối đa ${WISH_LIMITS.messageMax} ký tự.`, "error");
+        return false;
+    }
+
     return true;
 }
 
-function sendWish() {
-    const data = getFormData();
-    if (!validate(data)) return;
+function bindInputLimits() {
+    if (form.name) {
+        form.name.maxLength = WISH_LIMITS.nameMax;
+        form.name.setAttribute("maxlength", String(WISH_LIMITS.nameMax));
+    }
+    if (form.message) {
+        form.message.maxLength = WISH_LIMITS.messageMax;
+        form.message.setAttribute("maxlength", String(WISH_LIMITS.messageMax));
+    }
+}
 
-    getWishesCollection().add({
-        ...data,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    })
-        .then(() => {
-            showWishToast(wishConfig.messages.success, "success");
-            resetForm();
-        })
-        .catch(error => {
-            console.error(error);
-            showWishToast(wishConfig.messages.error, "error");
+async function sendWish() {
+    if (sending) return;
+
+    const raw = getFormData();
+    if (!validate(raw)) return;
+
+    const rate = canSendWishNow();
+    if (!rate.ok) {
+        showWishToast(rate.error || "Gửi quá nhanh, thử lại sau.", "error");
+        return;
+    }
+
+    const checked = assertWishPayload(raw);
+    if (!checked.ok) {
+        showWishToast(checked.error || wishConfig.validation.noMessage, "error");
+        return;
+    }
+
+    sending = true;
+    if (form.button) form.button.disabled = true;
+
+    try {
+        await getWishesCollection().add({
+            ...checked.data,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        markWishSent();
+        showWishToast(wishConfig.messages.success, "success");
+        resetForm();
+    } catch (error) {
+        console.error(error);
+        showWishToast(wishConfig.messages.error, "error");
+    } finally {
+        sending = false;
+        if (form.button) form.button.disabled = false;
+    }
 }
 
 function formatTime(createdAt) {
@@ -114,9 +162,11 @@ function formatTime(createdAt) {
 }
 
 function createWishCard(data) {
-    const name = data.name || "Khách mời";
-    const side = data.side || "";
-    const attendance = data.attendance || "Chưa xác nhận";
+    // textContent via createEl — không innerHTML user input (chống XSS)
+    const name = String(data.name || "Khách mời").slice(0, WISH_LIMITS.nameMax);
+    const side = String(data.side || "").slice(0, WISH_LIMITS.sideMax);
+    const attendance = String(data.attendance || "Chưa xác nhận").slice(0, WISH_LIMITS.attendanceMax);
+    const message = String(data.message || "").slice(0, WISH_LIMITS.messageMax);
     const attending = attendance === getDefaultValue(wishConfig.attendance);
 
     const card = createEl("div", "wish-card");
@@ -138,7 +188,7 @@ function createWishCard(data) {
     header.appendChild(userInfo);
 
     card.appendChild(header);
-    card.appendChild(createEl("div", "wish-message", data.message || ""));
+    card.appendChild(createEl("div", "wish-message", message));
     card.appendChild(createEl("div", "wish-time", formatTime(data.createdAt)));
 
     return card;
@@ -174,6 +224,7 @@ function loadWishes() {
 }
 
 export function initWish() {
+    bindInputLimits();
     form.button?.addEventListener("click", sendWish);
     form.loadMore?.addEventListener("click", () => {
         expanded = !expanded;

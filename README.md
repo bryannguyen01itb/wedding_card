@@ -172,33 +172,18 @@ Thiet lap lan dau:
 3. Bat `Email/Password`.
 4. Tao user admin trong tab `Users`.
 5. Them domain deploy vao `Authentication > Settings > Authorized domains` neu can.
-6. Dat Firestore Rules de chi admin duoc sua config.
+6. Deploy Firestore Rules (bat buoc) — file `firestore.rules` trong repo:
 
-Rules goi y:
-
-```js
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email == "email-cua-ban@gmail.com";
-    }
-
-    match /weddings/{weddingId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-
-      match /wishes/{wishId} {
-        allow read, create: if true;
-        allow update, delete: if isAdmin();
-      }
-    }
-  }
-}
+```bash
+firebase deploy --only firestore:rules
 ```
 
-`ADMIN_EMAILS` trong `admin/admin.js` chi la lop chan giao dien. Bao mat that van phai nam o Firestore Rules.
+Hoac Console > Firestore > Rules > dan noi dung `firestore.rules` > Publish.
+
+Rules moi **giu luong**: builder luu nhap (khong login), admin mo khoa (Auth), khach xem + wish.  
+Chi tiet bao mat: xem **`SECURITY.md`**.
+
+`ADMIN_EMAILS` trong `admin/admin.js` chi la lop chan giao dien. Bao mat that nam o Firestore Rules + Auth.
 
 ## Upload config bang script
 

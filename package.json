@@ -1,7 +1,9 @@
 {
   "scripts": {
     "upload:config": "node scripts/upload-wedding-config.mjs",
-    "check:js": "node --check js/app.js && node --check js/modules/index.js && node --check js/modules/render-all.js && node --check builder/builder.js && node --check admin/admin.js && node --check scripts/upload-wedding-config.mjs"
+    "test:security": "node scripts/test-security.mjs",
+    "sync:brand": "node scripts/sync-brand-css.mjs",
+    "check:js": "node --check js/app.js && node --check js/modules/index.js && node --check js/modules/render-all.js && node --check builder/builder.js && node --check admin/admin.js && node --check scripts/upload-wedding-config.mjs && node scripts/test-security.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0"

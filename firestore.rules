@@ -1,0 +1,222 @@
+rules_version = '2';
+/**
+ * Firestore Rules — wedding card
+ * Publish: Console > Firestore > Rules > dán toàn bộ > Publish
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    function paymentOf(data) {
+      return data.keys().hasAny(['payment']) && data.payment is map
+        ? data.payment
+        : {};
+    }
+
+    function builderOf(data) {
+      return data.keys().hasAny(['builder']) && data.builder is map
+        ? data.builder
+        : {};
+    }
+
+    function isUnlocked(p) {
+      return p.keys().hasAny(['unlocked']) && p.unlocked == true;
+    }
+
+    function isPaidStatus(p) {
+      return p.keys().hasAny(['status']) && p.status == 'paid';
+    }
+
+    function isPaidWedding(data) {
+      return isUnlocked(paymentOf(data)) || isPaidStatus(paymentOf(data));
+    }
+
+    function accessTokenOf(p) {
+      return p.keys().hasAny(['accessToken']) && p.accessToken is string
+        ? p.accessToken
+        : '';
+    }
+
+    function editTokenOf(data) {
+      let b = builderOf(data);
+      return b.keys().hasAny(['editToken']) && b.editToken is string
+        ? b.editToken
+        : '';
+    }
+
+    function planOf(data) {
+      return data.keys().hasAny(['plan']) && data.plan is string
+        ? data.plan
+        : '';
+    }
+
+    function paymentPlanOf(data) {
+      let p = paymentOf(data);
+      return p.keys().hasAny(['plan']) && p.plan is string ? p.plan : '';
+    }
+
+    /** Thiệp cũ chưa có editToken — vẫn get được để không gãy link legacy */
+    function isLegacyNoEditToken(data) {
+      return editTokenOf(data).size() < 16;
+    }
+
+    function isSafeDraftCreate() {
+      return !isUnlocked(paymentOf(request.resource.data))
+        && !isPaidStatus(paymentOf(request.resource.data));
+    }
+
+    function isSafeWeddingUpdate() {
+      return isAdmin()
+        || (
+          !(isUnlocked(paymentOf(request.resource.data))
+            && !isUnlocked(paymentOf(resource.data)))
+          && !(isPaidStatus(paymentOf(request.resource.data))
+            && !isPaidStatus(paymentOf(resource.data)))
+          && (
+            accessTokenOf(paymentOf(resource.data)).size() < 16
+            || accessTokenOf(paymentOf(request.resource.data))
+              == accessTokenOf(paymentOf(resource.data))
+          )
+          && (
+            editTokenOf(resource.data).size() < 16
+            || editTokenOf(request.resource.data) == editTokenOf(resource.data)
+          )
+          && (
+            !isPaidWedding(resource.data)
+            || (
+              planOf(request.resource.data) == planOf(resource.data)
+              && paymentPlanOf(request.resource.data) == paymentPlanOf(resource.data)
+            )
+          )
+        );
+    }
+
+    function isValidWishCreate() {
+      return request.resource.data.keys().hasOnly([
+          'name', 'side', 'attendance', 'message', 'createdAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.side is string
+        && request.resource.data.side.size() <= 40
+        && request.resource.data.attendance is string
+        && request.resource.data.attendance.size() <= 40
+        && exists(/databases/$(database)/documents/weddings/$(weddingId))
+        && isPaidWedding(
+          get(/databases/$(database)/documents/weddings/$(weddingId)).data
+        );
+    }
+
+    function isHex32(token) {
+      return token.matches('^[a-f0-9]{32}$');
+    }
+
+    function isValidTokenMapWrite() {
+      return request.resource.data.weddingId is string
+        && request.resource.data.weddingId.size() > 0
+        && request.resource.data.weddingId.size() < 120
+        && request.resource.data.keys().hasOnly(['weddingId', 'updatedAt', 'createdAt']);
+    }
+
+    /**
+     * GET wedding:
+     * Cho phép get theo id (builder + legacy + admin).
+     * Chặn sửa UI vẫn nhờ ?e= (client) + Rules update (không leo thang payment).
+     * editSessions/{e} = bản nháp phụ khi save (tối ưu / backup), không bắt buộc để mở.
+     *
+     * Lưu ý: ai biết weddingId vẫn đọc được JSON nháp — chấp nhận để không gãy link sửa.
+     * Giảm rủi ro: ID khó đoán + editToken chặn sửa form + không list public.
+     */
+    match /weddings/{weddingId} {
+      allow get: if true;
+
+      allow list: if isAdmin()
+        || (request.query.limit != null && request.query.limit <= 1);
+
+      allow create: if isSafeDraftCreate();
+      allow update: if isSafeWeddingUpdate();
+      allow delete: if isAdmin();
+
+      match /wishes/{wishId} {
+        allow read: if true;
+        allow create: if isValidWishCreate();
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    /**
+     * Bản nháp builder — doc id = editToken (bí mật trên URL ?e=)
+     * Ai biết token mới đọc được config nháp.
+     */
+    match /editSessions/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isHex32(token)
+        && request.resource.data.weddingId is string
+        && request.resource.data.weddingId.size() > 0
+        && request.resource.data.weddingId.size() < 120;
+      allow delete: if isAdmin();
+    }
+
+    /** Trạng thái TT — builder lắng nghe unlock mà không get full wedding nháp */
+    match /paymentStatus/{weddingId} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isAdmin()
+        || (
+          !(request.resource.data.keys().hasAny(['unlocked'])
+            && request.resource.data.unlocked == true)
+          && !(request.resource.data.keys().hasAny(['status'])
+            && request.resource.data.status == 'paid')
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /accessTokens/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isHex32(token) && isValidTokenMapWrite();
+      allow update: if isAdmin()
+        || (
+          isHex32(token)
+          && isValidTokenMapWrite()
+          && resource.data.weddingId == request.resource.data.weddingId
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /editAccess/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isHex32(token) && isValidTokenMapWrite();
+      allow update: if isAdmin()
+        || (
+          isHex32(token)
+          && isValidTokenMapWrite()
+          && resource.data.weddingId == request.resource.data.weddingId
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /musicLibrary/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

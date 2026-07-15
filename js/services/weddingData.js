@@ -71,8 +71,27 @@ async function fetchWeddingById(weddingId) {
 }
 
 async function fetchWeddingByAccessToken(token) {
+    const normalized = normalizeAccessToken(token);
+    if (!normalized) {
+        throw new WeddingConfigError("Không tìm thấy thiệp cưới với link này.", "not-found");
+    }
+
+    // Ưu tiên map accessTokens/{token} (không cần list collection weddings)
+    try {
+        const mapDoc = await db.collection("accessTokens").doc(normalized).get();
+        if (mapDoc.exists) {
+            const weddingId = String(mapDoc.data()?.weddingId || "").trim();
+            if (weddingId) {
+                return fetchWeddingById(weddingId);
+            }
+        }
+    } catch (error) {
+        console.warn("[weddingData] accessTokens map lookup failed, fallback query:", error);
+    }
+
+    // Legacy: query weddings theo payment.accessToken (limit 1)
     const snap = await db.collection("weddings")
-        .where("payment.accessToken", "==", token)
+        .where("payment.accessToken", "==", normalized)
         .limit(1)
         .get();
 

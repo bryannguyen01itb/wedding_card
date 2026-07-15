@@ -1,13 +1,18 @@
 import { db } from "../js/firebase.js";
 import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/access.js";
 import { BRAND_PRIMARY } from "../js/brand.js";
+import { isAllowedAdminEmail } from "../js/adminAllowlist.js";
+import {
+    syncWeddingTokenMaps,
+    deleteTokenMap,
+    upsertPaymentStatus,
+    collectCloudinaryPublicIds,
+    requestCloudinaryCleanup
+} from "../js/utils/security.js";
 
 const DEFAULT_PRIMARY = BRAND_PRIMARY;
 const DEFAULT_MEDIA_CONCEPT = "concept-1";
 const GALLERY_SIZE = 7;
-// Có thể điền email admin ở đây để ẩn UI nếu đăng nhập nhầm tài khoản.
-// Bảo mật thật vẫn phải nằm ở Firestore Rules.
-const ADMIN_EMAILS = [];
 
 const auth = firebase.auth();
 const loginPanel = document.getElementById("loginPanel");
@@ -226,6 +231,15 @@ function fillGalleryFields() {
     });
 }
 
+function buildBuilderEditUrl(weddingId, editToken = "") {
+    const url = new URL("../builder/", window.location.href);
+    url.search = "";
+    if (weddingId) url.searchParams.set("wedding", weddingId);
+    const e = String(editToken || "").trim().toLowerCase();
+    if (/^[a-f0-9]{32}$/.test(e)) url.searchParams.set("e", e);
+    return url.toString();
+}
+
 function updatePreviewLink(weddingId, accessToken = "") {
     if (!weddingId && !accessToken) {
         previewLink.textContent = "chưa có weddingId";
@@ -242,6 +256,16 @@ function updatePreviewLink(weddingId, accessToken = "") {
     });
     previewLink.href = url;
     previewLink.textContent = url;
+
+    // Gợi ý link builder (có ?e= nếu thiệp đã có editToken)
+    const builderLink = document.getElementById("builderEditLink");
+    if (builderLink && weddingId) {
+        const editTok = currentConfig?.builder?.editToken || "";
+        const bUrl = buildBuilderEditUrl(weddingId, editTok);
+        builderLink.href = bUrl;
+        builderLink.textContent = bUrl;
+        builderLink.hidden = false;
+    }
 }
 
 function getPaymentSettingAmountFromInput(inputEl) {
@@ -788,8 +812,50 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
     }
 
     try {
+        // Lấy token + public_ids trước khi xóa doc
+        let accessToken = "";
+        let editToken = "";
+        let weddingData = {};
+        try {
+            const existing = await db.collection("weddings").doc(id).get();
+            if (existing.exists) {
+                weddingData = existing.data() || {};
+                accessToken = String(weddingData.payment?.accessToken || "").trim();
+                editToken = String(weddingData.builder?.editToken || "").trim();
+            }
+        } catch (_) {
+            /* continue delete */
+        }
+
+        const publicIds = collectCloudinaryPublicIds({ ...weddingData, weddingId: id });
+
         await deleteWeddingSubcollections(id);
         await db.collection("weddings").doc(id).delete();
+
+        // Dọn map + paymentStatus + editSessions
+        const cleanupTasks = [];
+        if (accessToken) cleanupTasks.push(deleteTokenMap(db, "accessTokens", accessToken));
+        if (editToken) {
+            cleanupTasks.push(deleteTokenMap(db, "editAccess", editToken));
+            cleanupTasks.push(deleteTokenMap(db, "editSessions", editToken));
+        }
+        cleanupTasks.push(
+            db.collection("paymentStatus").doc(id).delete().catch(() => null)
+        );
+        await Promise.all(cleanupTasks);
+
+        // Best-effort xóa ảnh Cloudinary (cần Pages Function + env)
+        let mediaNote = "";
+        if (publicIds.length) {
+            const mediaResult = await requestCloudinaryCleanup(publicIds, {
+                cleanupKey: window.__CLOUDINARY_CLEANUP_KEY || ""
+            });
+            if (mediaResult.ok && !mediaResult.skipped) {
+                mediaNote = ` · đã gửi xóa ${mediaResult.deleted ?? publicIds.length} ảnh Cloudinary`;
+            } else {
+                mediaNote = ` · ${publicIds.length} ảnh Cloudinary: dọn tay hoặc cấu hình /api/cloudinary-cleanup`;
+            }
+        }
 
         if (currentConfig.weddingId === id || loadInput?.value === id) {
             fillForm(createEmptyAdminConfig());
@@ -797,7 +863,7 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
             updatePreviewLink("");
         }
 
-        showToast(`Đã xóa thiệp: ${id}`);
+        showToast(`Đã xóa thiệp: ${id}${mediaNote}`);
         return true;
     } catch (error) {
         console.error(error);
@@ -954,6 +1020,17 @@ async function updateWeddingPaymentById(weddingId, status) {
         };
 
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
+
+        // Đồng bộ map ?t= + paymentStatus (builder nghe unlock)
+        await Promise.all([
+            syncWeddingTokenMaps(db, {
+                weddingId,
+                accessToken,
+                editToken: docData.builder?.editToken || currentConfig?.builder?.editToken || ""
+            }),
+            upsertPaymentStatus(db, weddingId, payload.payment)
+        ]);
+
         if (currentConfig.weddingId === weddingId) {
             currentConfig = mergeConfig(currentConfig, payload);
             updatePreviewLink(weddingId, unlocked ? accessToken : "");
@@ -1304,8 +1381,7 @@ async function login(event) {
 }
 
 function canUseAdmin(user) {
-    const allowedEmails = ADMIN_EMAILS.filter(Boolean);
-    return !allowedEmails.length || allowedEmails.includes(user.email);
+    return isAllowedAdminEmail(user?.email);
 }
 
 function setAdminView(viewId, { keepEditor = false } = {}) {

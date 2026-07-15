@@ -19,6 +19,24 @@ import {
     formatPosterLocation
 } from "../js/utils/location.js";
 import { BRAND_PRIMARY } from "../js/brand.js";
+import {
+    sanitizePaymentForBuilderSave,
+    generateEditToken,
+    normalizeEditToken,
+    getEditTokenFromUrl,
+    canOpenBuilderEdit,
+    canUploadMore,
+    recordUpload,
+    assertUploadBlob,
+    syncWeddingTokenMaps,
+    upsertPaymentStatus,
+    upsertEditSession,
+    loadEditSession,
+    extractCloudinaryPublicId
+} from "../js/utils/security.js";
+
+/** public_id Cloudinary đã upload trong phiên (ghi vào builder.cloudinaryPublicIds) */
+let sessionCloudinaryPublicIds = [];
 
 const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
@@ -544,12 +562,18 @@ function getGuestsForLinks(config = loadedWeddingConfig) {
     return normalizeGuestNames(config?.guests);
 }
 
-function buildEditUrl(weddingId) {
-    // URL sạch: chỉ ?wedding= — tránh dính ?t= / param lạ làm gate nhầm
+function getLoadedEditToken(config = loadedWeddingConfig) {
+    return normalizeEditToken(config?.builder?.editToken);
+}
+
+function buildEditUrl(weddingId, editToken = getLoadedEditToken()) {
+    // URL: ?wedding= + ?e=editToken (nếu có) — tránh dính ?t= payment
     const url = new URL(window.location.href);
     url.search = "";
     url.hash = "";
     url.searchParams.set(WEDDING_QUERY_KEY, weddingId);
+    const token = normalizeEditToken(editToken);
+    if (token) url.searchParams.set("e", token);
     return url.toString();
 }
 
@@ -562,10 +586,10 @@ function applyLink(anchor, url) {
     anchor.textContent = url;
 }
 
-function getShareUrls(weddingId, accessToken = getWeddingAccessToken(), guestIndex = null) {
+function getShareUrls(weddingId, accessToken = getWeddingAccessToken(), guestIndex = null, editToken = getLoadedEditToken()) {
     return {
         invitationUrl: buildInvitationUrl(weddingId, accessToken, guestIndex),
-        editUrl: buildEditUrl(weddingId)
+        editUrl: buildEditUrl(weddingId, editToken)
     };
 }
 
@@ -819,6 +843,20 @@ function buildPendingPayment(weddingId) {
     };
 }
 
+function applyPaymentSnapshot(payment = {}, weddingId = "") {
+    if (!payment || typeof payment !== "object") return;
+    loadedWeddingConfig = {
+        ...loadedWeddingConfig,
+        payment: { ...(loadedWeddingConfig.payment || {}), ...payment },
+        plan: payment.plan || loadedWeddingConfig.plan
+    };
+    syncInvitePlanUI();
+    if (payment.unlocked === true || payment.status === "paid") {
+        setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
+        showUnlockedLinks(weddingId, payment.accessToken || "");
+    }
+}
+
 function listenWeddingPayment(weddingId) {
     if (unsubscribeWeddingPayment) {
         unsubscribeWeddingPayment();
@@ -826,24 +864,34 @@ function listenWeddingPayment(weddingId) {
     }
     if (!weddingId) return;
 
-    unsubscribeWeddingPayment = db.collection("weddings").doc(weddingId).onSnapshot(doc => {
-        if (!doc.exists) return;
-        const data = doc.data() || {};
-        // Chỉ đồng bộ payment — không merge toàn bộ doc (tránh snapshot cũ ghi đè ảnh vừa lưu)
-        if (data.payment) {
-            loadedWeddingConfig = {
-                ...loadedWeddingConfig,
-                payment: { ...(loadedWeddingConfig.payment || {}), ...data.payment },
-                // Đồng bộ plan root với payment.plan khi admin mở khóa
-                plan: data.payment.plan || data.plan || loadedWeddingConfig.plan
-            };
-            syncInvitePlanUI();
+    // Ưu tiên paymentStatus (public) — nháp có editToken có thể không get được weddings/{id}
+    const unsubStatus = db.collection("paymentStatus").doc(weddingId).onSnapshot(
+        doc => {
+            if (!doc.exists) return;
+            applyPaymentSnapshot(doc.data() || {}, weddingId);
+        },
+        error => console.warn("[builder] paymentStatus listen:", error)
+    );
+
+    // Fallback: listen wedding.payment (legacy / paid / admin rules)
+    const unsubWedding = db.collection("weddings").doc(weddingId).onSnapshot(
+        doc => {
+            if (!doc.exists) return;
+            const data = doc.data() || {};
+            if (data.payment) applyPaymentSnapshot(data.payment, weddingId);
+        },
+        error => {
+            // permission-denied với nháp có editToken là bình thường
+            if (error?.code !== "permission-denied") {
+                console.warn("[builder] wedding payment listen:", error);
+            }
         }
-        if (data.payment?.unlocked === true || data.payment?.status === "paid") {
-            setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
-            showUnlockedLinks(weddingId, data.payment?.accessToken || "");
-        }
-    });
+    );
+
+    unsubscribeWeddingPayment = () => {
+        try { unsubStatus(); } catch (_) { /* ignore */ }
+        try { unsubWedding(); } catch (_) { /* ignore */ }
+    };
 }
 
 async function loadPaymentSettings() {
@@ -903,12 +951,12 @@ async function copyText(value, button) {
     }
 }
 
-function syncUrlForEdit(weddingId) {
+function syncUrlForEdit(weddingId, editToken = getLoadedEditToken()) {
     if (!weddingId) {
         return;
     }
 
-    const editUrl = buildEditUrl(weddingId);
+    const editUrl = buildEditUrl(weddingId, editToken);
     window.history.replaceState({}, "", editUrl);
 }
 
@@ -1249,6 +1297,12 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
         throw new Error("Chưa cấu hình CLOUDINARY_CLOUD_NAME hoặc CLOUDINARY_UPLOAD_PRESET trong builder.js");
     }
 
+    const quota = canUploadMore();
+    if (!quota.ok) throw new Error(quota.error || "Đã vượt giới hạn upload.");
+
+    const blobCheck = assertUploadBlob(blob);
+    if (!blobCheck.ok) throw new Error(blobCheck.error || "File ảnh không hợp lệ.");
+
     const folder = buildCloudinaryFolder();
     const assetKey = String(options.assetKey || filename || "image")
         .replace(/\.[a-z0-9]+$/i, "")
@@ -1276,8 +1330,15 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
     const result = await response.json();
     const url = String(result.secure_url || "").trim();
     if (!url) throw new Error("Cloudinary không trả về URL ảnh.");
+    recordUpload();
+    const storedPublicId = String(result.public_id || "").trim()
+        || extractCloudinaryPublicId(url);
+    if (storedPublicId && !sessionCloudinaryPublicIds.includes(storedPublicId)) {
+        sessionCloudinaryPublicIds.push(storedPublicId);
+    }
     const version = result.version || Date.now();
-    return url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
+    const versioned = url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
+    return versioned;
 }
 
 function clearPendingMedia(fieldName) {
@@ -2317,8 +2378,14 @@ async function findAvailableWeddingId(baseWeddingId) {
 
     for (let index = 0; index < 50; index += 1) {
         const candidate = index === 0 ? base : `${base}-${index + 1}`;
-        const doc = await db.collection("weddings").doc(candidate).get();
-        if (!doc.exists) return candidate;
+        try {
+            const doc = await db.collection("weddings").doc(candidate).get();
+            if (!doc.exists) return candidate;
+        } catch (error) {
+            // permission-denied: doc nháp có editToken (không public get) → coi như đã tồn tại
+            if (error?.code === "permission-denied") continue;
+            throw error;
+        }
     }
 
     return `${base}-${Date.now()}`;
@@ -2497,13 +2564,123 @@ function fillBuilderForm(config = {}) {
     setControlValue("groomMealTime", groomMeal.time);
 }
 
+function buildLoadedConfigFromData(weddingId, data = {}) {
+    return {
+        ...clone(fallbackWedding),
+        ...data,
+        weddingId,
+        theme: {
+            ...(fallbackWedding.theme || {}),
+            ...(data.theme || {})
+        },
+        groom: {
+            ...(fallbackWedding.groom || {}),
+            ...(data.groom || {})
+        },
+        bride: {
+            ...(fallbackWedding.bride || {}),
+            ...(data.bride || {})
+        },
+        poster: {
+            ...(data.poster || {})
+        },
+        preview: {
+            ...(data.preview || {})
+        },
+        aboutCard: {
+            ...(data.aboutCard || {})
+        },
+        gallery: {
+            ...(fallbackWedding.gallery || {}),
+            ...(data.gallery || {}),
+            photos: Array.isArray(data.gallery?.photos) ? data.gallery.photos : []
+        },
+        gift: {
+            groom: { ...(data.gift?.groom || {}) },
+            bride: { ...(data.gift?.bride || {}) }
+        },
+        sectionSubtitles: {
+            ...(fallbackWedding.sectionSubtitles || {}),
+            ...(data.sectionSubtitles || {})
+        },
+        ceremony: {
+            ...(fallbackWedding.ceremony || {}),
+            ...(data.ceremony || {}),
+            bride: {
+                ...(fallbackWedding.ceremony?.bride || {}),
+                ...(data.ceremony?.bride || {}),
+                meal: {
+                    ...(fallbackWedding.ceremony?.bride?.meal || {}),
+                    ...(data.ceremony?.bride?.meal || {})
+                }
+            },
+            groom: {
+                ...(fallbackWedding.ceremony?.groom || {}),
+                ...(data.ceremony?.groom || {}),
+                meal: {
+                    ...(fallbackWedding.ceremony?.groom?.meal || {}),
+                    ...(data.ceremony?.groom?.meal || {})
+                }
+            }
+        },
+        builder: {
+            ...(fallbackWedding.builder || {}),
+            ...(data.builder || {})
+        },
+        payment: {
+            ...(fallbackWedding.payment || {}),
+            ...(data.payment || {})
+        }
+    };
+}
+
+async function finishLoadBuilderConfig(weddingId, config) {
+    loadedWeddingConfig = config;
+    fillBuilderForm(loadedWeddingConfig);
+    markWeddingEditable();
+    if (getLoadedEditToken(loadedWeddingConfig)) {
+        syncUrlForEdit(weddingId, getLoadedEditToken(loadedWeddingConfig));
+    }
+    listenWeddingPayment(weddingId);
+    if (isPaymentUnlocked(loadedWeddingConfig)) {
+        updateResultLinks(weddingId);
+    } else {
+        showPaymentModal(weddingId);
+    }
+    // Báo đã load xong TRƯỚC khi probe Cloudinary (probe có thể mất nhiều giây)
+    if (!statusEl?.dataset?.type || statusEl.dataset.type !== "error") {
+        setStatus(`Dang sua: ${weddingId}`, "success");
+    }
+    refreshPreview(false);
+
+    // Kiểm tra ảnh chết nền — không chặn hiển thị form
+    try {
+        await verifyAllBuilderRemoteMedia();
+    } catch (error) {
+        console.warn("[builder] verify media after load:", error);
+    }
+}
+
+function configLooksLikeRealWedding(config = {}) {
+    const groom = String(config.groom?.fullName || config.groom?.nickname || "").trim();
+    const bride = String(config.bride?.fullName || config.bride?.nickname || "").trim();
+    const hasMedia = Boolean(
+        config.poster?.image
+        || config.preview?.image
+        || config.groom?.avatar
+        || config.bride?.avatar
+        || (Array.isArray(config.gallery?.photos) && config.gallery.photos.some(p => p?.src))
+    );
+    return Boolean(groom || bride || hasMedia || config.payment?.accessToken);
+}
+
 async function loadConfigForEdit() {
     const weddingId = getWeddingIdFromUrl();
+    const urlEditToken = getEditTokenFromUrl();
 
     if (!weddingId) {
         originalEditingWeddingId = "";
         markWeddingEditable();
-        // Default màu chủ đạo từ js/brand.js (một nguồn)
         setControlValue("primaryColor", BRAND_PRIMARY);
         refreshPreview();
         return;
@@ -2515,89 +2692,118 @@ async function loadConfigForEdit() {
     setStatus(`Dang tai cau hinh: ${weddingId}`);
 
     try {
-        const doc = await db.collection("weddings").doc(weddingId).get();
-        if (doc.exists) {
-            loadedWeddingConfig = {
-                ...clone(fallbackWedding),
-                ...doc.data(),
-                weddingId: doc.id,
-                theme: {
-                    ...(fallbackWedding.theme || {}),
-                    ...(doc.data().theme || {})
-                },
-                groom: {
-                    ...(fallbackWedding.groom || {}),
-                    ...(doc.data().groom || {})
-                },
-                bride: {
-                    ...(fallbackWedding.bride || {}),
-                    ...(doc.data().bride || {})
-                },
-                poster: {
-                    ...(doc.data().poster || {})
-                },
-                preview: {
-                    ...(doc.data().preview || {})
-                },
-                aboutCard: {
-                    ...(doc.data().aboutCard || {})
-                },
-                // Album / QR / media: chỉ lấy từ Firebase — không trộn ảnh mẫu fallback
-                gallery: {
-                    ...(fallbackWedding.gallery || {}),
-                    ...(doc.data().gallery || {}),
-                    photos: Array.isArray(doc.data().gallery?.photos)
-                        ? doc.data().gallery.photos
-                        : []
-                },
-                gift: {
-                    groom: { ...(doc.data().gift?.groom || {}) },
-                    bride: { ...(doc.data().gift?.bride || {}) }
-                },
-                sectionSubtitles: {
-                    ...(fallbackWedding.sectionSubtitles || {}),
-                    ...(doc.data().sectionSubtitles || {})
-                },
-                ceremony: {
-                    ...(fallbackWedding.ceremony || {}),
-                    ...(doc.data().ceremony || {}),
-                    bride: {
-                        ...(fallbackWedding.ceremony?.bride || {}),
-                        ...(doc.data().ceremony?.bride || {}),
-                        meal: {
-                            ...(fallbackWedding.ceremony?.bride?.meal || {}),
-                            ...(doc.data().ceremony?.bride?.meal || {})
-                        }
-                    },
-                    groom: {
-                        ...(fallbackWedding.ceremony?.groom || {}),
-                        ...(doc.data().ceremony?.groom || {}),
-                        meal: {
-                            ...(fallbackWedding.ceremony?.groom?.meal || {}),
-                            ...(doc.data().ceremony?.groom?.meal || {})
+        // 1) Nguồn chính: weddings/{id} (đầy đủ, đúng data Firebase)
+        let weddingDoc = null;
+        let weddingGetDenied = false;
+        try {
+            weddingDoc = await db.collection("weddings").doc(weddingId).get();
+        } catch (getError) {
+            if (getError?.code === "permission-denied") {
+                weddingGetDenied = true;
+            } else {
+                throw getError;
+            }
+        }
+
+        if (weddingDoc?.exists) {
+            const config = buildLoadedConfigFromData(weddingDoc.id, weddingDoc.data() || {});
+
+            // Có editToken trên doc → bắt buộc ?e= khớp
+            if (!canOpenBuilderEdit(config, urlEditToken)) {
+                setStatus(
+                    "Link sửa thiệp thiếu hoặc sai mã ?e=. Lấy đúng link (có e=) từ Firebase builder.editToken hoặc Admin.",
+                    "error"
+                );
+                markWeddingMissing(weddingId);
+                return;
+            }
+
+            if (urlEditToken) {
+                try {
+                    const mapDoc = await db.collection("editAccess").doc(urlEditToken).get();
+                    if (mapDoc.exists) {
+                        const mappedId = String(mapDoc.data()?.weddingId || "").trim();
+                        if (mappedId && mappedId !== weddingId) {
+                            setStatus("Mã sửa thiệp không khớp weddingId.", "error");
+                            markWeddingMissing(weddingId);
+                            return;
                         }
                     }
+                } catch (mapError) {
+                    console.warn("[builder] editAccess check:", mapError);
                 }
-            };
-            fillBuilderForm(loadedWeddingConfig);
-            // Phía user: URL Cloudinary đã xóa → ẩn thumb + xóa field (không để “ảo” còn ảnh)
-            await verifyAllBuilderRemoteMedia();
-            markWeddingEditable();
-            listenWeddingPayment(weddingId);
-            if (isPaymentUnlocked(loadedWeddingConfig)) {
-                updateResultLinks(weddingId);
-            } else {
-                showPaymentModal(weddingId);
             }
-            // verify có thể đã setStatus lỗi ảnh — chỉ ghi “đang sửa” nếu không có ảnh hỏng
-            if (!statusEl?.dataset?.type || statusEl.dataset.type !== "error") {
-                setStatus(`Dang sua: ${weddingId}`);
+
+            await finishLoadBuilderConfig(weddingId, config);
+
+            // Backfill editSessions để lần sau / máy khác vẫn có bản nháp theo ?e=
+            const token = getLoadedEditToken(config) || urlEditToken;
+            if (token) {
+                upsertEditSession(db, token, {
+                    ...config,
+                    createdAt: null,
+                    updatedAt: null,
+                    payment: {
+                        ...(config.payment || {}),
+                        updatedAt: null,
+                        confirmedAt: null
+                    }
+                }).catch(() => null);
+                syncWeddingTokenMaps(db, {
+                    weddingId,
+                    accessToken: config.payment?.accessToken,
+                    editToken: token
+                }).catch(() => null);
             }
-            refreshPreview(false);
-        } else {
-            loadedWeddingConfig = { ...clone(fallbackWedding), weddingId };
-            markWeddingMissing(weddingId);
+            return;
         }
+
+        // 2) Fallback: editSessions/{e} (khi không get được weddings hoặc doc chưa có)
+        if (urlEditToken) {
+            const session = await loadEditSession(db, urlEditToken);
+            if (session) {
+                const mappedId = String(session.weddingId || "").trim();
+                if (mappedId && mappedId !== weddingId) {
+                    setStatus("Mã sửa thiệp không khớp weddingId.", "error");
+                    markWeddingMissing(weddingId);
+                    return;
+                }
+                const config = buildLoadedConfigFromData(weddingId, session);
+                if (!canOpenBuilderEdit(config, urlEditToken)) {
+                    setStatus("Link sửa thiệp không hợp lệ.", "error");
+                    markWeddingMissing(weddingId);
+                    return;
+                }
+                if (!configLooksLikeRealWedding(config) && !weddingGetDenied) {
+                    setStatus(
+                        `Không tìm thấy data thật cho ${weddingId}. Kiểm tra doc Firestore weddings/${weddingId}.`,
+                        "error"
+                    );
+                    markWeddingMissing(weddingId);
+                    return;
+                }
+                try {
+                    const paySnap = await db.collection("paymentStatus").doc(weddingId).get();
+                    if (paySnap.exists) {
+                        config.payment = { ...(config.payment || {}), ...(paySnap.data() || {}) };
+                    }
+                } catch (_) { /* ignore */ }
+                await finishLoadBuilderConfig(weddingId, config);
+                return;
+            }
+        }
+
+        // 3) Không có data
+        if (weddingGetDenied) {
+            setStatus(
+                "Không đọc được thiệp (Rules). Publish lại firestore.rules (allow get) hoặc mở bằng Admin.",
+                "error"
+            );
+        } else {
+            setStatus(`Không tìm thấy weddings/${weddingId} trên Firebase.`, "error");
+        }
+        loadedWeddingConfig = { ...clone(fallbackWedding), weddingId };
+        markWeddingMissing(weddingId);
     } catch (error) {
         console.error(error);
         markWeddingMissing(weddingId);
@@ -2996,22 +3202,54 @@ async function saveConfig(event) {
             setStatus(`WeddingId da ton tai, tu dong luu thanh: ${availableWeddingId}`);
         }
         payload = applyWeddingIdToPayload(payload, availableWeddingId);
-        payload.payment = buildPendingPayment(payload.weddingId);
 
-        // Chống lỗ: gói đã chốt (nháp hoặc paid) — ép plan/guests/amount, không tin radio form
+        // Payment: build rồi sanitize — client không bao giờ leo thang unlocked/paid
+        let paymentDraft = buildPendingPayment(payload.weddingId);
         if (isInvitePlanLocked()) {
             const lockedPlan = getLockedInvitePlan();
             payload.plan = lockedPlan;
-            payload.payment.plan = lockedPlan;
+            paymentDraft = { ...paymentDraft, plan: lockedPlan };
             if (lockedPlan !== "multi") {
                 payload.guests = [];
             }
             if (loadedWeddingConfig.payment?.amount !== undefined
                 && loadedWeddingConfig.payment?.amount !== null
                 && loadedWeddingConfig.payment?.amount !== "") {
-                payload.payment.amount = loadedWeddingConfig.payment.amount;
+                paymentDraft.amount = loadedWeddingConfig.payment.amount;
             }
         }
+        payload.payment = sanitizePaymentForBuilderSave(
+            loadedWeddingConfig.payment,
+            paymentDraft
+        );
+
+        // editToken: link sửa ?e= (legacy thiệp không có token vẫn mở bằng ?wedding=)
+        const existingEditToken = normalizeEditToken(loadedWeddingConfig?.builder?.editToken);
+        const editToken = existingEditToken || generateEditToken();
+        const prevPublicIds = Array.isArray(loadedWeddingConfig.builder?.cloudinaryPublicIds)
+            ? loadedWeddingConfig.builder.cloudinaryPublicIds
+            : [];
+        const cloudinaryPublicIds = [...new Set([
+            ...prevPublicIds,
+            ...sessionCloudinaryPublicIds
+        ])].filter(Boolean);
+
+        payload.builder = {
+            ...(payload.builder || {}),
+            ...(loadedWeddingConfig.builder || {}),
+            editToken,
+            groomNickname: payload.builder?.groomNickname
+                || loadedWeddingConfig.builder?.groomNickname
+                || "",
+            brideNickname: payload.builder?.brideNickname
+                || loadedWeddingConfig.builder?.brideNickname
+                || "",
+            mediaFingerprints: {
+                ...(loadedWeddingConfig.builder?.mediaFingerprints || {}),
+                ...(payload.builder?.mediaFingerprints || {})
+            },
+            cloudinaryPublicIds
+        };
 
         // Ghi dấu thời gian để admin dọn thiệp > 30 ngày
         payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -3020,18 +3258,43 @@ async function saveConfig(event) {
         }
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
+
+        // Map token + paymentStatus + editSessions (nháp đọc bằng ?e=)
+        await Promise.all([
+            syncWeddingTokenMaps(db, {
+                weddingId: payload.weddingId,
+                accessToken: payload.payment?.accessToken,
+                editToken
+            }),
+            upsertPaymentStatus(db, payload.weddingId, payload.payment),
+            upsertEditSession(db, editToken, {
+                ...payload,
+                // FieldValue không serialize — dùng null, sessionUpdatedAt set trong helper
+                createdAt: null,
+                updatedAt: null,
+                payment: {
+                    ...(payload.payment || {}),
+                    updatedAt: null,
+                    confirmedAt: null
+                }
+            })
+        ]);
+
+        sessionCloudinaryPublicIds = [];
+
         // Giữ payment (accessToken, unlocked…) sau save — createPreviewConfig không mang field này
         loadedWeddingConfig = {
             ...createPreviewConfig(),
             weddingId: payload.weddingId,
             payment: payload.payment,
             plan: payload.plan,
+            builder: payload.builder,
             createdAt: loadedWeddingConfig.createdAt || true
         };
         editingWeddingId = payload.weddingId;
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
-        syncUrlForEdit(payload.weddingId);
+        syncUrlForEdit(payload.weddingId, editToken);
         listenWeddingPayment(payload.weddingId);
         // Lưu nháp xong → khóa gói ngay (không chờ admin duyệt)
         setInvitePlan(payload.plan || "single");
