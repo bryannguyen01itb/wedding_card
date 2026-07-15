@@ -40,8 +40,11 @@ Firebase Console → Firestore → **Rules** → dán toàn bộ file → **Publ
 
 - Endpoint: `functions/api/sepay-webhook.js` → `POST /api/sepay-webhook`
 - Map: `orderCodes/{orderCode}` (builder tạo pending; webhook/admin set paid)
-- Dedup: `sepayEvents/{sepayTxnId}` (chỉ service account)
+- Fallback webhook: query `weddings` theo `payment.orderCode` nếu thiếu map
+- Dedup: `sepayEvents/{sepayTxnId}` (chỉ service account; ignored cho phép retry)
+- Builder: nếu ghi `orderCodes` fail → hiện lỗi rõ (không fail im lặng)
 - Env CF: `FIREBASE_SERVICE_ACCOUNT_JSON`, `SEPAY_API_KEY` (hoặc `SEPAY_WEBHOOK_SECRET`)
+- **Bắt buộc Publish Rules** có block `match /orderCodes` — không publish thì client không tạo map
 - Hướng dẫn free: **`SEPAY.md`**
 - Admin unlock tay vẫn dùng được (fallback)
 

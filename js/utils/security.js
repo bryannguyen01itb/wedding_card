@@ -281,47 +281,47 @@ export async function syncWeddingTokenMaps(db, { weddingId, accessToken, editTok
 /**
  * Map orderCode → wedding (SePay webhook tra cứu, không list weddings).
  * Client chỉ ghi pending; paid chỉ server webhook / admin.
+ * @returns {{ ok: boolean, error?: string, code?: string }}
  */
 export async function upsertOrderCodeMap(db, orderCode, meta = {}) {
     const code = normalizeOrderCode(orderCode);
     const weddingId = String(meta.weddingId || "").trim();
-    if (!db || !code || !weddingId) return false;
+    if (!db) return { ok: false, error: "no_db" };
+    if (!code) return { ok: false, error: "invalid_order_code", code: String(orderCode || "") };
+    if (!weddingId) return { ok: false, error: "missing_wedding_id" };
+
+    const amountRaw = meta.amount;
+    const amount = amountRaw !== undefined && amountRaw !== null && amountRaw !== ""
+        ? Number(amountRaw)
+        : null;
+    const plan = meta.plan === "multi" ? "multi" : "single";
+    const allowPaid = meta.allowPaidWrite === true
+        && (meta.unlocked === true || meta.status === "paid");
+
+    // Payload tối giản — dễ pass Firestore rules (pending only từ client)
+    const payload = {
+        weddingId,
+        amount: Number.isFinite(amount) ? amount : null,
+        currency: String(meta.currency || "VND"),
+        plan,
+        status: allowPaid ? "paid" : "pending",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
     try {
         const ref = db.collection("orderCodes").doc(code);
-        const snap = await ref.get();
-        const prev = snap.exists ? (snap.data() || {}) : {};
-        // Không cho client ghi đè thiệp đã paid / đổi weddingId của mã đã gán
-        if (prev.status === "paid" && prev.weddingId && prev.weddingId !== weddingId) {
-            console.warn("[security] orderCode already paid for another wedding:", code);
-            return false;
+        // Tránh get() trước (một số rule/cache làm fail im lặng) — merge create/update
+        if (!allowPaid) {
+            // Client: không leo thang paid. Nếu doc đã paid, merge pending có thể bị rules chặn — bắt lỗi.
+            payload.status = "pending";
         }
-        const unlocked = meta.unlocked === true || meta.status === "paid" || prev.status === "paid";
-        const payload = {
-            weddingId: prev.status === "paid" ? (prev.weddingId || weddingId) : weddingId,
-            amount: meta.amount !== undefined && meta.amount !== null && meta.amount !== ""
-                ? Number(meta.amount)
-                : (prev.amount ?? null),
-            currency: meta.currency || prev.currency || "VND",
-            plan: (meta.plan === "multi" || prev.plan === "multi") ? "multi" : "single",
-            status: unlocked ? "paid" : (meta.status || prev.status || "pending"),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        if (!snap.exists) {
-            payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        }
-        // Client path: never escalate to paid via this helper unless admin passed status paid
-        if (!meta.allowPaidWrite) {
-            if (prev.status === "paid") {
-                payload.status = "paid";
-            } else {
-                payload.status = "pending";
-            }
-        }
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         await ref.set(payload, { merge: true });
-        return true;
+        return { ok: true, code };
     } catch (error) {
-        console.warn("[security] upsertOrderCodeMap failed:", error);
-        return false;
+        const message = String(error?.message || error?.code || error);
+        console.error("[security] upsertOrderCodeMap failed:", code, message, error);
+        return { ok: false, error: message, code };
     }
 }
 
