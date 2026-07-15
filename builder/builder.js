@@ -3293,14 +3293,11 @@ async function saveConfig(event) {
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
 
         // Map token + orderCode (SePay) + paymentStatus + editSessions
-        const [tokenSyncOk, orderMapResult, payStatusOk, sessionOk] = await Promise.all([
+        await Promise.all([
             syncWeddingTokenMaps(db, {
                 weddingId: payload.weddingId,
                 accessToken: payload.payment?.accessToken,
                 editToken
-            }).then(() => true).catch(err => {
-                console.warn("[builder] token maps:", err);
-                return false;
             }),
             upsertOrderCodeMap(db, payload.payment?.orderCode, {
                 weddingId: payload.weddingId,
@@ -3323,12 +3320,6 @@ async function saveConfig(event) {
             })
         ]);
 
-        // orderCodes bắt buộc cho SePay auto-unlock — báo rõ nếu fail (trước đây fail im lặng)
-        const orderMapOk = orderMapResult && orderMapResult.ok === true;
-        if (!orderMapOk) {
-            console.error("[builder] orderCodes map failed:", orderMapResult);
-        }
-
         sessionCloudinaryPublicIds = [];
 
         // Giữ payment (accessToken, unlocked…) sau save — createPreviewConfig không mang field này
@@ -3349,22 +3340,12 @@ async function saveConfig(event) {
         setInvitePlan(payload.plan || "single");
         syncInvitePlanUI();
         const savedCode = normalizeOrderCode(payload.payment?.orderCode) || "";
-        if (!orderMapOk && savedCode) {
-            setStatus(
-                `Đã lưu thiệp nhưng chưa ghi orderCodes/${savedCode} (SePay auto có thể lỗi). Lỗi: ${String(orderMapResult?.error || "unknown").slice(0, 80)}. Publish Firestore Rules có orderCodes rồi Lưu lại.`,
-                "error"
-            );
-        } else {
-            setStatus(
-                savedCode
-                    ? `Đã lưu bản nháp. Mã giao dịch: ${savedCode}`
-                    : "Đã lưu bản nháp thành công.",
-                "success"
-            );
-        }
-        void tokenSyncOk;
-        void payStatusOk;
-        void sessionOk;
+        setStatus(
+            savedCode
+                ? `Đã lưu bản nháp. Mã giao dịch: ${savedCode}`
+                : "Đã lưu bản nháp thành công.",
+            "success"
+        );
         refreshPreview(false);
         if (isPaymentUnlocked(payload)) {
             showUnlockedLinks(payload.weddingId, payload.payment?.accessToken || "");

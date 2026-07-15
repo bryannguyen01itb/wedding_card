@@ -277,56 +277,6 @@ function createFirestoreClient(serviceAccount, accessToken) {
     };
 }
 
-/**
- * Fallback: tra weddingId theo payment.orderCode khi thiếu orderCodes map.
- * Dùng Firestore REST runQuery (service account).
- */
-async function findWeddingIdByOrderCode(fs, serviceAccount, accessToken, orderCode) {
-    const code = normalizeOrderCode(orderCode);
-    if (!code || !serviceAccount?.project_id || !accessToken) return "";
-
-    const projectId = serviceAccount.project_id;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
-    const body = {
-        structuredQuery: {
-            from: [{ collectionId: "weddings" }],
-            where: {
-                fieldFilter: {
-                    field: { fieldPath: "payment.orderCode" },
-                    op: "EQUAL",
-                    value: { stringValue: code }
-                }
-            },
-            limit: 1
-        }
-    };
-
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    });
-    const rows = await response.json().catch(() => []);
-    if (!response.ok) {
-        console.warn("[sepay-webhook] runQuery failed:", response.status, rows);
-        return "";
-    }
-    if (!Array.isArray(rows)) return "";
-    for (const row of rows) {
-        const name = row?.document?.name || "";
-        // .../documents/weddings/{weddingId}
-        const parts = name.split("/documents/weddings/");
-        if (parts[1]) {
-            const id = decodeURIComponent(parts[1].split("/")[0] || "").trim();
-            if (id) return id;
-        }
-    }
-    return "";
-}
-
 async function verifySePayAuth(request, rawBody, env) {
     const apiKey = String(env.SEPAY_API_KEY || "").trim();
     const hmacSecret = String(env.SEPAY_WEBHOOK_SECRET || "").trim();
@@ -537,14 +487,10 @@ export async function onRequestPost(context) {
         const accessToken = await getFirestoreAccessToken(serviceAccount);
         const fs = createFirestoreClient(serviceAccount, accessToken);
 
-        // Dedup theo SePay transaction id — chỉ bỏ qua nếu đã unlock/thành công thật.
-        // Lần trước ignored (order_not_found, amount_mismatch…) cho phép chạy lại sau khi sửa map.
+        // Dedup theo SePay transaction id
         if (txnId) {
             const existingEvent = await fs.get("sepayEvents", txnId);
-            const alreadyDone = existingEvent?.processed === true
-                && existingEvent?.ignored !== true
-                && (existingEvent?.ok === true || existingEvent?.alreadyPaid === true || existingEvent?.duplicate === true);
-            if (alreadyDone) {
+            if (existingEvent?.processed === true) {
                 return sepayOk({
                     duplicate: true,
                     weddingId: existingEvent.weddingId || "",
@@ -556,15 +502,7 @@ export async function onRequestPost(context) {
         const orderMap = await fs.get("orderCodes", orderCode);
         let weddingId = orderMap?.weddingId ? String(orderMap.weddingId).trim() : "";
 
-        // Fallback: thiệp cũ / builder chưa ghi orderCodes — tra weddings theo payment.orderCode
-        if (!weddingId) {
-            try {
-                weddingId = await findWeddingIdByOrderCode(fs, serviceAccount, accessToken, orderCode);
-            } catch (lookupErr) {
-                console.warn("[sepay-webhook] orderCode lookup failed:", lookupErr);
-            }
-        }
-
+        // Fallback: nếu map chưa có (thiệp cũ) — không list được; bỏ qua
         if (!weddingId) {
             if (txnId) {
                 await fs.setMerge("sepayEvents", txnId, {
@@ -578,19 +516,6 @@ export async function onRequestPost(context) {
                 });
             }
             return sepayOk({ ignored: true, reason: "order_not_found", orderCode });
-        }
-
-        // Backfill map nếu thiếu (lần sau tra nhanh)
-        if (!orderMap?.weddingId) {
-            try {
-                await fs.setMerge("orderCodes", orderCode, {
-                    weddingId,
-                    amount,
-                    currency: "VND",
-                    status: "pending",
-                    updatedAt: new Date().toISOString()
-                });
-            } catch (_) { /* ignore */ }
         }
 
         // Match amount với map (nhanh) trước khi đọc wedding

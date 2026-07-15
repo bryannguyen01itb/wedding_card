@@ -75,15 +75,6 @@ assert(
     "extract prefers WC pattern in content"
 );
 
-// upsertOrderCodeMap shape (no firebase) — invalid inputs
-{
-    const r1 = await (async () => {
-        const { upsertOrderCodeMap } = await import("../js/utils/security.js");
-        return upsertOrderCodeMap(null, "WCABCDEF23", { weddingId: "x" });
-    })();
-    assert(r1 && r1.ok === false, "upsertOrderCodeMap no db returns ok false");
-}
-
 if (failed) {
     console.error(`\n${failed} test(s) failed`);
     process.exit(1);

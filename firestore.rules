@@ -207,32 +207,35 @@ service cloud.firestore {
 
     /**
      * Map mã CK (orderCode) → weddingId cho SePay webhook.
-     * Client builder: create/update khi status request == pending (không leo thang paid).
-     * Webhook (service account) bypass rules.
+     * Client builder: create/update pending only — không set status paid.
+     * Webhook (Admin SDK / service account) bypass rules.
      */
     function isValidOrderCodeId(code) {
       return code.matches('^WC[A-Z2-9]{6,12}$');
     }
 
-    /** Builder chỉ được ghi bản pending (không set paid/unlocked). */
-    function isPendingOrderCodeWrite() {
-      return request.resource.data.keys().hasAll(['weddingId', 'status'])
-        && request.resource.data.weddingId is string
+    function isSafeOrderCodeWrite() {
+      return request.resource.data.weddingId is string
         && request.resource.data.weddingId.size() > 0
         && request.resource.data.weddingId.size() < 120
-        && request.resource.data.status == 'pending';
+        && (
+          !request.resource.data.keys().hasAny(['status'])
+          || request.resource.data.status == 'pending'
+        )
+        && (
+          !request.resource.data.keys().hasAny(['unlocked'])
+          || request.resource.data.unlocked == false
+        );
     }
 
     match /orderCodes/{code} {
       allow get: if true;
       allow list: if false;
-      // create + merge-set doc mới
-      allow create: if isValidOrderCodeId(code) && isPendingOrderCodeWrite();
-      // update: admin full; client chỉ khi doc chưa paid và vẫn pending
+      allow create: if isValidOrderCodeId(code) && isSafeOrderCodeWrite();
       allow update: if isAdmin()
         || (
           isValidOrderCodeId(code)
-          && isPendingOrderCodeWrite()
+          && isSafeOrderCodeWrite()
           && resource.data.weddingId == request.resource.data.weddingId
           && (
             !resource.data.keys().hasAny(['status'])
