@@ -1,7 +1,8 @@
 import { db } from "../js/firebase.js";
 import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/access.js";
+import { BRAND_PRIMARY } from "../js/brand.js";
 
-const DEFAULT_PRIMARY = "#c9974f";
+const DEFAULT_PRIMARY = BRAND_PRIMARY;
 const DEFAULT_MEDIA_CONCEPT = "concept-1";
 const GALLERY_SIZE = 7;
 // Có thể điền email admin ở đây để ẩn UI nếu đăng nhập nhầm tài khoản.
@@ -198,28 +199,16 @@ function showToast(message, type = "success") {
     }, 3200);
 }
 
-function hexToRgb(hex) {
-    const clean = String(hex || DEFAULT_PRIMARY).replace("#", "");
-    const value = parseInt(
-        clean.length === 3 ? clean.split("").map(char => char + char).join("") : clean,
-        16
-    );
-
-    return {
-        r: (value >> 16) & 255,
-        g: (value >> 8) & 255,
-        b: value & 255
-    };
-}
-
 function syncColorInputs(primaryColor) {
+    // Chỉ đồng bộ ô form màu thiệp — KHÔNG đổi chrome admin
+    // (tránh mở/chọn thiệp là cả trang admin đổi theo primaryColor của thiệp)
     const value = /^#[0-9a-fA-F]{6}$/.test(primaryColor || "") ? primaryColor : DEFAULT_PRIMARY;
-    const rgb = hexToRgb(value);
-
-    form.elements["theme.primaryColor"].value = value;
-    form.elements["theme.primaryColorText"].value = value;
-    document.documentElement.style.setProperty("--admin-primary", value);
-    document.documentElement.style.setProperty("--admin-primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    if (form?.elements?.["theme.primaryColor"]) {
+        form.elements["theme.primaryColor"].value = value;
+    }
+    if (form?.elements?.["theme.primaryColorText"]) {
+        form.elements["theme.primaryColorText"].value = value;
+    }
 }
 
 function fillGalleryFields() {

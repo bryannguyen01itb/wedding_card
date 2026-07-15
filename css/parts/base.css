@@ -9,9 +9,7 @@
 }
 
 :root {
-    --primary-color: #8fb8a8;
-    --primary-rgb: 143, 184, 168;
-    --primary-hover: #7ea997;
+    /* --primary-color / --primary-rgb / --primary-hover: từ css/brand.css */
     --save-date-animation-duration: .55s;
     --section-animation-duration: .85s;
     --gallery-animation-duration: .82s;
@@ -309,9 +307,9 @@ body.landing-page {
     font-size: 18px;
     line-height: 1.5;
     background:
-        radial-gradient(circle at 12% 10%, rgba(201, 151, 79, .28), transparent 32%),
-        radial-gradient(circle at 88% 0%, rgba(143, 184, 168, .22), transparent 28%),
-        linear-gradient(160deg, #fff8ec 0%, #f6ead7 45%, #fffdf8 100%);
+        radial-gradient(circle at 12% 10%, rgba(var(--brand-primary-rgb), .28), transparent 32%),
+        radial-gradient(circle at 88% 0%, rgba(var(--brand-primary-rgb), .22), transparent 28%),
+        linear-gradient(160deg, #f0f8ee 0%, #e4f2e0 45%, #f7fcf6 100%);
 }
 
 body.landing-page::before {
@@ -335,14 +333,14 @@ body.landing-page::before {
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: rgba(201, 151, 79, .18);
+    background: rgba(var(--brand-primary-rgb), .18);
     filter: blur(40px);
     pointer-events: none;
 }
 
 .landing__eyebrow {
     margin: 0 0 12px;
-    color: #c9974f;
+    color: var(--brand-primary);
     font-size: 15px;
     font-weight: 800;
     letter-spacing: .14em;
@@ -387,15 +385,15 @@ body.landing-page::before {
 }
 
 .landing__cta {
-    background: #c9974f;
+    background: var(--brand-primary);
     color: #fff;
-    box-shadow: 0 14px 32px rgba(201, 151, 79, .28);
+    box-shadow: 0 14px 32px rgba(var(--brand-primary-rgb), .28);
 }
 
 .landing__ghost {
     background: rgba(255, 255, 255, .88);
-    color: #9a6c2d;
-    border: 1px solid rgba(201, 151, 79, .28);
+    color: var(--brand-primary-hover);
+    border: 1px solid rgba(var(--brand-primary-rgb), .28);
 }
 
 .landing__cta:hover,
@@ -425,7 +423,7 @@ body.landing-page::before {
 .landing__features i {
     flex: 0 0 auto;
     margin-top: 2px;
-    color: #c9974f;
+    color: var(--brand-primary);
     font-size: 20px;
 }
 
@@ -433,7 +431,7 @@ body.landing-page::before {
     padding: 20px;
     border-radius: 28px;
     background: rgba(255, 255, 255, .72);
-    border: 1px solid rgba(201, 151, 79, .16);
+    border: 1px solid rgba(var(--brand-primary-rgb), .16);
     box-shadow: 0 24px 60px rgba(98, 69, 38, .12);
 }
 
@@ -462,7 +460,7 @@ body.landing-page::before {
 
 .landing__note code {
     font-size: 14px;
-    color: #9a6c2d;
+    color: var(--brand-primary-hover);
 }
 
 @media (max-width: 820px) {

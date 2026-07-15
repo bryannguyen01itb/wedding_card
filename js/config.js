@@ -42,6 +42,8 @@
  *    - amountMulti  — giá gói nhiều link (mặc định 129000)
  *    - currency, contactUrl, qrImage, receiver, message
  */
+import { BRAND_PRIMARY } from "./brand.js";
+
 export let wedding = {
     // --- Thông tin chung ---
     weddingId: "wedding-cp-4",
@@ -81,7 +83,7 @@ export let wedding = {
         // Section skins — keys khớp id trong js/modules/*.js (registry).
         // Wish/gift/thanks cố định concept-1; các section còn lại chọn skin độc lập.
         // Xem js/modules/README.md khi thêm section/skin mới.
-        primaryColor: "#8fb8a8",
+        primaryColor: BRAND_PRIMARY,
         blocks: {
             cover: "concept-1",
             poster: "concept-1",

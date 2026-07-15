@@ -1,0 +1,31 @@
+/* Auto from js/brand.js — đừng sửa tay nếu dùng scripts/sync-brand-css.mjs */
+:root {
+    --brand-primary: #12c4b8;
+    --brand-primary-rgb: 18, 196, 184;
+    --brand-primary-hover: #0faca1;
+    --brand-ink: #1c4c45;
+    --brand-muted: #4a7a74;
+    --brand-paper: #ecfaf9;
+    --brand-surface: #f4fcfb;
+    --brand-accent-orange: #f9a138;
+    --brand-accent-sky: #50c8f0;
+
+    /* Alias thiệp (theme.js có thể ghi đè runtime theo wedding) */
+    --primary-color: var(--brand-primary);
+    --primary-rgb: var(--brand-primary-rgb);
+    --primary-hover: var(--brand-primary-hover);
+
+    /* Alias admin / builder UI */
+    --admin-primary: var(--brand-primary);
+    --admin-primary-rgb: var(--brand-primary-rgb);
+    --admin-ink: var(--brand-ink);
+    --admin-muted: var(--brand-muted);
+    --admin-paper: var(--brand-paper);
+    --admin-surface: var(--brand-surface);
+    --builder-primary: var(--brand-primary);
+    --builder-primary-rgb: var(--brand-primary-rgb);
+    --builder-ink: var(--brand-ink);
+    --builder-muted: var(--brand-muted);
+    --builder-paper: var(--brand-paper);
+    --builder-surface: var(--brand-surface);
+}

@@ -6,26 +6,26 @@
  *
  * Bump ?v= trên MỌI dòng @import khi đổi CSS (hoặc chỉ dùng link list trong index.html).
  */
-@import url("tokens.css?v=20260715g");
-@import url("parts/base.css?v=20260715g");
-@import url("parts/cover.css?v=20260715g");
-@import url("parts/sections.css?v=20260715g");
-@import url("parts/countdown-thanks.css?v=20260715g");
-@import url("parts/animations.css?v=20260715g");
-@import url("parts/concept-1-classic.css?v=20260715g");
-@import url("parts/gift-polish.css?v=20260715g");
-@import url("parts/block-builder.css?v=20260715g");
+@import url("tokens.css?v=20260715-tl45");
+@import url("parts/base.css?v=20260715-tl45");
+@import url("parts/cover.css?v=20260715-tl45");
+@import url("parts/sections.css?v=20260715-tl45");
+@import url("parts/countdown-thanks.css?v=20260715-tl45");
+@import url("parts/animations.css?v=20260715-tl45");
+@import url("parts/concept-1-classic.css?v=20260715-tl45");
+@import url("parts/gift-polish.css?v=20260715-tl45");
+@import url("parts/block-builder.css?v=20260715-tl45");
 /* Section skins — 1 tầng, không qua blocks/index */
-@import url("blocks/cover/skins.css?v=20260715g");
-@import url("blocks/poster/skins.css?v=20260715g");
-@import url("blocks/save-date/skins.css?v=20260715g");
-@import url("blocks/about/skins.css?v=20260715g");
-@import url("blocks/timeline/skins.css?v=20260715g");
-@import url("blocks/gallery/skins.css?v=20260715g");
-@import url("blocks/countdown/skins.css?v=20260715g");
-@import url("blocks/divider/skins.css?v=20260715g");
-@import url("blocks/gift/skins.css?v=20260715g");
-@import url("blocks/wish/skins.css?v=20260715g");
-@import url("blocks/thanks/skins.css?v=20260715g");
+@import url("blocks/cover/skins.css?v=20260715-tl45");
+@import url("blocks/poster/skins.css?v=20260715-tl45");
+@import url("blocks/save-date/skins.css?v=20260715-tl45");
+@import url("blocks/about/skins.css?v=20260715-tl45");
+@import url("blocks/timeline/skins.css?v=20260715-tl45");
+@import url("blocks/gallery/skins.css?v=20260715-tl45");
+@import url("blocks/countdown/skins.css?v=20260715-tl45");
+@import url("blocks/divider/skins.css?v=20260715-tl45");
+@import url("blocks/gift/skins.css?v=20260715-tl45");
+@import url("blocks/wish/skins.css?v=20260715-tl45");
+@import url("blocks/thanks/skins.css?v=20260715-tl45");
 /* Luôn cuối */
-@import url("blocks/theme-unifier.css?v=20260715g");
+@import url("blocks/theme-unifier.css?v=20260715-tl45");

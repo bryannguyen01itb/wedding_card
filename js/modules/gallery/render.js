@@ -30,6 +30,17 @@ const GALLERY_LAYOUT_CLASSES = [
 
 const DEFAULT_FIXED_PHOTO_LIMIT = 7;
 
+/** Album mẫu khi wedding.gallery.photos rỗng (preview / chưa upload). */
+const SAMPLE_GALLERY_PHOTOS = [
+    { src: "img/anh_3.jpeg", alt: "Ảnh cưới 1" },
+    { src: "img/anh_4.jpeg", alt: "Ảnh cưới 2" },
+    { src: "img/anh_5.jpeg", alt: "Ảnh cưới 3" },
+    { src: "img/anh_6.jpeg", alt: "Ảnh cưới 4" },
+    { src: "img/anh_7.jpeg", alt: "Ảnh cưới 5" },
+    { src: "img/anh_8.jpeg", alt: "Ảnh cưới 6" },
+    { src: "img/anh_1.jpg", alt: "Ảnh cưới 7" }
+];
+
 
 function normalizePhoto(item) {
     return typeof item === "string" ? { src: item, alt: "" } : item;
@@ -122,10 +133,12 @@ export function renderGallery(config, weddingDate) {
         ? options.photoLimit
         : (fixedLayout ? DEFAULT_FIXED_PHOTO_LIMIT : null);
 
-    const validPhotos = photos.filter(photo => photo?.src);
+    // Có src → dùng; không có (Firebase/form để trống) → album mẫu để section không trống
+    const validPhotos = photos.filter(photo => String(photo?.src || "").trim());
+    const resolvedPhotos = validPhotos.length ? validPhotos : SAMPLE_GALLERY_PHOTOS;
     const visiblePhotos = photoLimit
-        ? validPhotos.slice(0, photoLimit)
-        : validPhotos;
+        ? resolvedPhotos.slice(0, photoLimit)
+        : resolvedPhotos;
     const layoutClass = getGalleryLayout(visiblePhotos.length, options);
 
     grid.textContent = "";

@@ -2,18 +2,15 @@
     box-sizing:border-box
 }
 :root {
-    --admin-primary:#c9974f;
-    --admin-primary-rgb:201,151,79;
-    --admin-ink:#342a22;
-    --admin-muted:#7d7066;
-    --admin-card:rgba(255,255,255,.88);
-    --admin-line:rgba(131,93,50,.16)
+    /* màu từ css/brand.css — không hardcode hex ở đây */
+    --admin-card: rgba(255,255,255,.88);
+    --admin-line: rgba(var(--admin-primary-rgb), .18)
 }
 body {
     margin:0;
     color:var(--admin-ink);
     font-family:Quicksand,Arial,sans-serif;
-    background:radial-gradient(circle at 12% 8%,rgba(var(--admin-primary-rgb),.22),transparent 28%),linear-gradient(135deg,#fff8ec 0%,#f6ead7 48%,#fffdf8 100%)
+    background:radial-gradient(circle at 12% 8%,rgba(var(--admin-primary-rgb),.22),transparent 28%),linear-gradient(135deg,var(--admin-paper) 0%,var(--admin-paper) 48%,var(--admin-surface) 100%)
 }
 .admin-shell {
     width:min(1280px,calc(100% - 32px));
@@ -57,7 +54,7 @@ h1 {
     border:1px solid var(--admin-line);
     border-radius:18px;
     background:var(--admin-card);
-    box-shadow:0 18px 60px rgba(98,69,38,.1);
+    box-shadow:0 18px 60px rgba(36,61,44,.1);
     backdrop-filter:blur(14px)
 }
 .hero-card,
@@ -180,7 +177,7 @@ input[type=color] {
     justify-content:flex-end;
     gap:12px;
     padding:16px 0 0;
-    background:linear-gradient(180deg,transparent,#fff8ec 32%)
+    background:linear-gradient(180deg,transparent,var(--admin-paper) 32%)
 }
 button {
     display:inline-flex;
@@ -283,8 +280,8 @@ a {
     place-items: center;
     border-radius: 50%;
     background: #fff;
-    color: #9a6c2d;
-    border: 1px solid rgba(201, 151, 79, .24);
+    color: var(--brand-primary-hover);
+    border: 1px solid rgba(var(--admin-primary-rgb), .24);
     box-shadow: none;
 }
 
@@ -295,14 +292,14 @@ a {
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: rgba(201, 151, 79, .16);
-    color: #9a6c2d;
+    background: rgba(var(--admin-primary-rgb), .16);
+    color: var(--brand-primary-hover);
     font-size: 24px;
 }
 
 .admin-modal__eyebrow {
     margin: 0 0 4px;
-    color: #c9974f;
+    color: var(--admin-primary);
     font-size: 11px;
     font-weight: 900;
     letter-spacing: .12em;
@@ -311,7 +308,7 @@ a {
 
 .admin-modal__dialog h2 {
     margin: 0;
-    color: #4b3827;
+    color: var(--admin-ink);
     font-family: Lora, serif;
     font-size: 24px;
     line-height: 1.25;
@@ -319,7 +316,7 @@ a {
 
 .admin-modal__wedding-id {
     margin: 8px 0 0;
-    color: #7b6147;
+    color: var(--admin-muted);
     font-size: 13px;
     font-weight: 800;
     overflow-wrap: anywhere;
@@ -338,7 +335,7 @@ a {
     min-width: 0;
     padding: 12px 10px;
     border-radius: 14px;
-    border: 1px solid rgba(201, 151, 79, .2);
+    border: 1px solid rgba(var(--admin-primary-rgb), .2);
     background: #fff;
     text-align: center;
 }
@@ -346,7 +343,7 @@ a {
 .plan-change-chip span {
     display: block;
     margin-bottom: 4px;
-    color: #8a735d;
+    color: var(--admin-muted);
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
@@ -355,23 +352,23 @@ a {
 
 .plan-change-chip strong {
     display: block;
-    color: #4b3827;
+    color: var(--admin-ink);
     font-size: 15px;
     font-weight: 900;
 }
 
 .plan-change-chip--to {
-    border-color: rgba(201, 151, 79, .45);
-    background: rgba(201, 151, 79, .1);
+    border-color: rgba(var(--admin-primary-rgb), .45);
+    background: rgba(var(--admin-primary-rgb), .1);
 }
 
 .plan-change-chip--to strong {
-    color: #9a6c2d;
+    color: var(--brand-primary-hover);
 }
 
 .plan-change-arrow {
     flex: 0 0 auto;
-    color: #c9974f;
+    color: var(--admin-primary);
     font-size: 18px;
 }
 
@@ -415,14 +412,14 @@ a {
 .admin-modal__prices > div {
     padding: 12px;
     border-radius: 14px;
-    border: 1px solid rgba(201, 151, 79, .18);
+    border: 1px solid rgba(var(--admin-primary-rgb), .18);
     background: #fff;
 }
 
 .admin-modal__prices span {
     display: block;
     margin-bottom: 4px;
-    color: #8a735d;
+    color: var(--admin-muted);
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
@@ -430,7 +427,7 @@ a {
 }
 
 .admin-modal__prices strong {
-    color: #4b3827;
+    color: var(--admin-ink);
     font-size: 15px;
     font-weight: 900;
 }
@@ -442,13 +439,13 @@ a {
     margin: 0 0 18px;
     padding: 12px 14px;
     border-radius: 14px;
-    border: 1px solid rgba(201, 151, 79, .2);
+    border: 1px solid rgba(var(--admin-primary-rgb), .2);
     background: rgba(255, 255, 255, .85);
     text-align: left;
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
-    color: #4b3827;
+    color: var(--admin-ink);
     line-height: 1.4;
 }
 
@@ -457,7 +454,7 @@ a {
     height: 18px;
     margin-top: 1px;
     flex: 0 0 auto;
-    accent-color: #c9974f;
+    accent-color: var(--admin-primary);
 }
 
 .admin-modal__actions {
@@ -473,7 +470,7 @@ a {
 }
 
 .admin-modal__actions #planChangeConfirmBtn {
-    box-shadow: 0 12px 28px rgba(201, 151, 79, .28);
+    box-shadow: 0 12px 28px rgba(var(--admin-primary-rgb), .28);
 }
 
 @media (max-width: 480px) {
@@ -497,7 +494,7 @@ body.admin-modal-open {
 
 .admin-modal__message {
     margin: 12px 0 0;
-    color: #7b6147;
+    color: var(--admin-muted);
     font-size: 14px;
     font-weight: 700;
     line-height: 1.55;
@@ -894,7 +891,7 @@ button.ghost.danger {
 
 .payment-item:hover {
     border-color: rgba(var(--admin-primary-rgb), .34);
-    box-shadow: 0 12px 34px rgba(98,69,38,.1);
+    box-shadow: 0 12px 34px rgba(36,61,44,.1);
 }
 
 #weddingListPanel[hidden],
@@ -907,9 +904,9 @@ button.ghost.danger {
 }
 
 .payment-item__actions button.is-plan-active {
-    background: rgba(201, 151, 79, .16);
-    color: #9a6c2d;
-    border-color: rgba(201, 151, 79, .4);
+    background: rgba(var(--admin-primary-rgb), .16);
+    color: var(--brand-primary-hover);
+    border-color: rgba(var(--admin-primary-rgb), .4);
     font-weight: 900;
 }
 

@@ -304,24 +304,17 @@ top: .28rem;
     box-shadow: 0 12px 24px rgba(var(--sunset-coral-rgb), .22);
 }
 
-/* timeline from concept-4 */
+/* timeline concept-4 — vertical program; colors follow theme.primaryColor */
 
 body .timeline.block-skin-concept-4 {
-position: relative;
+    position: relative;
     padding: 0.5rem .46rem 1.15rem .46rem;
-    background: var(--na01-paper);
-    color: var(--na01-gold);
+    background: var(--theme-page-bg, #f7fcf6);
+    color: var(--primary-color);
 }
-
-body .timeline.block-skin-concept-4 /* Timeline as thin vertical wedding program */
- .timeline {
-background: linear-gradient(180deg, #fffdf8, #fbf3e7);
-}
-
-
 
 body .timeline.block-skin-concept-4 .timeline-card {
-position: relative;
+    position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: .4rem;
@@ -331,52 +324,52 @@ position: relative;
 }
 
 body .timeline.block-skin-concept-4 .timeline-card > img {
-display: none;
+    display: none;
 }
 
 body .timeline.block-skin-concept-4 .timeline-side-badge {
-position: absolute;
+    position: absolute;
     top: .1rem;
     left: 50%;
     z-index: 2;
     transform: translateX(-50%);
     min-width: 1.2rem;
     padding: .08rem .18rem;
-    border: 1px solid rgba(146,131,98,.32);
+    border: 1px solid rgba(var(--primary-rgb), .32);
     border-radius: 999px;
-    color: var(--na01-gold);
-    background: var(--na01-paper);
+    color: var(--primary-color);
+    background: var(--theme-page-bg, #f7fcf6);
     font-family: var(--font-body, "Quicksand", sans-serif);
     font-size: .27rem;
     text-align: center;
 }
 
 body .timeline.block-skin-concept-4 .timeline-card:nth-child(odd) .timeline-content {
-grid-column: 2;
+    grid-column: 2;
 }
 
 body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-content {
-grid-column: 1;
+    grid-column: 1;
     text-align: right;
 }
 
 body .timeline.block-skin-concept-4 .timeline-content {
-padding: .32rem 0 0;
+    padding: .32rem 0 0;
 }
 
 body .timeline.block-skin-concept-4 .timeline-events {
-display: grid;
+    display: grid;
     gap: .22rem;
 }
 
 body .timeline.block-skin-concept-4 .timeline-event {
-padding: .18rem .2rem;
-    border: 1px solid rgba(146,131,98,.16);
-    background: rgba(255,255,255,.64);
+    padding: .18rem .2rem;
+    border: 1px solid rgba(var(--primary-rgb), .16);
+    background: rgba(255, 255, 255, .64);
 }
 
 body .timeline.block-skin-concept-4 .timeline-name {
-color: var(--na01-gold);
+    color: var(--primary-color);
     font-family: "Lora", Georgia, serif;
     font-size: .27rem;
     font-weight: 500;
@@ -385,11 +378,11 @@ color: var(--na01-gold);
 
 body .timeline.block-skin-concept-4 .timeline-row,
 body .timeline.block-skin-concept-4 .timeline-address {
-display: flex;
+    display: flex;
     align-items: flex-start;
     gap: .12rem;
     margin-top: .16rem;
-    color: var(--na01-gold);
+    color: var(--primary-color);
     font-family: "Philosopher", serif;
     font-size: .27rem;
     line-height: 1.45;
@@ -397,15 +390,15 @@ display: flex;
 
 body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-row,
 body .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-address {
-justify-content: flex-end;
+    justify-content: flex-end;
 }
 
 body .timeline.block-skin-concept-4 .timeline-row i {
-color: var(--na01-gold);
+    color: var(--primary-color);
 }
 
 body .timeline.block-skin-concept-4 .timeline-map-link {
-display: inline-flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: .12rem;
@@ -413,9 +406,9 @@ display: inline-flex;
     min-width: 2.28rem;
     margin: .24rem auto 0;
     padding: .16rem .34rem;
-    border: 1px solid rgba(146,131,98,.28);
+    border: 1px solid rgba(var(--primary-rgb), .28);
     border-radius: 0;
-    color: var(--na01-gold);
+    color: var(--primary-color);
     background: #fff;
     box-shadow: none;
     font-family: "Philosopher", serif;
@@ -424,30 +417,41 @@ display: inline-flex;
 }
 
 body .timeline.block-skin-concept-4 .timeline-card {
-gap: .26rem;
+    gap: .26rem;
 }
 
 body .timeline.block-skin-concept-4 .timeline-name {
-font-size: .27rem;
+    font-size: .27rem;
 }
 
 body .timeline.block-skin-concept-4 .timeline-row,
 body .timeline.block-skin-concept-4 .timeline-address {
-font-size: .27rem;
+    font-size: .27rem;
 }
 
 
 /* --- maintained overrides (were blocks/*/skins.css) --- */
 
-/* Timeline block skins. Edit timeline layout here, not in concept files. */
+/* Timeline concept-4 layout + primary palette */
 .timeline.block-skin-concept-4 {
     position: relative !important;
     padding: .82rem .35rem .7rem !important;
-    background: linear-gradient(180deg, #fffdf8, #fbf3e7) !important;
+    color: var(--primary-color) !important;
+    background:
+        linear-gradient(
+            180deg,
+            var(--theme-page-bg, #f7fcf6),
+            color-mix(in srgb, var(--primary-color) 8%, var(--theme-page-bg, #f7fcf6))
+        ) !important;
 }
 
 .timeline.block-skin-concept-4 .section-title {
     line-height: 1.16 !important;
+    color: var(--primary-color) !important;
+}
+
+.timeline.block-skin-concept-4 .section-subtitle {
+    color: color-mix(in srgb, var(--primary-color) 55%, #5f7a66) !important;
 }
 
 .timeline.block-skin-concept-4 #timelineCards {
@@ -464,7 +468,7 @@ font-size: .27rem;
     bottom: .2rem !important;
     left: 50% !important;
     width: 1px !important;
-    background: rgba(146,131,98,.34) !important;
+    background: rgba(var(--primary-rgb), .34) !important;
     transform: translateX(-50%) !important;
     z-index: 0 !important;
 }
@@ -494,10 +498,10 @@ font-size: .27rem;
     transform: translateX(-50%) !important;
     min-width: 1.2rem !important;
     padding: .08rem .18rem !important;
-    border: 1px solid rgba(146,131,98,.32) !important;
+    border: 1px solid rgba(var(--primary-rgb), .32) !important;
     border-radius: 999px !important;
-    color: var(--na01-gold, #928362) !important;
-    background: var(--na01-paper, #fffdf8) !important;
+    color: var(--primary-color) !important;
+    background: var(--theme-page-bg, #f7fcf6) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     text-align: center !important;
@@ -518,16 +522,22 @@ font-size: .27rem;
 
 .timeline.block-skin-concept-4 .timeline-event {
     padding: .18rem .2rem !important;
-    border: 1px solid rgba(146,131,98,.16) !important;
+    border: 1px solid rgba(var(--primary-rgb), .16) !important;
     border-radius: 0 !important;
-    background: rgba(255,255,255,.64) !important;
+    background: rgba(255, 255, 255, .64) !important;
 }
 
 .timeline.block-skin-concept-4 .timeline-name,
 .timeline.block-skin-concept-4 .timeline-row,
 .timeline.block-skin-concept-4 .timeline-address,
+.timeline.block-skin-concept-4 .timeline-map-link,
+.timeline.block-skin-concept-4 .timeline-row i {
+    color: var(--primary-color) !important;
+}
+
 .timeline.block-skin-concept-4 .timeline-map-link {
-    color: var(--na01-gold, #928362) !important;
+    border-color: rgba(var(--primary-rgb), .28) !important;
+    background: #fff !important;
 }
 
 .timeline.block-skin-concept-4 .timeline-card:nth-child(even) .timeline-row,
@@ -550,31 +560,31 @@ font-size: .27rem;
 
 /* ============================================================
    Concept 5 — Vertical ritual timeline (lễ + bữa cơm)
-   Style: elegant centered steps, copper line, no photo
+   Colors follow theme.primaryColor (not fixed copper/gold)
    ============================================================ */
 
 body.block-timeline-concept-5 .timeline,
 .timeline.block-skin-concept-5 {
     position: relative;
     padding: .35rem .28rem 1rem !important;
-    color: #4a4036;
+    color: color-mix(in srgb, var(--primary-color) 35%, #2f3a32);
     background:
-        radial-gradient(circle at 8% 12%, rgba(180, 140, 100, .08), transparent 40%),
-        radial-gradient(circle at 92% 88%, rgba(180, 140, 100, .07), transparent 38%),
-        #f7f3ec !important;
+        radial-gradient(circle at 8% 12%, rgba(var(--primary-rgb), .12), transparent 40%),
+        radial-gradient(circle at 92% 88%, rgba(var(--primary-rgb), .1), transparent 38%),
+        var(--theme-page-bg, #f7fcf6) !important;
     overflow: hidden;
 }
 
 body.block-timeline-concept-5 .timeline .section-title,
 .timeline.block-skin-concept-5 .section-title {
-    color: #3d342c !important;
+    color: var(--primary-color) !important;
     font-family: "Lora", Georgia, serif !important;
     letter-spacing: .12rem !important;
 }
 
 body.block-timeline-concept-5 .timeline .section-subtitle,
 .timeline.block-skin-concept-5 .section-subtitle {
-    color: #8a7f74 !important;
+    color: color-mix(in srgb, var(--primary-color) 45%, #5f7a66) !important;
 }
 
 body.block-timeline-concept-5 #timelineCards.timeline-cards--ritual,
@@ -593,10 +603,10 @@ body.block-timeline-concept-5 .timeline-card--ritual,
     display: block !important;
     margin: 0 !important;
     padding: .42rem .36rem .48rem !important;
-    border: 1px solid rgba(146, 120, 90, .18) !important;
+    border: 1px solid rgba(var(--primary-rgb), .18) !important;
     border-radius: .2rem !important;
-    background: rgba(255, 252, 247, .92) !important;
-    box-shadow: 0 .14rem .4rem rgba(70, 55, 40, .07) !important;
+    background: rgba(255, 255, 255, .88) !important;
+    box-shadow: 0 .14rem .4rem rgba(var(--primary-rgb), .1) !important;
     overflow: visible !important;
 }
 
@@ -609,8 +619,8 @@ body.block-timeline-concept-5 .timeline-card--ritual .timeline-side-badge,
     padding: .08rem .28rem !important;
     border-radius: 999px !important;
     background: transparent !important;
-    border: 1px solid rgba(160, 120, 80, .35) !important;
-    color: #8b6b45 !important;
+    border: 1px solid rgba(var(--primary-rgb), .35) !important;
+    color: var(--primary-color) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
     font-size: .27rem !important;
     font-weight: 600 !important;
@@ -663,7 +673,7 @@ body.block-timeline-concept-5 .timeline-ritual-step:not(:last-of-type)::after,
     width: 1.5px;
     height: .32rem;
     transform: translateX(-50%);
-    background: #b07850;
+    background: var(--primary-color);
     opacity: .85;
     pointer-events: none;
 }
@@ -678,10 +688,10 @@ body.block-timeline-concept-5 .timeline-ritual-icon,
     height: .78rem;
     margin-bottom: .16rem;
     border-radius: 50%;
-    background: #f7f3ec;
-    border: 1px solid rgba(176, 120, 80, .28);
-    box-shadow: 0 0 0 .1rem #f7f3ec;
-    color: #7a5a38;
+    background: var(--theme-page-bg, #f7fcf6);
+    border: 1px solid rgba(var(--primary-rgb), .28);
+    box-shadow: 0 0 0 .1rem var(--theme-page-bg, #f7fcf6);
+    color: var(--primary-color);
     font-size: .36rem;
 }
 
@@ -700,7 +710,7 @@ body.block-timeline-concept-5 .timeline-ritual-body,
 
 body.block-timeline-concept-5 .timeline-ritual-time,
 .timeline.block-skin-concept-5 .timeline-ritual-time {
-    color: #6a5c4e;
+    color: color-mix(in srgb, var(--primary-color) 55%, #4d6554);
     font-family: "Lora", Georgia, serif;
     font-size: .27rem;
     font-weight: 600;
@@ -711,7 +721,7 @@ body.block-timeline-concept-5 .timeline-ritual-time,
 
 body.block-timeline-concept-5 .timeline-ritual-title,
 .timeline.block-skin-concept-5 .timeline-ritual-title {
-    color: #3d342c;
+    color: color-mix(in srgb, var(--primary-color) 40%, #243d2c);
     font-family: "Lora", Georgia, serif;
     font-size: .27rem;
     font-weight: 600;
@@ -738,8 +748,8 @@ body.block-timeline-concept-5 .timeline-ritual-address,
     width: 100%;
     margin-top: .2rem;
     padding: .18rem .12rem 0;
-    border-top: 1px dashed rgba(160, 130, 100, .28);
-    color: #7a6e62;
+    border-top: 1px dashed rgba(var(--primary-rgb), .28);
+    color: color-mix(in srgb, var(--primary-color) 40%, #5f7a66);
     font-family: "Quicksand", sans-serif;
     font-size: .27rem;
     font-weight: 600;
@@ -751,7 +761,7 @@ body.block-timeline-concept-5 .timeline-ritual-address i,
 .timeline.block-skin-concept-5 .timeline-ritual-address i {
     flex: 0 0 auto;
     margin-top: .02rem;
-    color: #b07850;
+    color: var(--primary-color);
     font-size: .27rem;
 }
 
@@ -769,9 +779,9 @@ body.block-timeline-concept-5 .timeline-card--ritual .timeline-map-link,
     margin: .22rem auto 0 !important;
     padding: .12rem .28rem !important;
     border-radius: 999px !important;
-    border: 1px solid rgba(176, 120, 80, .35) !important;
+    border: 1px solid rgba(var(--primary-rgb), .35) !important;
     background: rgba(255, 255, 255, .75) !important;
-    color: #8b6b45 !important;
+    color: var(--primary-color) !important;
     font-size: .27rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;

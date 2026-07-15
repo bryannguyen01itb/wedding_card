@@ -8,7 +8,9 @@ import {
 } from "../modules/core/apply.js";
 import { getRegisteredSkins, normalizeSkinId } from "../modules/index.js";
 
-const DEFAULT_PRIMARY_COLOR = "#8fb8a8";
+import { BRAND_PRIMARY } from "../brand.js";
+
+const DEFAULT_PRIMARY_COLOR = BRAND_PRIMARY;
 const FIXED_BASE_CONCEPT = "concept-1";
 
 const PALETTE_VARS = {

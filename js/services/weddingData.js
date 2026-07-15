@@ -101,10 +101,33 @@ function applyCoverGuestFromUrl(config) {
     return next;
 }
 
+function hasGalleryPhotoSrc(photos) {
+    return (Array.isArray(photos) ? photos : []).some(photo => {
+        const src = typeof photo === "string" ? photo : photo?.src;
+        return Boolean(String(src || "").trim());
+    });
+}
+
 function applyPreviewOrFallback(previewConfig) {
-    const merged = previewConfig
+    let merged = previewConfig
         ? mergeConfig(fallbackWedding, previewConfig)
         : fallbackWedding;
+
+    // Preview builder / Firebase photos:[] đè mất album mẫu → gallery trống.
+    // Khi không còn ảnh nào có src, khôi phục photos mẫu từ config.js.
+    if (!hasGalleryPhotoSrc(merged?.gallery?.photos)) {
+        merged = {
+            ...merged,
+            gallery: {
+                ...(fallbackWedding.gallery || {}),
+                ...(merged.gallery || {}),
+                photos: Array.isArray(fallbackWedding.gallery?.photos)
+                    ? fallbackWedding.gallery.photos
+                    : []
+            }
+        };
+    }
+
     return applyCoverGuestFromUrl(merged);
 }
 

@@ -1,12 +1,15 @@
 /**
- * Design tokens — SỬA SIZE / SPACING CHUNG Ở ĐÂY.
- * Load đầu tiên (trước base + skins). Skin concept chỉ lo màu/layout.
+ * Design tokens — size / spacing chung.
+ * Màu chủ đạo: css/brand.css (+ js/brand.js) — không khai báo lại hex ở đây.
  *
  * Quy ước:
- *  - Token chung  → file này
+ *  - Màu brand  → css/brand.css / js/brand.js
+ *  - Token size → file này
  *  - Style 1 concept → css/blocks/<section>/skins.css
  *  - Đè chắc chắn → css/blocks/theme-unifier.css (load cuối)
  */
+@import url("brand.css");
+
 :root {
     /* Section title / subtitle (about, timeline, gallery, gift, thanks, save-date…) */
     --section-title-size: .46rem;

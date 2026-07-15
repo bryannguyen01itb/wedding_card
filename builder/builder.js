@@ -18,6 +18,7 @@ import {
     extractProvinceFromAddress,
     formatPosterLocation
 } from "../js/utils/location.js";
+import { BRAND_PRIMARY } from "../js/brand.js";
 
 const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
@@ -982,6 +983,29 @@ function getGalleryPhotosFromForm() {
         const src = readField(`galleryPhoto${index + 1}`);
         return src ? { src, alt: `Ảnh cưới ${index + 1}` } : null;
     }).filter(Boolean);
+}
+
+/** Ảnh gallery có src thật (loại slot trống / URL rỗng). */
+function filterGalleryPhotosWithSrc(photos) {
+    return (Array.isArray(photos) ? photos : [])
+        .map(photo => (typeof photo === "string" ? { src: photo, alt: "" } : photo))
+        .filter(photo => String(photo?.src || "").trim());
+}
+
+/**
+ * Ảnh dùng cho preview thiệp:
+ * 1) form builder (user vừa chọn)
+ * 2) config đã load (Firebase / state)
+ * 3) album mẫu config.js — tránh gallery trống trơn
+ */
+function resolvePreviewGalleryPhotos(customerConfig, config) {
+    const fromForm = filterGalleryPhotosWithSrc(customerConfig?.gallery?.photos);
+    if (fromForm.length) return fromForm;
+
+    const fromConfig = filterGalleryPhotosWithSrc(config?.gallery?.photos);
+    if (fromConfig.length) return fromConfig;
+
+    return filterGalleryPhotosWithSrc(fallbackWedding.gallery?.photos);
 }
 
 
@@ -1977,7 +2001,7 @@ function readBuilderTheme() {
         weddingId,
         date: data.get("date") || fallbackWedding.date,
         theme: {
-            primaryColor: data.get("primaryColor") || "#c9974f",
+            primaryColor: data.get("primaryColor") || BRAND_PRIMARY,
             blocks: {
                 ...getDefaultBlocksConfig(),
                 ...blocksFromBuilderFields(fieldMap)
@@ -2244,10 +2268,8 @@ function createPreviewConfig() {
         gallery: {
             ...(config.gallery || {}),
             ...(customerConfig.gallery || {}),
-            // Luôn ưu tiên form hiện tại — không fallback album cũ khi user đã đổi ảnh
-            photos: Array.isArray(customerConfig.gallery?.photos)
-                ? customerConfig.gallery.photos
-                : (config.gallery?.photos || [])
+            // Form > config > album mẫu (tránh preview gallery trống khi chưa upload)
+            photos: resolvePreviewGalleryPhotos(customerConfig, config)
         },
         gift: {
             ...(config.gift || {}),
@@ -2360,7 +2382,7 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideMapUrl", config.ceremony?.bride?.mapUrl);
     setControlValue("date", config.date);
 
-    setControlValue("primaryColor", theme.primaryColor);
+    setControlValue("primaryColor", theme.primaryColor || BRAND_PRIMARY);
     populateMusicOptions(config);
     setControlValue("music", config.music);
     clearAllPendingMedia();
@@ -2481,6 +2503,8 @@ async function loadConfigForEdit() {
     if (!weddingId) {
         originalEditingWeddingId = "";
         markWeddingEditable();
+        // Default màu chủ đạo từ js/brand.js (một nguồn)
+        setControlValue("primaryColor", BRAND_PRIMARY);
         refreshPreview();
         return;
     }
