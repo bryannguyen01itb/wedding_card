@@ -49,6 +49,8 @@
  *    - editAccess/{editToken} → { weddingId }
  *    - editSessions/{editToken} → bản nháp builder
  *    - paymentStatus/{weddingId} → { orderCode, unlocked, status, accessToken, … }
+ *    - orderCodes/{orderCode} → { weddingId, amount, status }  — SePay webhook
+ *    - sepayEvents/{txnId} → dedup webhook (chỉ server)
  *
  * 7) Vòng đời / dọn admin
  *    - createdAt, updatedAt — serverTimestamp
@@ -86,7 +88,13 @@ export let wedding = {
          */
         orderCode: "",
         /** Random 32 hex — link khách ?t= (không hiện cho khách dạng id) */
-        accessToken: ""
+        accessToken: "",
+        /**
+         * Nguồn mở khóa: "sepay" (webhook) | "manual" (admin) | ""
+         * txnId / referenceCode / paidAt do webhook ghi.
+         */
+        provider: "",
+        txnId: ""
     },
 
     // --- Thư viện nhạc local (folder music/) ---
@@ -391,7 +399,7 @@ export const paymentSettingsDefaults = {
     qrImage: "",
     receiver: "",
     /** Nhắc khách CK bằng payment.orderCode (mã GD), không dùng weddingId */
-    message: "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị trên màn hình chờ thanh toán), sau đó liên hệ admin để được mở khóa link thiệp."
+    message: "Vui lòng chuyển khoản đúng số tiền với nội dung là MÃ GIAO DỊCH. Hệ thống sẽ tự mở khóa thiệp sau khi nhận được (SePay). Nếu quá lâu chưa mở, hãy liên hệ admin."
 };
 
 

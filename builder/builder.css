@@ -850,6 +850,32 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(90,140,95,.22);border-
     line-height: 1.5;
 }
 
+.payment-auto-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px dashed rgba(36, 133, 83, .35);
+    background: rgba(36, 133, 83, .08);
+    color: #1f5f3d;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.payment-auto-status__spin {
+    flex-shrink: 0;
+    margin-top: 2px;
+    animation: payment-spin 1s linear infinite;
+}
+
+@keyframes payment-spin {
+    to { transform: rotate(360deg); }
+}
+
 
 /* ===== Accordion steps + title/subtitle pairs ===== */
 .builder-step {

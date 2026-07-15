@@ -32,6 +32,7 @@ import {
     assertUploadBlob,
     syncWeddingTokenMaps,
     upsertPaymentStatus,
+    upsertOrderCodeMap,
     upsertEditSession,
     loadEditSession,
     extractCloudinaryPublicId
@@ -93,7 +94,7 @@ const DEFAULT_PAYMENT_SETTINGS = {
     contactUrl: "",
     qrImage: "",
     receiver: "",
-    message: "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị bên dưới), sau đó liên hệ admin để được mở khóa link thiệp."
+    message: "Vui lòng chuyển khoản đúng số tiền với nội dung là MÃ GIAO DỊCH. Hệ thống sẽ tự mở khóa thiệp sau khi nhận được (SePay). Nếu quá lâu chưa mở, hãy liên hệ admin."
 };
 
 // Cloudinary chỉ cho upload trực tiếp từ trình duyệt bằng unsigned upload preset.
@@ -779,6 +780,17 @@ function showPaymentModal(weddingId) {
     paymentMessageText.textContent = orderCode && orderCode !== "—"
         ? `${baseMsg} Mã của bạn: ${orderCode}.`
         : baseMsg;
+
+    const autoStatus = document.getElementById("paymentAutoStatus");
+    if (autoStatus) {
+        autoStatus.hidden = false;
+        autoStatus.innerHTML = [
+            '<i class="bi bi-arrow-repeat payment-auto-status__spin" aria-hidden="true"></i>',
+            "<span>Đang chờ hệ thống xác nhận (SePay). Giữ nguyên nội dung CK = mã giao dịch ở trên.",
+            " Khi nhận đúng số tiền, thiệp sẽ <strong>tự mở khóa</strong> — không cần F5.</span>"
+        ].join(" ");
+    }
+
     applyLink(paymentEditLink, editUrl);
 
     if (paymentSettings.contactUrl) {
@@ -807,6 +819,8 @@ function showPaymentModal(weddingId) {
 
     paymentModal.hidden = false;
     document.body.classList.add("modal-open");
+    // Bắt đầu nghe unlock (SePay webhook → paymentStatus)
+    listenWeddingPayment(weddingId);
 }
 
 function showUnlockedLinks(weddingId, accessToken = getWeddingAccessToken()) {
@@ -3278,12 +3292,19 @@ async function saveConfig(event) {
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
 
-        // Map token + paymentStatus + editSessions (nháp đọc bằng ?e=)
+        // Map token + orderCode (SePay) + paymentStatus + editSessions
         await Promise.all([
             syncWeddingTokenMaps(db, {
                 weddingId: payload.weddingId,
                 accessToken: payload.payment?.accessToken,
                 editToken
+            }),
+            upsertOrderCodeMap(db, payload.payment?.orderCode, {
+                weddingId: payload.weddingId,
+                amount: payload.payment?.amount,
+                currency: payload.payment?.currency,
+                plan: payload.payment?.plan || payload.plan,
+                status: "pending"
             }),
             upsertPaymentStatus(db, payload.weddingId, payload.payment),
             upsertEditSession(db, editToken, {

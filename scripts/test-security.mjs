@@ -7,7 +7,9 @@ import {
     canOpenBuilderEdit,
     assertWishPayload,
     assertUploadBlob,
-    normalizeEditToken
+    normalizeEditToken,
+    normalizeOrderCode,
+    extractOrderCodeFromText
 } from "../js/utils/security.js";
 
 let failed = 0;
@@ -60,6 +62,18 @@ assert(canOpenBuilderEdit({ builder: { editToken: "c".repeat(32) } }, "d".repeat
 assert(!assertUploadBlob(null).ok, "null blob rejected");
 assert(assertUploadBlob({ size: 100, type: "image/jpeg" }).ok, "jpeg blob ok");
 assert(!assertUploadBlob({ size: 100, type: "application/pdf" }).ok, "pdf rejected");
+
+// order codes (SePay)
+assert(normalizeOrderCode("wc7k3m9p2x") === "WC7K3M9P2X", "order code normalize");
+assert(normalizeOrderCode("bad") === "", "bad order code rejected");
+assert(
+    extractOrderCodeFromText("CK WC7K3M9P2X nhe") === "WC7K3M9P2X",
+    "extract order from transfer content"
+);
+assert(
+    extractOrderCodeFromText("SEVN63DC8E5C", "WCABCDEF23 chuyen tien") === "WCABCDEF23",
+    "extract prefers WC pattern in content"
+);
 
 if (failed) {
     console.error(`\n${failed} test(s) failed`);

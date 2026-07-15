@@ -161,6 +161,19 @@ Builder luu len Firebase theo dang merge:
 
 Nhung thong tin chi tiet con lai admin se sua sau.
 
+## Thanh toan tu dong (SePay)
+
+Webhook SePay mo khoa thiep khi CK dung ma GD + so tien (goi FREE 50 GD/thang).
+
+Xem huong dan day du: **`SEPAY.md`**.
+
+Tom tat:
+
+1. Deploy Cloudflare Pages + env `FIREBASE_SERVICE_ACCOUNT_JSON`, `SEPAY_API_KEY`
+2. Tao webhook SePay: `https://domain/api/sepay-webhook`
+3. Publish `firestore.rules`
+4. Admin van unlock tay duoc (fallback)
+
 ## Admin
 
 Trang `admin/` dung Firebase Authentication. Tai khoan mat khau khong nam trong code.

@@ -101,6 +101,18 @@ export function normalizeOrderCode(value) {
     return /^WC[A-Z2-9]{6,12}$/.test(code) ? code : "";
 }
 
+/**
+ * Lấy mã GD từ nội dung CK / field SePay `code` + `content`.
+ * Ưu tiên chuỗi khớp WC… đúng format.
+ */
+export function extractOrderCodeFromText(...parts) {
+    const blob = parts.map(part => String(part || "")).join(" ").toUpperCase();
+    const direct = normalizeOrderCode(blob.trim());
+    if (direct) return direct;
+    const match = blob.match(/\bWC[A-Z2-9]{6,12}\b/);
+    return match ? normalizeOrderCode(match[0]) : "";
+}
+
 /** editToken: link sửa khó đoán hơn weddingId (legacy không có token vẫn mở được). */
 export function generateEditToken() {
     return generateAccessToken();
@@ -266,6 +278,65 @@ export async function syncWeddingTokenMaps(db, { weddingId, accessToken, editTok
     await Promise.all(tasks);
 }
 
+/**
+ * Map orderCode → wedding (SePay webhook tra cứu, không list weddings).
+ * Client chỉ ghi pending; paid chỉ server webhook / admin.
+ */
+export async function upsertOrderCodeMap(db, orderCode, meta = {}) {
+    const code = normalizeOrderCode(orderCode);
+    const weddingId = String(meta.weddingId || "").trim();
+    if (!db || !code || !weddingId) return false;
+    try {
+        const ref = db.collection("orderCodes").doc(code);
+        const snap = await ref.get();
+        const prev = snap.exists ? (snap.data() || {}) : {};
+        // Không cho client ghi đè thiệp đã paid / đổi weddingId của mã đã gán
+        if (prev.status === "paid" && prev.weddingId && prev.weddingId !== weddingId) {
+            console.warn("[security] orderCode already paid for another wedding:", code);
+            return false;
+        }
+        const unlocked = meta.unlocked === true || meta.status === "paid" || prev.status === "paid";
+        const payload = {
+            weddingId: prev.status === "paid" ? (prev.weddingId || weddingId) : weddingId,
+            amount: meta.amount !== undefined && meta.amount !== null && meta.amount !== ""
+                ? Number(meta.amount)
+                : (prev.amount ?? null),
+            currency: meta.currency || prev.currency || "VND",
+            plan: (meta.plan === "multi" || prev.plan === "multi") ? "multi" : "single",
+            status: unlocked ? "paid" : (meta.status || prev.status || "pending"),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (!snap.exists) {
+            payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        }
+        // Client path: never escalate to paid via this helper unless admin passed status paid
+        if (!meta.allowPaidWrite) {
+            if (prev.status === "paid") {
+                payload.status = "paid";
+            } else {
+                payload.status = "pending";
+            }
+        }
+        await ref.set(payload, { merge: true });
+        return true;
+    } catch (error) {
+        console.warn("[security] upsertOrderCodeMap failed:", error);
+        return false;
+    }
+}
+
+export async function deleteOrderCodeMap(db, orderCode) {
+    const code = normalizeOrderCode(orderCode);
+    if (!db || !code) return false;
+    try {
+        await db.collection("orderCodes").doc(code).delete();
+        return true;
+    } catch (error) {
+        console.warn("[security] deleteOrderCodeMap failed:", error);
+        return false;
+    }
+}
+
 /** Ghi paymentStatus (public get) để builder nghe unlock khi wedding get bị chặn */
 export async function upsertPaymentStatus(db, weddingId, payment = {}) {
     const id = String(weddingId || "").trim();
@@ -273,15 +344,17 @@ export async function upsertPaymentStatus(db, weddingId, payment = {}) {
     try {
         const unlocked = payment.unlocked === true || payment.status === "paid";
         await db.collection("paymentStatus").doc(id).set({
-            unlocked: Boolean(payment.unlocked === true),
+            unlocked: Boolean(payment.unlocked === true) || unlocked,
             status: unlocked && payment.status !== "locked"
-                ? (payment.status || "paid")
+                ? (payment.status === "locked" ? "locked" : "paid")
                 : (payment.status || "pending"),
             accessToken: String(payment.accessToken || "").trim(),
             orderCode: String(payment.orderCode || "").trim(),
             plan: payment.plan === "multi" ? "multi" : "single",
             amount: payment.amount ?? null,
             currency: payment.currency || "VND",
+            provider: payment.provider || "",
+            txnId: payment.txnId || "",
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         return true;

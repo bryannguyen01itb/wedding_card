@@ -411,8 +411,9 @@
             <button class="save-modal__close" type="button" data-close-payment-modal aria-label="Dong popup"><i class="bi bi-x-lg"></i></button>
             <div class="save-modal__icon payment-modal__icon"><i class="bi bi-qr-code"></i></div>
             <p class="save-modal__eyebrow">Đã lưu bản nháp</p>
-            <h2 id="paymentModalTitle">Chờ xác nhận thanh toán</h2>
-            <p id="paymentMessageText" class="save-modal__desc">Vui lòng thanh toán và liên hệ admin để được mở khóa link thiệp.</p>
+            <h2 id="paymentModalTitle">Chờ thanh toán</h2>
+            <p id="paymentMessageText" class="save-modal__desc">Chuyển khoản đúng số tiền, nội dung là mã giao dịch. Hệ thống (SePay) sẽ tự mở khóa khi nhận được.</p>
+            <p id="paymentAutoStatus" class="payment-auto-status" hidden></p>
             <img id="paymentQrPreview" class="payment-modal__qr" alt="QR thanh toán" hidden>
             <div class="payment-modal__summary">
                 <div><span>Số tiền</span><strong id="paymentAmountText">Đang cập nhật</strong></div>
@@ -433,7 +434,7 @@
                     <button id="copyPaymentEditLink" type="button"><i class="bi bi-copy"></i> Copy link này</button>
                 </div>
                 <div class="save-modal__link-card">
-                    <span>Liên hệ admin xác nhận</span>
+                    <span>Hỗ trợ (khi chưa tự mở khóa)</span>
                     <a id="paymentContactLink" href="#" target="_blank" rel="noopener noreferrer">Chưa có link liên hệ</a>
                 </div>
             </div>

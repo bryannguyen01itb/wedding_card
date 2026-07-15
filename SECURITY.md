@@ -36,9 +36,18 @@ Firebase Console → Firestore → **Rules** → dán toàn bộ file → **Publ
 
 4. **Thanh toán manual** — giữ nguyên (không đổi theo yêu cầu).  
 
+## Thanh toán SePay (webhook)
+
+- Endpoint: `functions/api/sepay-webhook.js` → `POST /api/sepay-webhook`
+- Map: `orderCodes/{orderCode}` (builder tạo pending; webhook/admin set paid)
+- Dedup: `sepayEvents/{sepayTxnId}` (chỉ service account)
+- Env CF: `FIREBASE_SERVICE_ACCOUNT_JSON`, `SEPAY_API_KEY` (hoặc `SEPAY_WEBHOOK_SECRET`)
+- Hướng dẫn free: **`SEPAY.md`**
+- Admin unlock tay vẫn dùng được (fallback)
+
 ## Residual còn lại
 
-- **Thanh toán manual** (admin mở khóa).  
+- **SePay free** giới hạn 50 GD/tháng (nâng gói khi scale).  
 - **Cloudinary unsigned** vẫn cần siết preset trên Dashboard + env cleanup.  
 - **isAdmin = login Auth** — chỉ tạo user admin.  
 - **Optional:** `js/adminAllowlist.js`.
@@ -63,4 +72,6 @@ npm run test:security
 - `js/services/weddingData.js`
 - `builder/builder.js`
 - `admin/admin.js`
+- `functions/api/sepay-webhook.js`
+- `SEPAY.md`
 - `CLOUDINARY.md`

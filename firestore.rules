@@ -205,6 +205,51 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    /**
+     * Map mã CK (orderCode) → weddingId cho SePay webhook.
+     * Client builder: create/update pending only — không set status paid.
+     * Webhook (Admin SDK / service account) bypass rules.
+     */
+    function isValidOrderCodeId(code) {
+      return code.matches('^WC[A-Z2-9]{6,12}$');
+    }
+
+    function isSafeOrderCodeWrite() {
+      return request.resource.data.weddingId is string
+        && request.resource.data.weddingId.size() > 0
+        && request.resource.data.weddingId.size() < 120
+        && (
+          !request.resource.data.keys().hasAny(['status'])
+          || request.resource.data.status == 'pending'
+        )
+        && (
+          !request.resource.data.keys().hasAny(['unlocked'])
+          || request.resource.data.unlocked == false
+        );
+    }
+
+    match /orderCodes/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isValidOrderCodeId(code) && isSafeOrderCodeWrite();
+      allow update: if isAdmin()
+        || (
+          isValidOrderCodeId(code)
+          && isSafeOrderCodeWrite()
+          && resource.data.weddingId == request.resource.data.weddingId
+          && (
+            !resource.data.keys().hasAny(['status'])
+            || resource.data.status != 'paid'
+          )
+        );
+      allow delete: if isAdmin();
+    }
+
+    /** Dedup log SePay — chỉ server (service account) ghi */
+    match /sepayEvents/{eventId} {
+      allow read, write: if false;
+    }
+
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();

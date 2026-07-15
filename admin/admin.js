@@ -5,9 +5,12 @@ import { isAllowedAdminEmail } from "../js/adminAllowlist.js";
 import {
     syncWeddingTokenMaps,
     deleteTokenMap,
+    deleteOrderCodeMap,
+    upsertOrderCodeMap,
     upsertPaymentStatus,
     collectCloudinaryPublicIds,
-    requestCloudinaryCleanup
+    requestCloudinaryCleanup,
+    normalizeOrderCode
 } from "../js/utils/security.js";
 
 const DEFAULT_PRIMARY = BRAND_PRIMARY;
@@ -381,7 +384,7 @@ function fillPaymentSettings(data = {}) {
     paymentContactUrl.value = data.contactUrl || "";
     paymentQrImage.value = data.qrImage || "";
     paymentReceiver.value = data.receiver || "";
-    paymentMessage.value = data.message || "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị trên màn hình chờ thanh toán), sau đó liên hệ admin để mở khóa thiệp.";
+    paymentMessage.value = data.message || "Vui lòng chuyển khoản đúng số tiền với nội dung là MÃ GIAO DỊCH. Hệ thống sẽ tự mở khóa thiệp sau khi nhận được (SePay). Nếu quá lâu chưa mở, hãy liên hệ admin.";
 }
 
 async function loadPaymentSettingsAdmin() {
@@ -829,6 +832,7 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
         // Lấy token + public_ids trước khi xóa doc
         let accessToken = "";
         let editToken = "";
+        let orderCode = "";
         let weddingData = {};
         try {
             const existing = await db.collection("weddings").doc(id).get();
@@ -836,6 +840,7 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
                 weddingData = existing.data() || {};
                 accessToken = String(weddingData.payment?.accessToken || "").trim();
                 editToken = String(weddingData.builder?.editToken || "").trim();
+                orderCode = normalizeOrderCode(weddingData.payment?.orderCode);
             }
         } catch (_) {
             /* continue delete */
@@ -846,13 +851,14 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
         await deleteWeddingSubcollections(id);
         await db.collection("weddings").doc(id).delete();
 
-        // Dọn map + paymentStatus + editSessions
+        // Dọn map + paymentStatus + editSessions + orderCodes
         const cleanupTasks = [];
         if (accessToken) cleanupTasks.push(deleteTokenMap(db, "accessTokens", accessToken));
         if (editToken) {
             cleanupTasks.push(deleteTokenMap(db, "editAccess", editToken));
             cleanupTasks.push(deleteTokenMap(db, "editSessions", editToken));
         }
+        if (orderCode) cleanupTasks.push(deleteOrderCodeMap(db, orderCode));
         cleanupTasks.push(
             db.collection("paymentStatus").doc(id).delete().catch(() => null)
         );
@@ -1030,6 +1036,7 @@ async function updateWeddingPaymentById(weddingId, status) {
                 currency,
                 accessToken,
                 ...(orderCode ? { orderCode } : {}),
+                provider: unlocked ? (prev.provider === "sepay" ? "sepay" : "manual") : (prev.provider || ""),
                 confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }
@@ -1037,15 +1044,27 @@ async function updateWeddingPaymentById(weddingId, status) {
 
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
 
-        // Đồng bộ map ?t= + paymentStatus (builder nghe unlock)
-        await Promise.all([
+        // Đồng bộ map ?t= + orderCodes + paymentStatus (builder nghe unlock)
+        const mapTasks = [
             syncWeddingTokenMaps(db, {
                 weddingId,
                 accessToken,
                 editToken: docData.builder?.editToken || currentConfig?.builder?.editToken || ""
             }),
             upsertPaymentStatus(db, weddingId, payload.payment)
-        ]);
+        ];
+        if (orderCode) {
+            mapTasks.push(upsertOrderCodeMap(db, orderCode, {
+                weddingId,
+                amount,
+                currency,
+                plan,
+                status: unlocked ? "paid" : "pending",
+                unlocked,
+                allowPaidWrite: unlocked
+            }));
+        }
+        await Promise.all(mapTasks);
 
         if (currentConfig.weddingId === weddingId) {
             currentConfig = mergeConfig(currentConfig, payload);
