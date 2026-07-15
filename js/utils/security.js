@@ -33,6 +33,10 @@ export function sanitizePaymentForBuilderSave(existingPayment = {}, nextPayment 
     const draft = nextPayment && typeof nextPayment === "object" ? nextPayment : {};
     const alreadyPaid = prev.unlocked === true || prev.status === "paid";
 
+    const orderCode = normalizeOrderCode(prev.orderCode)
+        || normalizeOrderCode(draft.orderCode)
+        || generateOrderCode();
+
     if (alreadyPaid) {
         const lockedPlan = prev.plan === "multi" || prev.plan === "single"
             ? prev.plan
@@ -40,6 +44,7 @@ export function sanitizePaymentForBuilderSave(existingPayment = {}, nextPayment 
         return {
             ...prev,
             plan: lockedPlan,
+            orderCode: normalizeOrderCode(prev.orderCode) || orderCode,
             amount: prev.amount !== undefined && prev.amount !== null && prev.amount !== ""
                 ? prev.amount
                 : draft.amount,
@@ -60,6 +65,7 @@ export function sanitizePaymentForBuilderSave(existingPayment = {}, nextPayment 
         status: "pending",
         unlocked: false,
         plan,
+        orderCode,
         amount: draft.amount !== undefined && draft.amount !== null && draft.amount !== ""
             ? draft.amount
             : prev.amount,
@@ -69,6 +75,30 @@ export function sanitizePaymentForBuilderSave(existingPayment = {}, nextPayment 
         weddingId: draft.weddingId || prev.weddingId || "",
         updatedAt: draft.updatedAt
     };
+}
+
+/**
+ * Mã giao dịch / nội dung CK — hiện cho khách, admin đối chiếu.
+ * Format: WC + 8 ký tự (không 0/O/1/I để dễ đọc khi chuyển khoản).
+ */
+export function generateOrderCode() {
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = new Uint8Array(8);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+        crypto.getRandomValues(bytes);
+    } else {
+        for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+    }
+    let code = "WC";
+    for (let i = 0; i < 8; i++) {
+        code += alphabet[bytes[i] % alphabet.length];
+    }
+    return code;
+}
+
+export function normalizeOrderCode(value) {
+    const code = String(value || "").trim().toUpperCase();
+    return /^WC[A-Z2-9]{6,12}$/.test(code) ? code : "";
 }
 
 /** editToken: link sửa khó đoán hơn weddingId (legacy không có token vẫn mở được). */
@@ -248,6 +278,7 @@ export async function upsertPaymentStatus(db, weddingId, payment = {}) {
                 ? (payment.status || "paid")
                 : (payment.status || "pending"),
             accessToken: String(payment.accessToken || "").trim(),
+            orderCode: String(payment.orderCode || "").trim(),
             plan: payment.plan === "multi" ? "multi" : "single",
             amount: payment.amount ?? null,
             currency: payment.currency || "VND",

@@ -839,6 +839,24 @@ button.ghost.danger {
     gap: 4px;
 }
 
+.payment-item__order-code {
+    color: var(--admin-primary);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: .04em;
+}
+
+.payment-item__order-code.is-muted {
+    color: var(--admin-muted);
+    font-weight: 600;
+}
+
+.payment-item__doc-id {
+    font-size: 11px !important;
+    color: var(--admin-muted) !important;
+    font-family: ui-monospace, monospace;
+}
+
 .payment-item__info strong {
     color: var(--admin-ink);
     overflow-wrap: anywhere;

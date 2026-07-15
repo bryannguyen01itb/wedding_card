@@ -98,7 +98,14 @@ function createEmptyAdminConfig() {
             unlocked: false,
             plan: "single",
             currency: "VND",
+            /** Mã GD / nội dung CK — hiện admin list; khách thấy khi chờ TT */
+            orderCode: "",
             accessToken: ""
+        },
+        builder: {
+            editToken: "",
+            mediaFingerprints: {},
+            cloudinaryPublicIds: []
         },
         theme: {
             primaryColor: DEFAULT_PRIMARY,
@@ -374,7 +381,7 @@ function fillPaymentSettings(data = {}) {
     paymentContactUrl.value = data.contactUrl || "";
     paymentQrImage.value = data.qrImage || "";
     paymentReceiver.value = data.receiver || "";
-    paymentMessage.value = data.message || "Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn.";
+    paymentMessage.value = data.message || "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị trên màn hình chờ thanh toán), sau đó liên hệ admin để mở khóa thiệp.";
 }
 
 async function loadPaymentSettingsAdmin() {
@@ -457,9 +464,16 @@ function renderPaymentList(items) {
             : "Chưa đặt số tiền";
         const ageLabel = formatWeddingAge(item);
 
+        const orderCode = String(payment.orderCode || "").trim().toUpperCase();
+        const orderLine = orderCode
+            ? `<span class="payment-item__order-code">Mã GD: <strong>${orderCode}</strong></span>`
+            : `<span class="payment-item__order-code is-muted">Chưa có mã GD</span>`;
+
         row.innerHTML = `
             <div class="payment-item__info">
-                <strong>${id}${stale ? ' <span class="payment-item__badge">&gt;30 ngày</span>' : ""}</strong>
+                <strong>${orderCode || id}${stale ? ' <span class="payment-item__badge">&gt;30 ngày</span>' : ""}</strong>
+                ${orderCode ? `<span class="payment-item__doc-id">Doc: ${id}</span>` : ""}
+                ${orderLine}
                 <span>${item.groom?.nickname || "Chú rể"} &amp; ${item.bride?.nickname || "Cô dâu"}</span>
                 <em>${getPaymentStatusLabel(payment)}${planLabel ? ` · ${planLabel}` : ""} · ${money} · ${ageLabel}</em>
             </div>
@@ -1004,6 +1018,8 @@ async function updateWeddingPaymentById(weddingId, status) {
                 : (getPaymentSettingAmount() ?? 0));
         const currency = prev.currency || getPaymentSettingCurrency() || "VND";
         const accessToken = prev.accessToken || generateAccessToken();
+        // Giữ mã GD (nội dung CK) — admin đối chiếu chuyển khoản
+        const orderCode = String(prev.orderCode || "").trim().toUpperCase();
 
         const payload = {
             payment: {
@@ -1013,6 +1029,7 @@ async function updateWeddingPaymentById(weddingId, status) {
                 amount,
                 currency,
                 accessToken,
+                ...(orderCode ? { orderCode } : {}),
                 confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }

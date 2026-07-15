@@ -37,7 +37,8 @@
                         <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
                         <label>Màu sắc thiệp<input name="primaryColor" type="color" id="primaryColorInput" value="#12c4b8"></label>
                         <label>Nhạc nền (Liên hệ admin thêm bài yêu thích)<select name="music" id="musicSelect"></select></label>
-                        <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
+                        <!-- weddingId nội bộ — không hiện cho khách -->
+                        <input type="hidden" id="weddingId" name="weddingId" value="">
                     </div>
 
                     <div class="invite-plan" role="radiogroup" aria-label="Loại thiệp">
@@ -415,7 +416,13 @@
             <img id="paymentQrPreview" class="payment-modal__qr" alt="QR thanh toán" hidden>
             <div class="payment-modal__summary">
                 <div><span>Số tiền</span><strong id="paymentAmountText">Đang cập nhật</strong></div>
-                <div><span>wedding id</span><strong id="paymentWeddingIdText">-</strong></div>
+                <div>
+                    <span>Mã giao dịch (nội dung CK)</span>
+                    <strong id="paymentOrderCodeText">-</strong>
+                    <button type="button" id="copyPaymentOrderCode" class="ghost" style="margin-top:8px;height:36px;font-size:13px">
+                        <i class="bi bi-copy"></i> Copy mã
+                    </button>
+                </div>
                 <div id="paymentReceiverRow" hidden><span>Thông tin nhận</span><strong id="paymentReceiverText"></strong></div>
             </div>
             <div class="save-modal__links">

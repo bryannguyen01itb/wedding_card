@@ -22,6 +22,8 @@ import { BRAND_PRIMARY } from "../js/brand.js";
 import {
     sanitizePaymentForBuilderSave,
     generateEditToken,
+    generateOrderCode,
+    normalizeOrderCode,
     normalizeEditToken,
     getEditTokenFromUrl,
     canOpenBuilderEdit,
@@ -56,7 +58,8 @@ const copyEditLink = document.getElementById("copyEditLink");
 const paymentModal = document.getElementById("paymentModal");
 const paymentQrPreview = document.getElementById("paymentQrPreview");
 const paymentAmountText = document.getElementById("paymentAmountText");
-const paymentWeddingIdText = document.getElementById("paymentWeddingIdText");
+const paymentOrderCodeText = document.getElementById("paymentOrderCodeText");
+const copyPaymentOrderCodeBtn = document.getElementById("copyPaymentOrderCode");
 const paymentReceiverRow = document.getElementById("paymentReceiverRow");
 const paymentReceiverText = document.getElementById("paymentReceiverText");
 const paymentMessageText = document.getElementById("paymentMessageText");
@@ -90,7 +93,7 @@ const DEFAULT_PAYMENT_SETTINGS = {
     contactUrl: "",
     qrImage: "",
     receiver: "",
-    message: "Vui lòng chuyển khoản với nội dung là Wedding ID, sau đó liên hệ admin để được mở khóa link thiệp."
+    message: "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị bên dưới), sau đó liên hệ admin để được mở khóa link thiệp."
 };
 
 // Cloudinary chỉ cho upload trực tiếp từ trình duyệt bằng unsigned upload preset.
@@ -756,16 +759,26 @@ function hidePaymentModal() {
     document.body.classList.remove("modal-open");
 }
 
+function getOrderCode(config = loadedWeddingConfig) {
+    return normalizeOrderCode(config?.payment?.orderCode)
+        || normalizeOrderCode(config?.orderCode)
+        || "";
+}
+
 function showPaymentModal(weddingId) {
     if (!paymentModal || !weddingId) return;
     if (saveModal) saveModal.hidden = true;
     if (resultLinks) resultLinks.hidden = true;
 
     const { editUrl } = getShareUrls(weddingId);
-    paymentWeddingIdText.textContent = weddingId;
+    const orderCode = getOrderCode() || "—";
+    if (paymentOrderCodeText) paymentOrderCodeText.textContent = orderCode;
     // Số tiền theo payment của wedding này (đã snapshot lúc lưu), không đọc settings live
     paymentAmountText.textContent = formatPaymentAmount(resolvePaymentAmountSource(loadedWeddingConfig));
-    paymentMessageText.textContent = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
+    const baseMsg = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
+    paymentMessageText.textContent = orderCode && orderCode !== "—"
+        ? `${baseMsg} Mã của bạn: ${orderCode}.`
+        : baseMsg;
     applyLink(paymentEditLink, editUrl);
 
     if (paymentSettings.contactUrl) {
@@ -812,6 +825,7 @@ function buildPendingPayment(weddingId) {
         return {
             ...current,
             plan: lockedPlan,
+            orderCode: normalizeOrderCode(current.orderCode) || generateOrderCode(),
             amount: current.amount,
             currency: current.currency || paymentSettings.currency || "VND",
             accessToken: current.accessToken || generateAccessToken(),
@@ -833,6 +847,7 @@ function buildPendingPayment(weddingId) {
         status: "pending",
         unlocked: false,
         plan,
+        orderCode: normalizeOrderCode(current.orderCode) || generateOrderCode(),
         amount: keepAmount ? Number(current.amount) : priced.amount,
         currency: keepAmount
             ? (current.currency || priced.currency || "VND")
@@ -2649,7 +2664,11 @@ async function finishLoadBuilderConfig(weddingId, config) {
     }
     // Báo đã load xong TRƯỚC khi probe Cloudinary (probe có thể mất nhiều giây)
     if (!statusEl?.dataset?.type || statusEl.dataset.type !== "error") {
-        setStatus(`Dang sua: ${weddingId}`, "success");
+        const code = getOrderCode(config);
+        setStatus(
+            code ? `Đang sửa thiệp · Mã GD: ${code}` : "Đang sửa thiệp.",
+            "success"
+        );
     }
     refreshPreview(false);
 
@@ -3140,14 +3159,14 @@ function handleTitleSubtitleFocusOut(event) {
 async function saveConfig(event) {
     event.preventDefault();
     if (missingWeddingConfig) {
-        setStatus("Wedding ID nay khong ton tai, khong the luu de tranh tao nham thiep.", "error");
+        setStatus("Link sửa thiệp không hợp lệ (thiệp không tồn tại). Không thể lưu.", "error");
         return;
     }
 
     // Cần weddingId sớm để folder Cloudinary đúng trước khi flush QR
     let probePayload = createSavePayload();
     if (!probePayload.weddingId) {
-        setStatus("Nhap ten co dau va chu re de tao weddingId.", "error");
+        setStatus("Nhập nickname chú rể và cô dâu để tạo thiệp.", "error");
         return;
     }
 
@@ -3299,7 +3318,13 @@ async function saveConfig(event) {
         // Lưu nháp xong → khóa gói ngay (không chờ admin duyệt)
         setInvitePlan(payload.plan || "single");
         syncInvitePlanUI();
-        setStatus(`Da luu ban nhap Firebase: ${payload.weddingId}`, "success");
+        const savedCode = normalizeOrderCode(payload.payment?.orderCode) || "";
+        setStatus(
+            savedCode
+                ? `Đã lưu bản nháp. Mã giao dịch: ${savedCode}`
+                : "Đã lưu bản nháp thành công.",
+            "success"
+        );
         refreshPreview(false);
         if (isPaymentUnlocked(payload)) {
             showUnlockedLinks(payload.weddingId, payload.payment?.accessToken || "");
@@ -3489,6 +3514,15 @@ document.addEventListener("click", event => {
     const button = event.target.closest("[data-copy-url]");
     if (!button) return;
     copyText(button.dataset.copyUrl || "", button);
+});
+
+copyPaymentOrderCodeBtn?.addEventListener("click", () => {
+    const code = paymentOrderCodeText?.textContent?.trim() || getOrderCode() || "";
+    if (!code || code === "—") {
+        setStatus("Chưa có mã giao dịch. Hãy Lưu Firebase trước.", "error");
+        return;
+    }
+    copyText(code, copyPaymentOrderCodeBtn);
 });
 
 copyPaymentEditLink?.addEventListener("click", () => {

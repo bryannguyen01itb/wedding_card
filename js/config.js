@@ -3,6 +3,13 @@
  *
  * === Schema Firebase (weddings/{weddingId}) — field quan trọng ===
  *
+ * 0) Định danh
+ *    - weddingId (doc id) — nội bộ (Firebase path, Cloudinary folder, link sửa ?wedding=)
+ *      * KHÔNG hiện cho khách trên builder UI
+ *    - payment.orderCode — mã giao dịch / nội dung chuyển khoản (vd "WC7K3M9P2X")
+ *      * Generate lúc Lưu Firebase; hiện popup chờ TT + admin danh sách thiệp
+ *      * Khách chỉ cần mã này khi CK; admin đối chiếu mã ↔ thiệp
+ *
  * 1) Poster location — 1 link thiệp, hiện cả 2 tỉnh
  *    - ceremony.bride.location  — tỉnh/TP nhà gái (vd: "Hà Nội")
  *    - ceremony.groom.location  — tỉnh/TP nhà trai (vd: "Hải Phòng")
@@ -17,30 +24,40 @@
  *    - guests: string[]  — chỉ dùng khi plan === "multi" (vd ["Anh A","Chị B"])
  *    - cover.guest: mặc định "Quý khách"; link ?g=<index> ghi đè = guests[index]
  *
- * 3) Link thiệp sau thanh toán (không đoán được)
- *    - payment.accessToken      — chuỗi hex 32 ký tự (random)
+ * 3) Thanh toán + link thiệp
+ *    - payment.orderCode        — mã GD (nội dung CK), format WC + 8 ký tự dễ đọc
+ *    - payment.accessToken      — hex 32 ký tự (random), link khách ?t=
  *    - payment.unlocked / payment.status — "paid" + unlocked:true mới mở thiệp public
- *    - payment.amount, payment.currency — số tiền snapshot lúc tạo đơn
- *    - payment.plan — "single" | "multi" (gói đã chọn lúc snapshot giá)
+ *    - payment.amount, payment.currency — snapshot lúc Lưu Firebase
+ *    - payment.plan — "single" | "multi"
  *    Link 1 khách: /?t=<accessToken>
- *    Link multi:   /?t=<accessToken>&g=0  (&g=1, &g=2…)
- *    Link sửa:     /builder/?wedding=<weddingId>
+ *    Link multi:   /?t=<accessToken>&g=0
+ *    Link sửa:     /builder/?wedding=<weddingId>&e=<builder.editToken>
+ *                  (editToken ẩn với khách; chỉ có trên link sau khi Lưu)
  *
- * 4) Public ?wedding=<id> chỉ xem được khi đã paid (chống đoán id bỏ qua thanh toán)
+ * 4) Public: ưu tiên ?t=; ?wedding=<id> chỉ hữu ích khi đã paid
  *
- * 5) builder (chỉ builder dùng, thiệp public có thể bỏ qua)
+ * 5) builder (chỉ builder / admin)
+ *    - builder.editToken — hex 32, bảo vệ link sửa (?e=)
  *    - builder.groomNickname, builder.brideNickname
- *    - builder.mediaFingerprints — map field → hash file để không re-upload Cloudinary trùng
+ *    - builder.mediaFingerprints — hash file tránh re-upload Cloudinary trùng
+ *    - builder.cloudinaryPublicIds — list public_id để xóa ảnh khi admin xóa thiệp
  *    - builder.generatedBaseWeddingId
  *
- * 6) Vòng đời / dọn admin
- *    - createdAt, updatedAt — serverTimestamp (admin xóa thiệp > 30 ngày theo mốc này)
- *    - Subcollection: weddings/{id}/wishes — lời chúc (xóa thiệp sẽ xóa luôn wishes)
+ * 6) Collection phụ (bảo mật / tra cứu)
+ *    - accessTokens/{accessToken} → { weddingId }
+ *    - editAccess/{editToken} → { weddingId }
+ *    - editSessions/{editToken} → bản nháp builder
+ *    - paymentStatus/{weddingId} → { orderCode, unlocked, status, accessToken, … }
  *
- * === settings/payment (doc global admin, không nằm trong wedding) ===
- *    - amount       — giá gói 1 link (mặc định 99000)
- *    - amountMulti  — giá gói nhiều link (mặc định 129000)
- *    - currency, contactUrl, qrImage, receiver, message
+ * 7) Vòng đời / dọn admin
+ *    - createdAt, updatedAt — serverTimestamp
+ *    - Subcollection: weddings/{id}/wishes
+ *    - Xóa thiệp: dọn map token + (best-effort) Cloudinary public_ids
+ *
+ * === settings/payment (doc global admin) ===
+ *    - amount, amountMulti, currency, contactUrl, qrImage, receiver
+ *    - message — nhắc CK bằng MÃ GIAO DỊCH (orderCode), không dùng weddingId
  */
 import { BRAND_PRIMARY } from "./brand.js";
 
@@ -53,6 +70,7 @@ export let wedding = {
     /**
      * Thanh toán / mở khóa (Firebase: weddings/{id}.payment)
      * amount + plan: snapshot lúc Lưu Firebase (từ settings/payment theo gói).
+     * orderCode: mã GD hiện cho khách (nội dung CK) — admin list hiển thị cùng thiệp.
      */
     payment: {
         status: "pending", // "pending" | "paid" | "locked"
@@ -62,7 +80,12 @@ export let wedding = {
         /** Số tiền snapshot (99k / 129k hoặc giá admin cấu hình) */
         amount: 99000,
         currency: "VND",
-        /** Random 32 hex — generate khi lưu builder / admin mở khóa */
+        /**
+         * Mã giao dịch / nội dung chuyển khoản (vd WC7K3M9P2X).
+         * Generate lúc Lưu builder; KHÔNG dùng weddingId cho CK.
+         */
+        orderCode: "",
+        /** Random 32 hex — link khách ?t= (không hiện cho khách dạng id) */
         accessToken: ""
     },
 
@@ -341,13 +364,17 @@ export let wedding = {
 
     /**
      * Field chỉ builder (Firebase: weddings/{id}.builder).
-     * Thiệp public không bắt buộc đọc.
+     * Thiệp public không bắt buộc đọc. weddingId ẩn UI khách; editToken trên link sửa.
      */
     builder: {
         groomNickname: "",
         brideNickname: "",
+        /** hex 32 — link sửa /builder/?wedding=…&e=… */
+        editToken: "",
         /** fieldName → SHA-256 file gốc (tránh upload Cloudinary trùng khi chọn lại đúng file) */
         mediaFingerprints: {},
+        /** public_id Cloudinary đã upload — admin xóa thiệp sẽ cleanup */
+        cloudinaryPublicIds: [],
         generatedBaseWeddingId: ""
     }
 };
@@ -363,7 +390,8 @@ export const paymentSettingsDefaults = {
     contactUrl: "",
     qrImage: "",
     receiver: "",
-    message: "Vui lòng chuyển khoản với nội dung là Wedding ID, sau đó liên hệ admin để được mở khóa link thiệp."
+    /** Nhắc khách CK bằng payment.orderCode (mã GD), không dùng weddingId */
+    message: "Vui lòng chuyển khoản với nội dung là MÃ GIAO DỊCH (hiển thị trên màn hình chờ thanh toán), sau đó liên hệ admin để được mở khóa link thiệp."
 };
 
 
