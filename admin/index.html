@@ -31,17 +31,17 @@
                     <span id="accountEmail" class="admin-nav__email"></span>
                 </div>
                 <nav class="admin-nav__list">
-                    <button type="button" class="admin-nav__item is-active" data-admin-nav="wedding">
-                        <i class="bi bi-person-vcard"></i>
-                        <span>Thông tin khách</span>
+                    <button type="button" class="admin-nav__item is-active" data-admin-nav="weddings">
+                        <i class="bi bi-card-list"></i>
+                        <span>Danh sách thiệp</span>
+                    </button>
+                    <button type="button" class="admin-nav__item" data-admin-nav="payment">
+                        <i class="bi bi-credit-card-2-front-fill"></i>
+                        <span>Thanh toán</span>
                     </button>
                     <button type="button" class="admin-nav__item" data-admin-nav="music">
                         <i class="bi bi-music-note-list"></i>
                         <span>Thư viện nhạc</span>
-                    </button>
-                    <button type="button" class="admin-nav__item" data-admin-nav="payment">
-                        <i class="bi bi-credit-card-2-front-fill"></i>
-                        <span>Thanh toán / mở khóa</span>
                     </button>
                 </nav>
                 <button id="logoutBtn" type="button" class="ghost admin-nav__logout">
@@ -50,18 +50,48 @@
             </aside>
 
             <div class="admin-main">
-                <section class="admin-view is-active" data-admin-view="wedding" id="weddingView">
+                <!-- 1) Danh sách thiệp + màn sửa (ẩn list khi sửa) -->
+                <section class="admin-view is-active" data-admin-view="weddings" id="weddingsView">
+                    <div id="weddingListPanel">
+                        <section class="admin-hero">
+                            <div>
+                                <p class="eyebrow">Quản lý thiệp</p>
+                                <h1>Danh sách thiệp</h1>
+                                <p class="hero-desc">Mở khóa, khóa, đổi gói, xóa hoặc sửa chi tiết từng thiệp.</p>
+                            </div>
+                        </section>
+                        <section class="panel">
+                            <div class="payment-list-head">
+                                <div>
+                                    <h3>Tất cả thiệp Firebase</h3>
+                                    <p class="payment-list-desc">Thiệp quá 30 ngày được đánh dấu để dọn. Bấm <strong>Sửa</strong> để chỉnh config.</p>
+                                </div>
+                                <div class="payment-list-head__actions">
+                                    <button id="deleteOldWeddingsBtn" type="button" class="ghost small danger" title="Xóa vĩnh viễn thiệp không cập nhật &gt; 30 ngày">
+                                        <i class="bi bi-trash3"></i> Xóa &gt; 30 ngày
+                                    </button>
+                                    <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+                                </div>
+                            </div>
+                            <div id="paymentList" class="payment-list"></div>
+                        </section>
+                    </div>
+
+                    <div id="weddingEditPanel" hidden>
                     <section class="admin-hero" id="adminHero">
                         <div>
-                            <p class="eyebrow">Thông tin khách theo ID</p>
-                            <h1>Sửa config thiệp</h1>
-                            <p class="hero-desc">Tải weddingId để chỉnh chi tiết. Ảnh/nhạc dán link Cloudinary hoặc local.</p>
+                            <p class="eyebrow">Sửa thiệp</p>
+                            <h1>Thông tin khách</h1>
+                            <p class="hero-desc">Chỉnh chi tiết config. Ảnh/nhạc dán link Cloudinary hoặc local.</p>
                         </div>
                         <div class="hero-card">
                             <label for="loadWeddingId">Wedding ID</label>
                             <div class="load-row">
-                                <input id="loadWeddingId" type="text" placeholder="vd: nam-linh-2026">
-                                <button id="loadBtn" type="button"><i class="bi bi-search"></i> Tải</button>
+                                <input id="loadWeddingId" type="text" placeholder="vd: nam-linh-2026" readonly>
+                                <button id="backToWeddingListBtn" type="button" class="ghost"><i class="bi bi-arrow-left"></i> Danh sách</button>
+                                <button id="deleteLoadedWeddingBtn" type="button" class="ghost danger" title="Xóa thiệp đang mở">
+                                    <i class="bi bi-trash3-fill"></i> Xóa
+                                </button>
                             </div>
                             <p>Link thiệp: <a id="previewLink" href="#" target="_blank" rel="noopener noreferrer">chưa có weddingId</a></p>
                         </div>
@@ -75,7 +105,17 @@
                                 <label>Ngày cưới<input name="date" type="date" required></label>
                                 <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
                                 <label class="span-2">Link nhạc<input name="music" placeholder="https://...mp3 hoặc music/1_doi.mp3"></label>
+                                <label>Gói thiệp
+                                    <select name="plan" id="adminInvitePlan">
+                                        <option value="single">1 link (Quý khách)</option>
+                                        <option value="multi">Nhiều link theo khách</option>
+                                    </select>
+                                </label>
+                                <label class="span-2">Danh sách khách (mỗi dòng 1 tên — chỉ gói nhiều link)
+                                    <textarea name="guests" id="adminGuests" rows="4" placeholder="Anh A&#10;Chị B"></textarea>
+                                </label>
                             </div>
+                            <p class="hint">Đổi gói trên form rồi <strong>Lưu Firebase</strong>, hoặc dùng nút <strong>1 link / Nhiều link</strong> trên danh sách thiệp (có hỏi cập nhật giá).</p>
                         </section>
 
                         <section class="panel">
@@ -134,10 +174,36 @@
                             </div>
                         </section>
 
-                        <div class="sticky-actions"><button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại mẫu</button><button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button></div>
+                        <div class="sticky-actions">
+                            <button id="backToWeddingListBtn2" type="button" class="ghost"><i class="bi bi-arrow-left"></i> Về danh sách</button>
+                            <button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại mẫu</button>
+                            <button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button>
+                        </div>
                     </form>
+                    </div>
                 </section>
 
+                <!-- 2) Cấu hình thanh toán (giá, QR, lời nhắn) -->
+                <section class="admin-view" data-admin-view="payment" id="paymentView">
+                    <section class="panel payment-admin" id="paymentPanel">
+                        <div class="panel-title"><i class="bi bi-credit-card-2-front-fill"></i><div><h2>Cấu hình thanh toán</h2><p>Giá gói thiệp, QR, tài khoản nhận và lời nhắn popup builder.</p></div></div>
+                        <form id="paymentSettingsForm" class="payment-settings-form">
+                            <div class="grid two">
+                                <label>Giá thiệp 1 link<input id="paymentAmount" type="number" min="0" step="1000" placeholder="vd: 99000"></label>
+                                <label>Giá thiệp nhiều link (theo khách)<input id="paymentAmountMulti" type="number" min="0" step="1000" placeholder="vd: 129000"></label>
+                                <label>Đơn vị<input id="paymentCurrency" type="text" value="VND"></label>
+                                <label>Link Facebook/Zalo admin<input id="paymentContactUrl" type="url" placeholder="https://facebook.com/..."></label>
+                                <label class="span-2">Link ảnh QR thanh toán<input id="paymentQrImage" type="text" placeholder="img/admin-qr-code.jpg hoặc https://res.cloudinary.com/...jpg"></label>
+                                <label class="span-2">Tên người nhận / tài khoản<input id="paymentReceiver" placeholder="vd: NGUYEN VAN A - Vietcombank - 0123456789"></label>
+                                <label class="span-2">Lời nhắn thanh toán<textarea id="paymentMessage" rows="3" placeholder="Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn."></textarea></label>
+                                <div class="span-2 payment-actions"><button id="savePaymentSettingsBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu cấu hình thanh toán</button></div>
+                            </div>
+                            <p class="hint" style="margin-top:10px">Gói <strong>1 link</strong> / <strong>nhiều link</strong> dùng hai mức giá này. Mở khóa thiệp ở menu <strong>Danh sách thiệp</strong>.</p>
+                        </form>
+                    </section>
+                </section>
+
+                <!-- 3) Thư viện nhạc -->
                 <section class="admin-view" data-admin-view="music" id="musicView">
                     <section class="panel music-admin" id="musicPanel">
                         <div class="panel-title"><i class="bi bi-music-note-list"></i><div><h2>Thư viện nhạc dùng chung</h2><p>Thêm bài nhạc Cloudinary để builder tự hiển thị cho khách chọn.</p></div></div>
@@ -153,45 +219,81 @@
                         <div id="musicList" class="music-list"></div>
                     </section>
                 </section>
-
-                <section class="admin-view" data-admin-view="payment" id="paymentView">
-                    <section class="panel payment-admin" id="paymentPanel">
-                        <div class="panel-title"><i class="bi bi-credit-card-2-front-fill"></i><div><h2>Thanh toán & mở khóa</h2><p>Cấu hình popup thanh toán cho khách và mở khóa thiệp sau khi đã xác nhận.</p></div></div>
-                        <form id="paymentSettingsForm" class="payment-settings-form">
-                            <div class="grid two">
-                                <label>Số tiền cần trả<input id="paymentAmount" type="number" min="0" step="1000" placeholder="vd: 199000"></label>
-                                <label>Đơn vị<input id="paymentCurrency" type="text" value="VND"></label>
-                                <label>Link Facebook/Zalo admin<input id="paymentContactUrl" type="url" placeholder="https://facebook.com/..."></label>
-                                <label>Link ảnh QR thanh toán<input id="paymentQrImage" type="text" placeholder="img/admin-qr-code.jpg hoặc https://res.cloudinary.com/...jpg"></label>
-                                <label class="span-2">Tên người nhận / tài khoản<input id="paymentReceiver" placeholder="vd: NGUYEN VAN A - Vietcombank - 0123456789"></label>
-                                <label class="span-2">Lời nhắn thanh toán<textarea id="paymentMessage" rows="3" placeholder="Vui lòng chuyển khoản với nội dung là Wedding ID để admin xác nhận nhanh hơn."></textarea></label>
-                                <div class="span-2 payment-actions"><button id="savePaymentSettingsBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu cấu hình thanh toán</button></div>
-                            </div>
-                        </form>
-                        <div class="payment-current">
-                            <div>
-                                <h3>Thiệp đang tải</h3>
-                                <p id="paymentWeddingInfo">Chưa tải weddingId nào.</p>
-                            </div>
-                            <div class="payment-actions">
-                                <button id="markPendingBtn" type="button" class="ghost"><i class="bi bi-hourglass-split"></i> Chờ thanh toán</button>
-                                <button id="unlockWeddingBtn" type="button"><i class="bi bi-unlock-fill"></i> Mở khóa</button>
-                                <button id="lockWeddingBtn" type="button" class="ghost danger"><i class="bi bi-lock-fill"></i> Khóa lại</button>
-                            </div>
-                        </div>
-                        <div class="payment-list-wrap">
-                            <div class="payment-list-head">
-                                <h3>Danh sách thiệp thanh toán</h3>
-                                <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
-                            </div>
-                            <div id="paymentList" class="payment-list"></div>
-                        </div>
-                    </section>
-                </section>
             </div>
         </div>
 
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+        <!-- Popup đổi gói thiệp -->
+        <div id="planChangeModal" class="admin-modal" hidden>
+            <div class="admin-modal__backdrop" data-close-plan-modal></div>
+            <section class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="planChangeTitle">
+                <button type="button" class="admin-modal__close" data-close-plan-modal aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+                <div class="admin-modal__icon"><i class="bi bi-arrow-left-right"></i></div>
+                <p class="admin-modal__eyebrow">Đổi gói thiệp</p>
+                <h2 id="planChangeTitle">Xác nhận thay đổi gói</h2>
+                <p id="planChangeWeddingId" class="admin-modal__wedding-id">—</p>
+
+                <div class="plan-change-flow">
+                    <div class="plan-change-chip" id="planChangeFromChip">
+                        <span>Hiện tại</span>
+                        <strong id="planChangeFromLabel">1 link</strong>
+                    </div>
+                    <i class="bi bi-arrow-right plan-change-arrow" aria-hidden="true"></i>
+                    <div class="plan-change-chip plan-change-chip--to" id="planChangeToChip">
+                        <span>Chuyển sang</span>
+                        <strong id="planChangeToLabel">Nhiều link</strong>
+                    </div>
+                </div>
+
+                <div id="planChangeWarning" class="admin-modal__warning" hidden>
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <p id="planChangeWarningText"></p>
+                </div>
+
+                <div class="admin-modal__prices">
+                    <div>
+                        <span>Giá hiện tại</span>
+                        <strong id="planChangeOldPrice">—</strong>
+                    </div>
+                    <div>
+                        <span>Giá gói mới (settings)</span>
+                        <strong id="planChangeNewPrice">—</strong>
+                    </div>
+                </div>
+
+                <label class="admin-modal__check">
+                    <input type="checkbox" id="planChangeUpdatePrice" checked>
+                    <span>Cập nhật số tiền gắn thiệp theo giá gói mới</span>
+                </label>
+
+                <div class="admin-modal__actions">
+                    <button type="button" class="ghost" data-close-plan-modal>Hủy</button>
+                    <button type="button" id="planChangeConfirmBtn"><i class="bi bi-check2-circle"></i> Xác nhận đổi gói</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Popup xác nhận chung (xóa / đã trả / khóa) -->
+        <div id="adminConfirmModal" class="admin-modal" hidden>
+            <div class="admin-modal__backdrop" data-close-confirm-modal></div>
+            <section class="admin-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="adminConfirmTitle">
+                <button type="button" class="admin-modal__close" data-close-confirm-modal aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+                <div class="admin-modal__icon" id="adminConfirmIcon"><i class="bi bi-question-circle"></i></div>
+                <p class="admin-modal__eyebrow" id="adminConfirmEyebrow">Xác nhận</p>
+                <h2 id="adminConfirmTitle">Bạn chắc chắn?</h2>
+                <p id="adminConfirmWeddingId" class="admin-modal__wedding-id" hidden>—</p>
+                <p id="adminConfirmMessage" class="admin-modal__message"></p>
+                <div id="adminConfirmWarning" class="admin-modal__warning" hidden>
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <p id="adminConfirmWarningText"></p>
+                </div>
+                <div class="admin-modal__actions">
+                    <button type="button" class="ghost" data-close-confirm-modal id="adminConfirmCancelBtn">Hủy</button>
+                    <button type="button" id="adminConfirmOkBtn"><i class="bi bi-check2-circle"></i> Xác nhận</button>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>

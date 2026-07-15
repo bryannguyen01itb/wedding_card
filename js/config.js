@@ -1,23 +1,46 @@
 /**
  * Cấu hình nội dung thiệp cưới (mẫu local + tham chiếu field Firebase).
  *
- * === Field MỚI / LƯU Ý khi sửa tay trên Firebase ===
+ * === Schema Firebase (weddings/{weddingId}) — field quan trọng ===
  *
- * 1) Poster location theo nhà trai / nhà gái (2 link thiệp)
- *    - ceremony.groom.location  — tỉnh/TP nhà trai (vd: "Hải Phòng" hoặc "HẢI PHÒNG, VIỆT NAM")
+ * 1) Poster location — 1 link thiệp, hiện cả 2 tỉnh
  *    - ceremony.bride.location  — tỉnh/TP nhà gái (vd: "Hà Nội")
- *    - Để trống → app lấy cụm cuối trong ceremony.*.address rồi uppercase + ", VIỆT NAM"
- *    - (Đã bỏ wedding.location root — không dùng nữa)
+ *    - ceremony.groom.location  — tỉnh/TP nhà trai (vd: "Hải Phòng")
+ *    - Để trống → lấy cụm cuối ceremony.*.address, uppercase
+ *    - Poster: "HÀ NỘI · HẢI PHÒNG" (cô dâu · chú rể); trùng tỉnh → 1 lần
+ *    - (Đã bỏ wedding.location root và ?side=groom|bride)
  *
- * 2) Link thiệp sau thanh toán (không đoán được)
+ * 2) Gói thiệp + khách mời
+ *    - plan: "single" | "multi"
+ *        single = 1 link chung (cover "Quý khách")
+ *        multi  = link theo từng tên trong guests[]
+ *    - guests: string[]  — chỉ dùng khi plan === "multi" (vd ["Anh A","Chị B"])
+ *    - cover.guest: mặc định "Quý khách"; link ?g=<index> ghi đè = guests[index]
+ *
+ * 3) Link thiệp sau thanh toán (không đoán được)
  *    - payment.accessToken      — chuỗi hex 32 ký tự (random)
  *    - payment.unlocked / payment.status — "paid" + unlocked:true mới mở thiệp public
  *    - payment.amount, payment.currency — số tiền snapshot lúc tạo đơn
- *    Link nhà trai:  /?t=<accessToken>&side=groom
- *    Link nhà gái:   /?t=<accessToken>&side=bride
- *    Link sửa:       /builder/?wedding=<weddingId>
+ *    - payment.plan — "single" | "multi" (gói đã chọn lúc snapshot giá)
+ *    Link 1 khách: /?t=<accessToken>
+ *    Link multi:   /?t=<accessToken>&g=0  (&g=1, &g=2…)
+ *    Link sửa:     /builder/?wedding=<weddingId>
  *
- * 3) Public ?wedding=<id> chỉ xem được khi đã paid (chống đoán id bỏ qua thanh toán)
+ * 4) Public ?wedding=<id> chỉ xem được khi đã paid (chống đoán id bỏ qua thanh toán)
+ *
+ * 5) builder (chỉ builder dùng, thiệp public có thể bỏ qua)
+ *    - builder.groomNickname, builder.brideNickname
+ *    - builder.mediaFingerprints — map field → hash file để không re-upload Cloudinary trùng
+ *    - builder.generatedBaseWeddingId
+ *
+ * 6) Vòng đời / dọn admin
+ *    - createdAt, updatedAt — serverTimestamp (admin xóa thiệp > 30 ngày theo mốc này)
+ *    - Subcollection: weddings/{id}/wishes — lời chúc (xóa thiệp sẽ xóa luôn wishes)
+ *
+ * === settings/payment (doc global admin, không nằm trong wedding) ===
+ *    - amount       — giá gói 1 link (mặc định 99000)
+ *    - amountMulti  — giá gói nhiều link (mặc định 129000)
+ *    - currency, contactUrl, qrImage, receiver, message
  */
 export let wedding = {
     // --- Thông tin chung ---
@@ -27,11 +50,14 @@ export let wedding = {
 
     /**
      * Thanh toán / mở khóa (Firebase: weddings/{id}.payment)
-     * Thêm tay khi cần test local hoặc sửa Firebase.
+     * amount + plan: snapshot lúc Lưu Firebase (từ settings/payment theo gói).
      */
     payment: {
         status: "pending", // "pending" | "paid" | "locked"
         unlocked: false,
+        /** "single" | "multi" — gói thiệp lúc snapshot giá */
+        plan: "single",
+        /** Số tiền snapshot (99k / 129k hoặc giá admin cấu hình) */
         amount: 99000,
         currency: "VND",
         /** Random 32 hex — generate khi lưu builder / admin mở khóa */
@@ -116,8 +142,23 @@ export let wedding = {
 
     // --- Bìa (logo header tự sinh từ nickname, không cấu hình tay) ---
     cover: {
-        headline: "TRÂN TRỌNG KÍNH MỜI"
+        headline: "TRÂN TRỌNG KÍNH MỜI",
+        /** Dòng dưới headline — mọi concept cover; link ?g=index ghi đè bằng guests[i] */
+        guest: "Quý khách"
     },
+
+    /**
+     * plan: "single" = 1 link (Quý khách); "multi" = link theo guests[]
+     * Giá snapshot: payment.amount (admin: amount / amountMulti)
+     */
+    plan: "single",
+
+    /**
+     * Danh sách khách mời (chỉ dùng khi plan === "multi").
+     * Firebase: guests: ["Anh A", "Chị B"]
+     * Link: /?t=<token>&g=0  → cover.guest = "Anh A"
+     */
+    guests: [],
 
     poster: {
         image: "img/anh_1.jpg"
@@ -237,10 +278,9 @@ export let wedding = {
             },
             address: "Nhà gái - Thôn ABC, Xã DEF, Hà Nội",
             /**
-             * NEW — Tỉnh/TP poster khi mở link ?side=bride
-             * Firebase path: ceremony.bride.location
-             * Ví dụ: "Hà Nội" → hiển thị "HÀ NỘI, VIỆT NAM"
-             * Để "" → suy ra từ address (phần sau dấu phẩy cuối)
+             * Tỉnh/TP nhà gái trên poster (cùng link thiệp với nhà trai)
+             * Firebase: ceremony.bride.location — vd "Hà Nội" → "HÀ NỘI"
+             * Để "" → suy từ address
              */
             location: "Hà Nội",
             mapUrl: "https://maps.app.goo.gl/YSFromJyb9d6s9wi6"
@@ -254,8 +294,8 @@ export let wedding = {
             },
             address: "Nhà trai - Thôn ABC, Xã DEF, Hải Phòng",
             /**
-             * NEW — Tỉnh/TP poster khi mở link ?side=groom
-             * Firebase path: ceremony.groom.location
+             * Tỉnh/TP nhà trai trên poster
+             * Firebase: ceremony.groom.location
              */
             location: "Hải Phòng",
             mapUrl: "https://maps.app.goo.gl/kNT9o3enxq8bn2ow5"
@@ -295,7 +335,33 @@ export let wedding = {
             accountName: "TRẦN THỊ B",
             accountNumber: "9876543210"
         }
+    },
+
+    /**
+     * Field chỉ builder (Firebase: weddings/{id}.builder).
+     * Thiệp public không bắt buộc đọc.
+     */
+    builder: {
+        groomNickname: "",
+        brideNickname: "",
+        /** fieldName → SHA-256 file gốc (tránh upload Cloudinary trùng khi chọn lại đúng file) */
+        mediaFingerprints: {},
+        generatedBaseWeddingId: ""
     }
+};
+
+/**
+ * Cấu hình thanh toán global (Firebase: settings/payment) — admin chỉnh.
+ * Không merge vào wedding; builder đọc để snapshot payment.amount theo plan.
+ */
+export const paymentSettingsDefaults = {
+    amount: 99000,
+    amountMulti: 129000,
+    currency: "VND",
+    contactUrl: "",
+    qrImage: "",
+    receiver: "",
+    message: "Vui lòng chuyển khoản với nội dung là Wedding ID, sau đó liên hệ admin để được mở khóa link thiệp."
 };
 
 

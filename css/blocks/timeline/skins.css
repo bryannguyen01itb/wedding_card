@@ -318,9 +318,7 @@ body .timeline.block-skin-concept-4 /* Timeline as thin vertical wedding program
 background: linear-gradient(180deg, #fffdf8, #fbf3e7);
 }
 
-body .timeline.block-skin-concept-4.section-title {
-font-size: 1.25rem;
-}
+
 
 body .timeline.block-skin-concept-4 .timeline-card {
 position: relative;
@@ -449,7 +447,6 @@ font-size: .27rem;
 }
 
 .timeline.block-skin-concept-4 .section-title {
-    font-size: clamp(.34rem, 7vw, .48rem) !important;
     line-height: 1.16 !important;
 }
 

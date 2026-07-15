@@ -1,5 +1,8 @@
-/* Shared visual glue for mixed block choices.
-   Blocks keep their layout, while the full invitation uses one soft background. */
+/**
+ * theme-unifier — load CUỐI CÙNG.
+ * Size/spacing chung: css/tokens.css (sửa token ở đó).
+ * File này chỉ APPLY token + glue mixed-block (không khai báo size rải rác).
+ */
 body[class*="block-"] .invitation {
     background: #fff !important;
 }
@@ -18,8 +21,21 @@ body[class*="block-"] .section-divider {
     background: transparent !important;
 }
 
-/* Unified section headings for mixed block mode.
-   (concept-3 save-date tự layout script — không ép heading font ở đây) */
+/* Title / subtitle sizes ← tokens.css */
+.save-title,
+.about-title,
+.section-title,
+.thanks-title {
+    font-size: var(--section-title-size) !important;
+}
+
+.section-subtitle,
+.gift-description,
+.thanks-content {
+    font-size: var(--section-subtitle-size) !important;
+}
+
+/* Unified section headings (layout + type) for mixed block mode */
 body[class*="block-"] .save-title,
 body[class*="block-"] .about-title,
 body[class*="block-"] .section-title,
@@ -27,7 +43,7 @@ body[class*="block-"] .thanks-title {
     margin: 0 auto .18rem !important;
     color: var(--primary-color) !important;
     font-family: var(--font-heading, "Playfair Display", serif) !important;
-    font-size: .46rem !important;
+    font-size: var(--section-title-size) !important;
     font-weight: 600 !important;
     line-height: 1.18 !important;
     letter-spacing: 0 !important;
@@ -36,10 +52,11 @@ body[class*="block-"] .thanks-title {
     text-shadow: none !important;
 }
 
-/* Concept 3: headline script theo --font-nickname (user chọn), cỡ/layout do skins.css */
-body[class*="block-"] .save-date.block-skin-concept-3 .save-title {
+/* Save-date concept-3: script title (layout đặc biệt) */
+body[class*="block-"] .save-date.block-skin-concept-3 .save-title,
+.save-date.block-skin-concept-3 .save-title {
     font-family: var(--font-nickname, "Great Vibes", cursive) !important;
-    font-size: clamp(1.05rem, 15vw, 1.65rem) !important;
+    font-size: var(--section-title-script-size) !important;
     font-weight: 400 !important;
     line-height: 1 !important;
     letter-spacing: .01rem !important;
@@ -75,13 +92,13 @@ body[class*="block-"] .thanks-title::after {
     transform: none !important;
 }
 
-/* Subtitle đồng bộ mọi block (save-date, about, timeline, gallery…) */
+/* Subtitle type (size ở :root --section-subtitle-size) */
 body[class*="block-"] .section-subtitle,
 body[class*="block-"] .gift-description,
 body[class*="block-"] .thanks-content {
     color: #6f6a62 !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .28rem !important;
+    font-size: var(--section-subtitle-size) !important;
     font-weight: 400 !important;
     line-height: 1.7 !important;
     letter-spacing: 0 !important;
@@ -111,6 +128,10 @@ body[class*="block-"] .save-date.block-skin-concept-4 .save-title::after {
     padding: 0 !important;
     font-size: 0 !important;
 }
+
+/* Poster date/location ← tokens.css */
+.poster .date__time { font-size: var(--poster-date-size) !important; }
+.poster .location { font-size: var(--poster-location-size) !important; }
 
 /* Nickname fonts: applied via JS inject (#theme-font-overrides) in js/utils/fonts.js
    so cover/poster hardcodes cannot pin everything to Great Vibes. */
@@ -151,6 +172,14 @@ body .about.block-skin-concept-2 .person-name,
 body .about.block-skin-concept-3 .person-name,
 body .about.block-skin-concept-4 .person-name {
     font-size: .4rem !important;
+}
+
+/* About concept 1 & 4: tên cô dâu / chú rể = màu chủ đạo */
+.about.block-skin-concept-1 .person-name,
+body .about.block-skin-concept-1 .person-name,
+.about.block-skin-concept-4 .person-name,
+body .about.block-skin-concept-4 .person-name {
+    color: var(--primary-color) !important;
 }
 
 /* About: bố mẹ — cỡ rõ, không inherit body .28rem */
@@ -208,4 +237,4 @@ body[class*="block-timeline"] .timeline-line-address,
     font-size: .27rem !important;
 }
 
-/* Save-date subtitle: cùng .28rem với rule chung phía trên (không override lệch cỡ) */
+

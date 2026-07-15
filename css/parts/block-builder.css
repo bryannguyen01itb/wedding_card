@@ -1,3 +1,8 @@
+/**
+ * Legacy mixed-block overrides (nhiều !important).
+ * Ưu tiên: tokens.css + theme-unifier.css + blocks/*/skins.css.
+ * File này giữ tương thích — hạn chế thêm rule mới; đừng đụng font-size title/subtitle.
+ */
 /* Builder block overrides: classes from theme.blocks + theme.fonts */
 
 /* --- Phông chữ thiệp (body) --- */
@@ -103,7 +108,6 @@ body.font-nickname-lora { --font-nickname: "Lora", Georgia, serif; }
 .timeline.block-skin-concept-4 .section-title,
 .timeline.block-skin-concept-4 .timeline .section-title,
 .timeline.block-skin-concept-4 h2 {
-    font-size: clamp(.3rem, 7vw, .46rem) !important;
     line-height: 1.16 !important;
 }
 
@@ -684,7 +688,6 @@ body .countdown.block-skin-concept-3 > * {
 body .countdown.block-skin-concept-2 .section-title,
 body .countdown.block-skin-concept-3 .section-title {
     color: inherit !important;
-    font-size: .46rem !important;
     text-shadow: none !important;
 }
 

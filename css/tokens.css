@@ -1,0 +1,20 @@
+/**
+ * Design tokens — SỬA SIZE / SPACING CHUNG Ở ĐÂY.
+ * Load đầu tiên (trước base + skins). Skin concept chỉ lo màu/layout.
+ *
+ * Quy ước:
+ *  - Token chung  → file này
+ *  - Style 1 concept → css/blocks/<section>/skins.css
+ *  - Đè chắc chắn → css/blocks/theme-unifier.css (load cuối)
+ */
+:root {
+    /* Section title / subtitle (about, timeline, gallery, gift, thanks, save-date…) */
+    --section-title-size: .46rem;
+    --section-subtitle-size: .28rem;
+    /* Save-date concept-3 script headline */
+    --section-title-script-size: clamp(1.05rem, 15vw, 1.65rem);
+
+    /* Poster date + location (mọi concept) */
+    --poster-date-size: .35rem;
+    --poster-location-size: .4rem;
+}

@@ -9,6 +9,8 @@
 
 /** 32 hex chars from 16 random bytes — not guessable from weddingId */
 export const ACCESS_TOKEN_QUERY_KEY = "t";
+/** Index khách mời (0-based) trên link thiệp: ?t=…&g=0 */
+export const GUEST_QUERY_KEY = "g";
 const ACCESS_TOKEN_PATTERN = /^[a-f0-9]{32}$/i;
 
 export function generateAccessToken() {
@@ -34,9 +36,9 @@ export function isWeddingPaymentUnlocked(payment = {}) {
 /**
  * Build guest invitation URL.
  * Prefer token; weddingId fallback only when token missing (legacy).
- * side: "groom" | "bride" — poster location nhà trai/gái.
+ * guestIndex (0-based) → ?g= — cover.guest = guests[index]; không có g → "Quý khách".
  */
-export function buildInvitationUrlFromBase(baseUrl, { accessToken = "", weddingId = "", side = "" } = {}) {
+export function buildInvitationUrlFromBase(baseUrl, { accessToken = "", weddingId = "", guestIndex = null } = {}) {
     const url = new URL(baseUrl, typeof window !== "undefined" ? window.location.href : "https://example.com/");
     url.search = "";
     const token = normalizeAccessToken(accessToken);
@@ -45,8 +47,43 @@ export function buildInvitationUrlFromBase(baseUrl, { accessToken = "", weddingI
     } else if (weddingId) {
         url.searchParams.set("wedding", weddingId);
     }
-    if (side === "groom" || side === "bride") {
-        url.searchParams.set("side", side);
+    if (guestIndex !== null && guestIndex !== undefined && guestIndex !== "") {
+        const index = Number(guestIndex);
+        if (Number.isInteger(index) && index >= 0) {
+            url.searchParams.set(GUEST_QUERY_KEY, String(index));
+        }
     }
     return url.toString();
+}
+
+/** Đọc index khách từ URL (?g= hoặc ?guest=). */
+export function getGuestIndexFromUrl(search = typeof window !== "undefined" ? window.location.search : "") {
+    const params = new URLSearchParams(search);
+    const raw = params.get(GUEST_QUERY_KEY) ?? params.get("guest");
+    if (raw === null || String(raw).trim() === "") return null;
+    const index = Number(raw);
+    if (!Number.isInteger(index) || index < 0) return null;
+    return index;
+}
+
+/** Danh sách tên khách đã chuẩn hóa (bỏ dòng trống). */
+export function normalizeGuestNames(value) {
+    if (Array.isArray(value)) {
+        return value.map(item => String(item || "").trim()).filter(Boolean);
+    }
+    return String(value || "")
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Tên hiển thị cover: guests[g] nếu có; không thì cover.guest / "Quý khách".
+ */
+export function resolveCoverGuestName(config = {}, guestIndex = getGuestIndexFromUrl()) {
+    const guests = normalizeGuestNames(config?.guests);
+    if (guestIndex !== null && guestIndex >= 0 && guestIndex < guests.length) {
+        return guests[guestIndex];
+    }
+    return String(config?.cover?.guest || "Quý khách").trim() || "Quý khách";
 }

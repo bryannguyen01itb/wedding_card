@@ -92,8 +92,9 @@ function createRitualCard(event, side) {
     const ceremonyTime = formatEventTime(wedding.date, event.time);
     const ceremonyTitle = event.title || "LỄ";
 
-    ritual.appendChild(createRitualStep("bi-house-heart", ceremonyTitle, ceremonyTime));
+    // Bữa cơm trước, lễ sau
     ritual.appendChild(createRitualStep("bi-cup-straw", mealTitle, mealTime));
+    ritual.appendChild(createRitualStep("bi-house-heart", ceremonyTitle, ceremonyTime));
 
     if (event.address) {
         const addr = createEl("div", "timeline-ritual-address");
@@ -113,7 +114,7 @@ function createRitualCard(event, side) {
 
 /**
  * Concept 6: itinerary xen kẽ icon trái/phải (kiểu thiệp)
- * 2 mục: lễ + bữa cơm / nhà
+ * 2 mục / nhà: bữa cơm → lễ
  * @param {boolean} iconOnLeft
  */
 function createItineraryRow(icon, title, time, place, iconOnLeft) {
@@ -154,9 +155,9 @@ function createItineraryCard(event, side) {
     const ceremonyTitle = event.title || "LỄ";
     const place = event.address || "";
 
-    // Lễ + bữa cơm — không gắn địa chỉ vào từng row (tránh lặp 2 lần / nhà)
-    list.appendChild(createItineraryRow("bi-heart", ceremonyTitle, ceremonyTime, "", true));
-    list.appendChild(createItineraryRow("bi-cup-straw", mealTitle, mealTime, "", false));
+    // Bữa cơm trước, lễ sau — không gắn địa chỉ vào từng row (tránh lặp 2 lần / nhà)
+    list.appendChild(createItineraryRow("bi-cup-straw", mealTitle, mealTime, "", true));
+    list.appendChild(createItineraryRow("bi-heart", ceremonyTitle, ceremonyTime, "", false));
 
     // Mỗi nhà chỉ 1 dòng địa chỉ
     if (place) {
@@ -177,7 +178,7 @@ function createItineraryCard(event, side) {
 
 /**
  * Concept 7: line schedule — icon | chấm trục | giờ + title
- * 2 mục: lễ + bữa cơm / nhà
+ * 2 mục / nhà: bữa cơm → lễ
  */
 function createLineStep(icon, title, time) {
     const step = createEl("div", "timeline-line-step");
@@ -208,8 +209,9 @@ function createLineCard(event, side) {
     const ceremonyTime = formatEventTime(wedding.date, event.time);
     const ceremonyTitle = event.title || "LỄ";
 
-    list.appendChild(createLineStep("bi-heart", ceremonyTitle, ceremonyTime));
+    // Bữa cơm trước, lễ sau
     list.appendChild(createLineStep("bi-cup-straw", mealTitle, mealTime));
+    list.appendChild(createLineStep("bi-heart", ceremonyTitle, ceremonyTime));
 
     if (event.address) {
         const addr = createEl("div", "timeline-line-address");

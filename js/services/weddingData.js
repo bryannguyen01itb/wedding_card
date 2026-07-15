@@ -3,7 +3,8 @@ import { db } from "../firebase.js";
 import {
     ACCESS_TOKEN_QUERY_KEY,
     isWeddingPaymentUnlocked,
-    normalizeAccessToken
+    normalizeAccessToken,
+    resolveCoverGuestName
 } from "../utils/access.js";
 
 const WEDDING_QUERY_KEY = "wedding";
@@ -86,12 +87,25 @@ async function fetchWeddingByAccessToken(token) {
     });
 }
 
+/** Gán cover.guest theo ?g= (index trong guests[]) trước khi render. */
+function applyCoverGuestFromUrl(config) {
+    const guestName = resolveCoverGuestName(config);
+    const next = {
+        ...config,
+        cover: {
+            ...(config.cover || {}),
+            guest: guestName
+        }
+    };
+    setWeddingConfig(next);
+    return next;
+}
+
 function applyPreviewOrFallback(previewConfig) {
     const merged = previewConfig
         ? mergeConfig(fallbackWedding, previewConfig)
         : fallbackWedding;
-    setWeddingConfig(merged);
-    return merged;
+    return applyCoverGuestFromUrl(merged);
 }
 
 export async function loadWeddingConfig() {
@@ -110,8 +124,7 @@ export async function loadWeddingConfig() {
     const weddingId = getWeddingIdFromUrl();
 
     if (!accessToken && !weddingId) {
-        setWeddingConfig(fallbackWedding);
-        return fallbackWedding;
+        return applyCoverGuestFromUrl(fallbackWedding);
     }
 
     try {
@@ -123,8 +136,7 @@ export async function loadWeddingConfig() {
         // Guest public view: block unpaid even if weddingId is guessed
         assertPublicAccessAllowed(remoteWedding);
 
-        setWeddingConfig(remoteWedding);
-        return remoteWedding;
+        return applyCoverGuestFromUrl(remoteWedding);
     } catch (error) {
         if (error instanceof WeddingConfigError) {
             throw error;

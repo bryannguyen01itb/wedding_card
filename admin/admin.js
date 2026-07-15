@@ -1,4 +1,3 @@
-import { wedding as fallbackWedding } from "../js/config.js";
 import { db } from "../js/firebase.js";
 import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/access.js";
 
@@ -38,19 +37,21 @@ const saveMusicBtn = document.getElementById("saveMusicBtn");
 const paymentPanel = document.getElementById("paymentPanel");
 const paymentSettingsForm = document.getElementById("paymentSettingsForm");
 const paymentAmount = document.getElementById("paymentAmount");
+const paymentAmountMulti = document.getElementById("paymentAmountMulti");
 const paymentCurrency = document.getElementById("paymentCurrency");
 const paymentContactUrl = document.getElementById("paymentContactUrl");
 const paymentQrImage = document.getElementById("paymentQrImage");
 const paymentReceiver = document.getElementById("paymentReceiver");
 const paymentMessage = document.getElementById("paymentMessage");
-const paymentWeddingInfo = document.getElementById("paymentWeddingInfo");
-const markPendingBtn = document.getElementById("markPendingBtn");
-const unlockWeddingBtn = document.getElementById("unlockWeddingBtn");
-const lockWeddingBtn = document.getElementById("lockWeddingBtn");
 const paymentList = document.getElementById("paymentList");
 const refreshPaymentListBtn = document.getElementById("refreshPaymentListBtn");
+const deleteOldWeddingsBtn = document.getElementById("deleteOldWeddingsBtn");
 
-let currentConfig = createDefaultConfig();
+const WEDDING_STALE_DAYS = 30;
+/** Cache list thiệp để bulk delete */
+let cachedWeddingList = [];
+
+let currentConfig = createEmptyAdminConfig();
 let hasLoadedInitialConfig = false;
 let activeMediaConcept = DEFAULT_MEDIA_CONCEPT;
 
@@ -74,12 +75,94 @@ function mergeConfig(base, override) {
     return result;
 }
 
-function createDefaultConfig() {
-    return mergeConfig(clone(fallbackWedding), {
+/**
+ * Form admin trống — không preload wedding-cp-4 / data mẫu.
+ * Chỉ fill khi admin tải weddingId từ Firebase.
+ */
+function createEmptyAdminConfig() {
+    return {
+        weddingId: "",
+        date: "",
+        music: "",
+        plan: "single",
+        guests: [],
+        cover: { headline: "TRÂN TRỌNG KÍNH MỜI", guest: "Quý khách" },
+        payment: {
+            status: "",
+            unlocked: false,
+            plan: "single",
+            currency: "VND",
+            accessToken: ""
+        },
         theme: {
-            primaryColor: DEFAULT_PRIMARY
-        }
-    });
+            primaryColor: DEFAULT_PRIMARY,
+            blocks: {},
+            fonts: {},
+            concepts: {}
+        },
+        poster: { image: "" },
+        preview: { image: "" },
+        aboutCard: { image: "" },
+        groom: {
+            nickname: "",
+            fullName: "",
+            father: "",
+            mother: "",
+            avatar: ""
+        },
+        bride: {
+            nickname: "",
+            fullName: "",
+            father: "",
+            mother: "",
+            avatar: ""
+        },
+        ceremony: {
+            image: "",
+            bride: {
+                title: "",
+                time: "",
+                address: "",
+                location: "",
+                mapUrl: "",
+                meal: { title: "", time: "" }
+            },
+            groom: {
+                title: "",
+                time: "",
+                address: "",
+                location: "",
+                mapUrl: "",
+                meal: { title: "", time: "" }
+            }
+        },
+        gallery: { photos: [] },
+        gift: {
+            groom: { qr: "", bank: "", accountName: "", accountNumber: "" },
+            bride: { qr: "", bank: "", accountName: "", accountNumber: "" }
+        },
+        sections: {
+            saveDate: "",
+            about: "",
+            timeline: "",
+            gallery: "",
+            wish: "",
+            gift: { title: "" },
+            countdown: { title: "" },
+            thanks: { title: "" }
+        },
+        sectionSubtitles: {
+            saveDate: "",
+            about: "",
+            timeline: "",
+            gallery: "",
+            wish: "",
+            gift: "",
+            countdown: "",
+            thanks: []
+        },
+        builder: {}
+    };
 }
 
 function getActiveMediaConcept() {
@@ -172,8 +255,8 @@ function updatePreviewLink(weddingId, accessToken = "") {
     previewLink.textContent = url;
 }
 
-function getPaymentSettingAmount() {
-    const rawAmount = paymentAmount?.value;
+function getPaymentSettingAmountFromInput(inputEl) {
+    const rawAmount = inputEl?.value;
     if (rawAmount === undefined || rawAmount === null || rawAmount === "") {
         return null;
     }
@@ -182,12 +265,84 @@ function getPaymentSettingAmount() {
     return Number.isNaN(amount) ? null : amount;
 }
 
+function getPaymentSettingAmount() {
+    return getPaymentSettingAmountFromInput(paymentAmount);
+}
+
+function getPaymentSettingAmountMulti() {
+    return getPaymentSettingAmountFromInput(paymentAmountMulti);
+}
+
 function getPaymentSettingCurrency() {
     return paymentCurrency?.value?.trim() || "VND";
 }
 
+function getPaymentPlanLabel(payment = {}) {
+    if (payment.plan === "multi") return "Nhiều link";
+    if (payment.plan === "single") return "1 link";
+    return "";
+}
+
+/** Firestore Timestamp | Date | number → Date | null */
+function toJsDate(value) {
+    if (!value) return null;
+    if (typeof value.toDate === "function") {
+        try {
+            return value.toDate();
+        } catch {
+            return null;
+        }
+    }
+    if (value instanceof Date) return value;
+    if (typeof value === "number") {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof value === "string") {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    // { seconds, nanoseconds }
+    if (typeof value.seconds === "number") {
+        return new Date(value.seconds * 1000);
+    }
+    return null;
+}
+
+/** Ngày tham chiếu tuổi thiệp: payment.updatedAt → confirmedAt → date cưới */
+function getWeddingRefDate(item = {}) {
+    return (
+        toJsDate(item.payment?.updatedAt)
+        || toJsDate(item.payment?.confirmedAt)
+        || toJsDate(item.updatedAt)
+        || toJsDate(item.createdAt)
+        || toJsDate(item.date)
+        || null
+    );
+}
+
+function getWeddingAgeDays(item) {
+    const ref = getWeddingRefDate(item);
+    if (!ref) return null;
+    return Math.floor((Date.now() - ref.getTime()) / 86400000);
+}
+
+function formatWeddingAge(item) {
+    const days = getWeddingAgeDays(item);
+    if (days === null) return "Chưa rõ ngày";
+    if (days < 0) return "0 ngày";
+    if (days === 0) return "Hôm nay";
+    if (days === 1) return "1 ngày";
+    return `${days} ngày`;
+}
+
+function isWeddingStale(item, days = WEDDING_STALE_DAYS) {
+    const age = getWeddingAgeDays(item);
+    return age !== null && age >= days;
+}
+
 function formatMoney(amount, currency = "VND") {
-    // amount phải truyền từ wedding.payment; không fallback settings (tránh hiển thị sai)
+    // Chỉ hiển thị amount thật từ wedding.payment — không fallback settings/mẫu
     if (amount === undefined || amount === null || amount === "") {
         return "Chưa đặt số tiền";
     }
@@ -197,22 +352,11 @@ function formatMoney(amount, currency = "VND") {
     return new Intl.NumberFormat("vi-VN").format(value) + ` ${currency || getPaymentSettingCurrency() || "VND"}`;
 }
 
-function updatePaymentWeddingInfo(config = currentConfig) {
-    if (!paymentWeddingInfo) return;
-    const id = config.weddingId || "chưa có weddingId";
-    const payment = config.payment || {};
-    const status = payment.unlocked || payment.status === "paid"
-        ? "Đã mở khóa"
-        : payment.status === "pending"
-            ? "Đang chờ thanh toán"
-            : payment.status === "locked"
-                ? "Đã khóa"
-                : "Chưa có trạng thái thanh toán";
-    paymentWeddingInfo.textContent = `${id} · ${status} · ${formatMoney(payment.amount, payment.currency || getPaymentSettingCurrency())}`;
-}
-
 function fillPaymentSettings(data = {}) {
     paymentAmount.value = data.amount ?? "";
+    if (paymentAmountMulti) {
+        paymentAmountMulti.value = data.amountMulti ?? "";
+    }
     paymentCurrency.value = data.currency || "VND";
     paymentContactUrl.value = data.contactUrl || "";
     paymentQrImage.value = data.qrImage || "";
@@ -239,6 +383,7 @@ async function savePaymentSettings(event) {
 
     const payload = {
         amount: getPaymentSettingAmount(),
+        amountMulti: getPaymentSettingAmountMulti(),
         currency: paymentCurrency.value.trim() || "VND",
         contactUrl: paymentContactUrl.value.trim(),
         qrImage: paymentQrImage.value.trim(),
@@ -256,47 +401,6 @@ async function savePaymentSettings(event) {
     }
 }
 
-async function setWeddingPaymentStatus(status) {
-    const weddingId = currentConfig.weddingId || form.elements["weddingId"].value.trim() || loadInput.value.trim();
-    if (!weddingId) {
-        showToast("Tải hoặc nhập weddingId trước khi cập nhật thanh toán.", "error");
-        return;
-    }
-
-    const unlocked = status === "paid";
-    const prev = currentConfig.payment || {};
-    // Giữ amount/currency đã snapshot trên wedding; chỉ fallback settings nếu wedding chưa có
-    const amount = hasStoredAmount(prev.amount)
-        ? Number(prev.amount)
-        : (getPaymentSettingAmount() ?? 0);
-    const currency = prev.currency || getPaymentSettingCurrency() || "VND";
-    const accessToken = prev.accessToken || generateAccessToken();
-
-    const payload = {
-        payment: {
-            status,
-            unlocked,
-            amount,
-            currency,
-            accessToken,
-            confirmedAt: unlocked ? firebase.firestore.FieldValue.serverTimestamp() : null,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }
-    };
-
-    try {
-        await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
-        currentConfig = mergeConfig(currentConfig, payload);
-        updatePaymentWeddingInfo(currentConfig);
-        updatePreviewLink(weddingId, unlocked ? accessToken : "");
-        await loadPaymentList();
-        showToast(unlocked ? "Đã mở khóa thiệp cho khách." : "Đã cập nhật trạng thái chờ thanh toán.");
-    } catch (error) {
-        console.error(error);
-        showToast("Không cập nhật được trạng thái thanh toán.", "error");
-    }
-}
-
 function hasStoredAmount(amount) {
     return amount !== undefined && amount !== null && amount !== "" && !Number.isNaN(Number(amount));
 }
@@ -311,31 +415,458 @@ function getPaymentStatusLabel(payment = {}) {
 function renderPaymentList(items) {
     if (!paymentList) return;
     paymentList.textContent = "";
+    cachedWeddingList = items;
 
     if (!items.length) {
         paymentList.innerHTML = '<p class="empty-state">Chưa có thiệp nào trong Firebase.</p>';
         return;
     }
 
+    const staleCount = items.filter(item => isWeddingStale(item)).length;
+    if (staleCount && deleteOldWeddingsBtn) {
+        deleteOldWeddingsBtn.innerHTML = `<i class="bi bi-trash3"></i> Xóa &gt; 30 ngày (${staleCount})`;
+    } else if (deleteOldWeddingsBtn) {
+        deleteOldWeddingsBtn.innerHTML = '<i class="bi bi-trash3"></i> Xóa &gt; 30 ngày';
+    }
+
     items.forEach(item => {
         const payment = item.payment || {};
+        const paid = payment.unlocked || payment.status === "paid";
+        const stale = isWeddingStale(item);
+        const id = item.weddingId || item.id;
         const row = document.createElement("article");
-        row.className = `payment-item${payment.unlocked || payment.status === "paid" ? " is-paid" : ""}`;
+        row.className = `payment-item${paid ? " is-paid" : ""}${stale ? " is-stale" : ""}`;
         row.dataset.id = item.id;
+
+        const planLabel = getPaymentPlanLabel(payment);
+        const money = hasStoredAmount(payment.amount)
+            ? formatMoney(payment.amount, payment.currency || getPaymentSettingCurrency())
+            : "Chưa đặt số tiền";
+        const ageLabel = formatWeddingAge(item);
+
         row.innerHTML = `
             <div class="payment-item__info">
-                <strong>${item.weddingId || item.id}</strong>
-                <span>${item.groom?.nickname || "Chú rể"} & ${item.bride?.nickname || "Cô dâu"}</span>
-                <em>${getPaymentStatusLabel(payment)} · ${formatMoney(payment.amount, payment.currency || getPaymentSettingCurrency())}</em>
+                <strong>${id}${stale ? ' <span class="payment-item__badge">&gt;30 ngày</span>' : ""}</strong>
+                <span>${item.groom?.nickname || "Chú rể"} &amp; ${item.bride?.nickname || "Cô dâu"}</span>
+                <em>${getPaymentStatusLabel(payment)}${planLabel ? ` · ${planLabel}` : ""} · ${money} · ${ageLabel}</em>
             </div>
             <div class="payment-item__actions">
-                ${payment.unlocked || payment.status === "paid"
+                <button type="button" class="small" data-wedding-edit="${item.id}" title="Sửa thông tin thiệp">
+                    <i class="bi bi-pencil-square"></i> Sửa
+                </button>
+                ${paid
                     ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${item.id}"><i class="bi bi-lock-fill"></i> Khóa</button>`
-                    : `<button type="button" class="small" data-payment-action="paid" data-id="${item.id}"><i class="bi bi-check2-circle"></i> Đã trả</button>`}
+                    : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${item.id}"><i class="bi bi-check2-circle"></i> Đã trả</button>`}
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "single" ? " is-plan-active" : ""}" data-plan-action="single" data-id="${item.id}" title="Đổi sang gói 1 link">
+                    <i class="bi bi-link-45deg"></i> 1 link
+                </button>
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "multi" ? " is-plan-active" : ""}" data-plan-action="multi" data-id="${item.id}" title="Đổi sang gói nhiều link theo khách">
+                    <i class="bi bi-people"></i> Nhiều link
+                </button>
+                <button type="button" class="ghost small danger" data-wedding-delete="${item.id}" title="Xóa vĩnh viễn thiệp + lời chúc">
+                    <i class="bi bi-trash3-fill"></i> Xóa
+                </button>
             </div>
         `;
         paymentList.appendChild(row);
     });
+}
+
+/** State popup đổi gói */
+let planChangeState = null;
+/** Resolve cho popup xác nhận chung */
+let adminConfirmResolve = null;
+
+/**
+ * Popup xác nhận đẹp (thay window.confirm).
+ * @returns {Promise<boolean>}
+ */
+function showAdminConfirm({
+    eyebrow = "Xác nhận",
+    title = "Bạn chắc chắn?",
+    message = "",
+    warning = "",
+    weddingId = "",
+    confirmLabel = "Xác nhận",
+    confirmIcon = "bi-check2-circle",
+    variant = "primary" // primary | success | danger
+} = {}) {
+    return new Promise(resolve => {
+        // Đóng popup cũ nếu còn
+        if (adminConfirmResolve) {
+            adminConfirmResolve(false);
+            adminConfirmResolve = null;
+        }
+        adminConfirmResolve = resolve;
+
+        const modal = document.getElementById("adminConfirmModal");
+        const iconEl = document.getElementById("adminConfirmIcon");
+        const eyebrowEl = document.getElementById("adminConfirmEyebrow");
+        const titleEl = document.getElementById("adminConfirmTitle");
+        const msgEl = document.getElementById("adminConfirmMessage");
+        const idEl = document.getElementById("adminConfirmWeddingId");
+        const warnBox = document.getElementById("adminConfirmWarning");
+        const warnText = document.getElementById("adminConfirmWarningText");
+        const okBtn = document.getElementById("adminConfirmOkBtn");
+
+        if (eyebrowEl) eyebrowEl.textContent = eyebrow;
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl) msgEl.textContent = message;
+
+        if (idEl) {
+            if (weddingId) {
+                idEl.hidden = false;
+                idEl.textContent = weddingId;
+            } else {
+                idEl.hidden = true;
+                idEl.textContent = "";
+            }
+        }
+
+        if (warnBox && warnText) {
+            if (warning) {
+                warnBox.hidden = false;
+                warnText.textContent = warning;
+            } else {
+                warnBox.hidden = true;
+                warnText.textContent = "";
+            }
+        }
+
+        if (iconEl) {
+            iconEl.className = "admin-modal__icon";
+            if (variant === "success") iconEl.classList.add("admin-modal__icon--paid");
+            else if (variant === "danger") iconEl.classList.add("admin-modal__icon--delete");
+            else if (variant === "lock") iconEl.classList.add("admin-modal__icon--lock");
+
+            const iconName = variant === "success"
+                ? "bi-check2-circle"
+                : variant === "danger"
+                    ? "bi-trash3-fill"
+                    : variant === "lock"
+                        ? "bi-lock-fill"
+                        : confirmIcon.replace(/^bi-/, "bi-") || "bi-question-circle";
+            iconEl.innerHTML = `<i class="bi ${iconName.startsWith("bi-") ? iconName : `bi-${iconName}`}"></i>`;
+        }
+
+        if (okBtn) {
+            okBtn.classList.remove("is-danger", "is-success");
+            if (variant === "danger") okBtn.classList.add("is-danger");
+            if (variant === "success") okBtn.classList.add("is-success");
+            okBtn.innerHTML = `<i class="bi ${confirmIcon.startsWith("bi-") ? confirmIcon : `bi-${confirmIcon}`}"></i> ${confirmLabel}`;
+        }
+
+        if (modal) {
+            modal.hidden = false;
+            document.body.classList.add("admin-modal-open");
+        }
+    });
+}
+
+function closeAdminConfirm(result = false) {
+    const modal = document.getElementById("adminConfirmModal");
+    if (modal) modal.hidden = true;
+    // Chỉ gỡ class nếu plan modal cũng đóng
+    const planModal = document.getElementById("planChangeModal");
+    if (!planModal || planModal.hidden) {
+        document.body.classList.remove("admin-modal-open");
+    }
+    if (adminConfirmResolve) {
+        const resolve = adminConfirmResolve;
+        adminConfirmResolve = null;
+        resolve(Boolean(result));
+    }
+}
+
+function openPlanChangeModal(state) {
+    planChangeState = state;
+    const modal = document.getElementById("planChangeModal");
+    if (!modal) return;
+
+    const fromLabel = state.currentPlan === "multi" ? "Nhiều link" : "1 link";
+    const toLabel = state.plan === "multi" ? "Nhiều link" : "1 link";
+
+    const idEl = document.getElementById("planChangeWeddingId");
+    const fromEl = document.getElementById("planChangeFromLabel");
+    const toEl = document.getElementById("planChangeToLabel");
+    const oldPriceEl = document.getElementById("planChangeOldPrice");
+    const newPriceEl = document.getElementById("planChangeNewPrice");
+    const warnBox = document.getElementById("planChangeWarning");
+    const warnText = document.getElementById("planChangeWarningText");
+    const updatePriceEl = document.getElementById("planChangeUpdatePrice");
+
+    if (idEl) idEl.textContent = state.id;
+    if (fromEl) fromEl.textContent = fromLabel;
+    if (toEl) toEl.textContent = toLabel;
+    if (oldPriceEl) {
+        oldPriceEl.textContent = state.oldAmount !== null
+            ? formatMoney(state.oldAmount)
+            : "Chưa đặt";
+    }
+    if (newPriceEl) newPriceEl.textContent = formatMoney(state.pricedAmount);
+
+    const guestCount = Array.isArray(state.guests) ? state.guests.length : 0;
+    if (warnBox && warnText) {
+        if (state.plan === "single" && guestCount > 0) {
+            warnBox.hidden = false;
+            warnText.textContent = `Thiệp đang có ${guestCount} tên khách. Chuyển 1 link sẽ xóa danh sách guests — link ?g= không còn hiệu lực.`;
+        } else if (state.plan === "multi") {
+            warnBox.hidden = false;
+            warnText.textContent = "Gói nhiều link: khách có thể nhập danh sách tên trên builder để tạo link riêng.";
+        } else {
+            warnBox.hidden = true;
+            warnText.textContent = "";
+        }
+    }
+
+    if (updatePriceEl) updatePriceEl.checked = true;
+
+    modal.hidden = false;
+    document.body.classList.add("admin-modal-open");
+}
+
+function closePlanChangeModal() {
+    planChangeState = null;
+    const modal = document.getElementById("planChangeModal");
+    if (modal) modal.hidden = true;
+    document.body.classList.remove("admin-modal-open");
+}
+
+/**
+ * Mở popup đổi gói (thay confirm trình duyệt).
+ */
+async function changeWeddingPlan(weddingId, nextPlan) {
+    const id = String(weddingId || "").trim();
+    const plan = nextPlan === "multi" ? "multi" : "single";
+    if (!id) return false;
+    if (!auth.currentUser) {
+        showToast("Cần đăng nhập admin.", "error");
+        return false;
+    }
+
+    try {
+        const doc = await db.collection("weddings").doc(id).get();
+        if (!doc.exists) {
+            showToast(`Không tìm thấy thiệp: ${id}`, "error");
+            return false;
+        }
+
+        const data = doc.data() || {};
+        const prev = data.payment || {};
+        const currentPlan = prev.plan === "multi" || prev.plan === "single"
+            ? prev.plan
+            : (data.plan === "multi" ? "multi" : "single");
+
+        if (currentPlan === plan) {
+            showToast(`Thiệp ${id} đã ở gói ${plan === "multi" ? "nhiều link" : "1 link"}.`);
+            return false;
+        }
+
+        const pricedAmount = plan === "multi"
+            ? (getPaymentSettingAmountMulti() ?? getPaymentSettingAmount() ?? 129000)
+            : (getPaymentSettingAmount() ?? 99000);
+        const oldAmount = hasStoredAmount(prev.amount) ? Number(prev.amount) : null;
+
+        openPlanChangeModal({
+            id,
+            plan,
+            currentPlan,
+            prev,
+            guests: data.guests || [],
+            pricedAmount,
+            oldAmount
+        });
+        return true;
+    } catch (error) {
+        console.error(error);
+        showToast("Không tải được thiệp để đổi gói.", "error");
+        return false;
+    }
+}
+
+/** Áp dụng đổi gói sau khi admin bấm Xác nhận trên modal. */
+async function confirmPlanChangeFromModal() {
+    if (!planChangeState) return false;
+    const { id, plan, prev, pricedAmount, oldAmount } = planChangeState;
+    const updatePrice = Boolean(document.getElementById("planChangeUpdatePrice")?.checked);
+    const amount = updatePrice
+        ? pricedAmount
+        : (oldAmount !== null ? oldAmount : pricedAmount);
+    const toLabel = plan === "multi" ? "Nhiều link" : "1 link";
+
+    const confirmBtn = document.getElementById("planChangeConfirmBtn");
+    const oldHtml = confirmBtn?.innerHTML;
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu…';
+    }
+
+    try {
+        const payload = {
+            plan,
+            payment: {
+                ...prev,
+                plan,
+                amount,
+                currency: prev.currency || getPaymentSettingCurrency() || "VND",
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            },
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (plan === "single") {
+            payload.guests = [];
+        }
+
+        await db.collection("weddings").doc(id).set(payload, { merge: true });
+
+        if (currentConfig.weddingId === id || loadInput?.value === id) {
+            currentConfig = mergeConfig(currentConfig, payload);
+            if (plan === "single") currentConfig.guests = [];
+            const planSelect = form?.elements?.plan;
+            if (planSelect) planSelect.value = plan;
+            const guestsField = form?.elements?.guests;
+            if (guestsField && plan === "single") guestsField.value = "";
+            else if (guestsField && Array.isArray(currentConfig.guests)) {
+                guestsField.value = currentConfig.guests.join("\n");
+            }
+        }
+
+        closePlanChangeModal();
+        await loadPaymentList();
+        showToast(
+            `Đã đổi ${id} → ${toLabel}`
+            + (updatePrice ? ` · giá ${formatMoney(amount)}` : " · giữ giá cũ")
+        );
+        return true;
+    } catch (error) {
+        console.error(error);
+        showToast("Đổi gói thất bại. Kiểm tra quyền Firestore.", "error");
+        return false;
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = oldHtml || '<i class="bi bi-check2-circle"></i> Xác nhận đổi gói';
+        }
+    }
+}
+
+/**
+ * Xóa subcollection wishes rồi xóa doc weddings/{id}.
+ * Ảnh Cloudinary không xóa tự động (cần dọn tay trên Cloudinary nếu muốn).
+ */
+async function deleteWeddingSubcollections(weddingId) {
+    const wishesSnap = await db.collection("weddings").doc(weddingId).collection("wishes").get();
+    if (wishesSnap.empty) return 0;
+
+    let batch = db.batch();
+    let ops = 0;
+    let total = 0;
+
+    for (const doc of wishesSnap.docs) {
+        batch.delete(doc.ref);
+        ops += 1;
+        total += 1;
+        if (ops >= 400) {
+            await batch.commit();
+            batch = db.batch();
+            ops = 0;
+        }
+    }
+    if (ops > 0) await batch.commit();
+    return total;
+}
+
+async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}) {
+    const id = String(weddingId || "").trim();
+    if (!id) return false;
+    if (!auth.currentUser) {
+        showToast("Cần đăng nhập admin để xóa thiệp.", "error");
+        return false;
+    }
+
+    if (needConfirm) {
+        const ok = await showAdminConfirm({
+            eyebrow: "Xóa thiệp",
+            title: "Xóa vĩnh viễn thiệp này?",
+            weddingId: id,
+            message: "Thao tác không hoàn tác được.",
+            warning: "Sẽ xóa config Firebase và toàn bộ lời chúc (wishes). Ảnh trên Cloudinary không tự xóa.",
+            confirmLabel: "Xóa thiệp",
+            confirmIcon: "bi-trash3-fill",
+            variant: "danger"
+        });
+        if (!ok) return false;
+    }
+
+    try {
+        await deleteWeddingSubcollections(id);
+        await db.collection("weddings").doc(id).delete();
+
+        if (currentConfig.weddingId === id || loadInput?.value === id) {
+            fillForm(createEmptyAdminConfig());
+            loadInput.value = "";
+            updatePreviewLink("");
+        }
+
+        showToast(`Đã xóa thiệp: ${id}`);
+        return true;
+    } catch (error) {
+        console.error(error);
+        showToast(`Xóa thất bại (${id}). Kiểm tra Firestore Rules (delete).`, "error");
+        return false;
+    }
+}
+
+async function deleteStaleWeddings() {
+    if (!auth.currentUser) {
+        showToast("Cần đăng nhập admin.", "error");
+        return;
+    }
+
+    const stale = cachedWeddingList.filter(item => isWeddingStale(item));
+    if (!stale.length) {
+        showToast(`Không có thiệp nào quá ${WEDDING_STALE_DAYS} ngày trong danh sách hiện tại.`);
+        return;
+    }
+
+    const preview = stale.slice(0, 8).map(item => item.weddingId || item.id).join("\n");
+    const more = stale.length > 8 ? `\n… và ${stale.length - 8} thiệp khác` : "";
+    const ok = await showAdminConfirm({
+        eyebrow: "Dọn thiệp cũ",
+        title: `Xóa ${stale.length} thiệp quá ${WEDDING_STALE_DAYS} ngày?`,
+        message: `${preview}${more}`,
+        warning: "Xóa vĩnh viễn config + lời chúc. Ảnh Cloudinary không tự xóa. Không hoàn tác được.",
+        confirmLabel: `Xóa ${stale.length} thiệp`,
+        confirmIcon: "bi-trash3-fill",
+        variant: "danger"
+    });
+    if (!ok) return;
+
+    if (deleteOldWeddingsBtn) {
+        deleteOldWeddingsBtn.disabled = true;
+        deleteOldWeddingsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xóa…';
+    }
+
+    let done = 0;
+    let failed = 0;
+    for (const item of stale) {
+        const id = item.id || item.weddingId;
+        const success = await deleteWeddingById(id, { confirm: false });
+        if (success) done += 1;
+        else failed += 1;
+    }
+
+    await loadPaymentList();
+    showToast(
+        failed
+            ? `Đã xóa ${done} thiệp, lỗi ${failed}.`
+            : `Đã xóa ${done} thiệp quá ${WEDDING_STALE_DAYS} ngày.`,
+        failed ? "error" : ""
+    );
+
+    if (deleteOldWeddingsBtn) {
+        deleteOldWeddingsBtn.disabled = false;
+    }
 }
 
 async function loadPaymentList() {
@@ -343,10 +874,24 @@ async function loadPaymentList() {
     paymentList.innerHTML = '<p class="empty-state">Đang tải danh sách thiệp...</p>';
 
     try {
-        const snapshot = await db.collection("weddings").limit(80).get();
+        const snapshot = await db.collection("weddings").limit(200).get();
         const items = snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data(), weddingId: doc.data().weddingId || doc.id }))
+            .map(doc => {
+                const data = doc.data() || {};
+                return {
+                    id: doc.id,
+                    ...data,
+                    weddingId: data.weddingId || doc.id
+                };
+            })
             .sort((a, b) => {
+                // Cũ nhất / stale lên trước để dễ dọn
+                const aStale = isWeddingStale(a) ? 0 : 1;
+                const bStale = isWeddingStale(b) ? 0 : 1;
+                if (aStale !== bStale) return aStale - bStale;
+                const aAge = getWeddingAgeDays(a) ?? -1;
+                const bAge = getWeddingAgeDays(b) ?? -1;
+                if (aAge !== bAge) return bAge - aAge;
                 const aPaid = a.payment?.unlocked === true || a.payment?.status === "paid";
                 const bPaid = b.payment?.unlocked === true || b.payment?.status === "paid";
                 if (aPaid !== bPaid) return aPaid ? 1 : -1;
@@ -362,13 +907,47 @@ async function loadPaymentList() {
 async function updateWeddingPaymentById(weddingId, status) {
     if (!weddingId) return;
     const unlocked = status === "paid";
+    const id = String(weddingId).trim();
+
+    // Popup xác nhận đẹp
+    if (unlocked) {
+        const ok = await showAdminConfirm({
+            eyebrow: "Thanh toán",
+            title: "Xác nhận đã thanh toán?",
+            weddingId: id,
+            message: "Thiệp sẽ được mở khóa. Khách dùng được link thiệp chính thức.",
+            confirmLabel: "Xác nhận đã trả",
+            confirmIcon: "bi-check2-circle",
+            variant: "success"
+        });
+        if (!ok) return;
+    } else {
+        const ok = await showAdminConfirm({
+            eyebrow: "Khóa thiệp",
+            title: "Khóa lại thiệp này?",
+            weddingId: id,
+            message: "Link thiệp sẽ không mở được cho khách cho đến khi mở khóa lại.",
+            warning: "Chỉ khóa khi cần tạm dừng hoặc thu hồi quyền xem thiệp.",
+            confirmLabel: "Khóa thiệp",
+            confirmIcon: "bi-lock-fill",
+            variant: "lock"
+        });
+        if (!ok) return;
+    }
 
     try {
         const doc = await db.collection("weddings").doc(weddingId).get();
-        const prev = doc.exists ? (doc.data().payment || {}) : {};
+        const docData = doc.exists ? doc.data() : {};
+        const prev = docData.payment || {};
+        // Giữ plan/amount đã snapshot — không cho admin unlock ghi đè nhầm gói
+        const plan = prev.plan === "multi" || prev.plan === "single"
+            ? prev.plan
+            : (docData.plan === "multi" ? "multi" : "single");
         const amount = hasStoredAmount(prev.amount)
             ? Number(prev.amount)
-            : (getPaymentSettingAmount() ?? 0);
+            : (plan === "multi"
+                ? (getPaymentSettingAmountMulti() ?? getPaymentSettingAmount() ?? 0)
+                : (getPaymentSettingAmount() ?? 0));
         const currency = prev.currency || getPaymentSettingCurrency() || "VND";
         const accessToken = prev.accessToken || generateAccessToken();
 
@@ -376,6 +955,7 @@ async function updateWeddingPaymentById(weddingId, status) {
             payment: {
                 status,
                 unlocked,
+                plan,
                 amount,
                 currency,
                 accessToken,
@@ -387,7 +967,6 @@ async function updateWeddingPaymentById(weddingId, status) {
         await db.collection("weddings").doc(weddingId).set(payload, { merge: true });
         if (currentConfig.weddingId === weddingId) {
             currentConfig = mergeConfig(currentConfig, payload);
-            updatePaymentWeddingInfo(currentConfig);
             updatePreviewLink(weddingId, unlocked ? accessToken : "");
         }
         await loadPaymentList();
@@ -399,40 +978,112 @@ async function updateWeddingPaymentById(weddingId, status) {
 }
 
 async function handlePaymentListClick(event) {
+    const editBtn = event.target.closest("button[data-wedding-edit]");
+    if (editBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        await openWeddingEditor(editBtn.dataset.weddingEdit);
+        return;
+    }
+
+    const deleteBtn = event.target.closest("button[data-wedding-delete]");
+    if (deleteBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = deleteBtn.dataset.weddingDelete;
+        deleteBtn.disabled = true;
+        const ok = await deleteWeddingById(id, { confirm: true });
+        if (ok) {
+            showWeddingListMode();
+            await loadPaymentList();
+        } else deleteBtn.disabled = false;
+        return;
+    }
+
+    const planBtn = event.target.closest("button[data-plan-action]");
+    if (planBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = planBtn.dataset.id;
+        const plan = planBtn.dataset.planAction;
+        planBtn.disabled = true;
+        await changeWeddingPlan(id, plan);
+        planBtn.disabled = false;
+        return;
+    }
+
     const button = event.target.closest("button[data-payment-action]");
     if (!button) return;
+    event.stopPropagation();
     const { paymentAction, id } = button.dataset;
 
     await updateWeddingPaymentById(id, paymentAction);
 }
 
-async function handlePaymentListRowClick(event) {
-    if (event.target.closest("button")) return;
-    const row = event.target.closest(".payment-item");
-    if (!row?.dataset.id) return;
-    await loadConfigById(row.dataset.id);
+function showWeddingListMode() {
+    const listPanel = document.getElementById("weddingListPanel");
+    const editPanel = document.getElementById("weddingEditPanel");
+    if (listPanel) listPanel.hidden = false;
+    if (editPanel) editPanel.hidden = true;
+}
+
+function showWeddingEditMode() {
+    const listPanel = document.getElementById("weddingListPanel");
+    const editPanel = document.getElementById("weddingEditPanel");
+    if (listPanel) listPanel.hidden = true;
+    if (editPanel) editPanel.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function openWeddingEditor(weddingId) {
+    const id = String(weddingId || "").trim();
+    if (!id) return;
+    setAdminView("weddings", { keepEditor: true });
+    showWeddingEditMode();
+    const ok = await loadConfigById(id);
+    if (!ok) showWeddingListMode();
 }
 
 function fillForm(config) {
-    currentConfig = mergeConfig(createDefaultConfig(), config || {});
+    currentConfig = mergeConfig(createEmptyAdminConfig(), config || {});
+    // Ưu tiên payment đúng theo config đã tải (không merge ảo)
+    if (config && Object.prototype.hasOwnProperty.call(config, "payment")) {
+        currentConfig.payment = { ...(config.payment || {}) };
+    }
 
     [...form.elements].forEach(field => {
         if (!field.name || field.name === "theme.primaryColorText") return;
+        if (field.name === "guests") return; // xử lý riêng
+        if (field.name === "plan") return;
         const value = getByPath(currentConfig, field.name);
         field.value = Array.isArray(value) ? value.join("\n") : value ?? "";
     });
 
+    // Gói thiệp + guests
+    const plan = currentConfig.payment?.plan === "multi" || currentConfig.plan === "multi"
+        || (Array.isArray(currentConfig.guests) && currentConfig.guests.length)
+        ? "multi"
+        : "single";
+    currentConfig.plan = plan;
+    if (form.elements.plan) form.elements.plan.value = plan;
+    if (form.elements.guests) {
+        form.elements.guests.value = Array.isArray(currentConfig.guests)
+            ? currentConfig.guests.filter(Boolean).join("\n")
+            : "";
+    }
+
     syncColorInputs(currentConfig.theme?.primaryColor || DEFAULT_PRIMARY);
-    loadInput.value = currentConfig.weddingId || loadInput.value;
-    updatePreviewLink(currentConfig.weddingId);
-    updatePaymentWeddingInfo(currentConfig);
+    // Form trống: xóa luôn ô load ID; khi đã tải: đồng bộ weddingId
+    loadInput.value = currentConfig.weddingId || "";
+    updatePreviewLink(currentConfig.weddingId || "", currentConfig.payment?.accessToken || "");
 }
 
 function readForm() {
-    const nextConfig = mergeConfig(createDefaultConfig(), currentConfig);
+    const nextConfig = mergeConfig(createEmptyAdminConfig(), currentConfig);
 
     [...form.elements].forEach(field => {
         if (!field.name || field.name === "theme.primaryColorText") return;
+        if (field.name === "guests" || field.name === "plan") return;
 
         let value = field.value.trim();
         if (field.name === "sectionSubtitles.thanks") {
@@ -447,6 +1098,21 @@ function readForm() {
         src: form.elements[`gallery.photos.${index}.src`].value.trim(),
         alt: form.elements[`gallery.photos.${index}.alt`].value.trim() || `Ảnh cưới ${index + 1}`
     })).filter(photo => photo.src);
+
+    // Plan + guests
+    const plan = form.elements.plan?.value === "multi" ? "multi" : "single";
+    nextConfig.plan = plan;
+    nextConfig.guests = plan === "multi"
+        ? String(form.elements.guests?.value || "")
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(Boolean)
+        : [];
+    nextConfig.payment = {
+        ...(nextConfig.payment || {}),
+        ...(currentConfig.payment || {}),
+        plan
+    };
 
     return nextConfig;
 }
@@ -581,31 +1247,26 @@ async function handleMusicListClick(event) {
 }
 
 async function loadConfigById(weddingId) {
-    loadBtn.disabled = true;
-    loadBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tải';
-
     try {
         if (!weddingId) {
-            fillForm(createDefaultConfig());
-            showToast("Đang dùng form mẫu cho khách mới.");
-            return;
+            fillForm(createEmptyAdminConfig());
+            return false;
         }
 
         const doc = await db.collection("weddings").doc(weddingId).get();
         if (!doc.exists) {
             showToast(`Không tìm thấy weddingId: ${weddingId}.`, "error");
-            return;
+            return false;
         }
 
-        const config = mergeConfig(createDefaultConfig(), { ...doc.data(), weddingId: doc.id });
+        const config = mergeConfig(createEmptyAdminConfig(), { ...doc.data(), weddingId: doc.id });
         fillForm(config);
         showToast("Đã tải config từ Firebase.");
+        return true;
     } catch (error) {
         console.error(error);
         showToast("Không tải được config. Kiểm tra đăng nhập và Firestore Rules.", "error");
-    } finally {
-        loadBtn.disabled = false;
-        loadBtn.innerHTML = '<i class="bi bi-search"></i> Tải';
+        return false;
     }
 }
 
@@ -658,8 +1319,11 @@ function canUseAdmin(user) {
     return !allowedEmails.length || allowedEmails.includes(user.email);
 }
 
-function setAdminView(viewId) {
-    const next = ["wedding", "music", "payment"].includes(viewId) ? viewId : "wedding";
+function setAdminView(viewId, { keepEditor = false } = {}) {
+    let next = String(viewId || "weddings").trim();
+    // Tương thích hash cũ
+    if (next === "wedding") next = "weddings";
+    if (!["weddings", "music", "payment"].includes(next)) next = "weddings";
 
     document.querySelectorAll("[data-admin-view]").forEach(panel => {
         panel.classList.toggle("is-active", panel.dataset.adminView === next);
@@ -667,6 +1331,11 @@ function setAdminView(viewId) {
     document.querySelectorAll("[data-admin-nav]").forEach(button => {
         button.classList.toggle("is-active", button.dataset.adminNav === next);
     });
+
+    if (next === "weddings") {
+        if (!keepEditor) showWeddingListMode();
+        loadPaymentList();
+    }
 
     if (window.location.hash !== `#${next}`) {
         window.history.replaceState({}, "", `#${next}`);
@@ -697,7 +1366,7 @@ async function showLoggedIn(user) {
     if (accountEmail) accountEmail.textContent = user.email || "";
 
     const hashView = (window.location.hash || "").replace("#", "").trim();
-    setAdminView(hashView || "wedding");
+    setAdminView(hashView || "weddings");
 
     try {
         await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin(), loadPaymentList()]);
@@ -708,8 +1377,11 @@ async function showLoggedIn(user) {
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
+        const weddingParam = params.get("wedding") || "";
         try {
-            await loadConfigById(params.get("wedding") || "");
+            if (weddingParam) {
+                await openWeddingEditor(weddingParam);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -720,30 +1392,69 @@ async function showLoggedIn(user) {
 function initEvents() {
     loginForm.addEventListener("submit", login);
     logoutBtn.addEventListener("click", () => auth.signOut());
-    loadBtn.addEventListener("click", () => loadConfigById(loadInput.value.trim()));
-    loadInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            loadConfigById(loadInput.value.trim());
-        }
-    });
+
+    const goList = () => {
+        showWeddingListMode();
+        setAdminView("weddings");
+        loadPaymentList();
+    };
+    document.getElementById("backToWeddingListBtn")?.addEventListener("click", goList);
+    document.getElementById("backToWeddingListBtn2")?.addEventListener("click", goList);
 
     document.querySelectorAll("[data-admin-nav]").forEach(button => {
         button.addEventListener("click", () => setAdminView(button.dataset.adminNav));
     });
     window.addEventListener("hashchange", () => {
-        setAdminView(window.location.hash.replace("#", "") || "wedding");
+        setAdminView(window.location.hash.replace("#", "") || "weddings");
     });
 
     form?.addEventListener("submit", saveConfig);
     musicForm?.addEventListener("submit", saveMusicItem);
     paymentSettingsForm?.addEventListener("submit", savePaymentSettings);
     paymentList?.addEventListener("click", handlePaymentListClick);
-    paymentList?.addEventListener("click", handlePaymentListRowClick);
     refreshPaymentListBtn?.addEventListener("click", loadPaymentList);
-    markPendingBtn?.addEventListener("click", () => setWeddingPaymentStatus("pending"));
-    unlockWeddingBtn?.addEventListener("click", () => setWeddingPaymentStatus("paid"));
-    lockWeddingBtn?.addEventListener("click", () => setWeddingPaymentStatus("locked"));
+    deleteOldWeddingsBtn?.addEventListener("click", () => {
+        deleteStaleWeddings();
+    });
+
+    document.getElementById("planChangeConfirmBtn")?.addEventListener("click", () => {
+        confirmPlanChangeFromModal();
+    });
+    document.getElementById("planChangeModal")?.addEventListener("click", event => {
+        if (event.target.closest("[data-close-plan-modal]")) {
+            closePlanChangeModal();
+        }
+    });
+    document.getElementById("adminConfirmOkBtn")?.addEventListener("click", () => {
+        closeAdminConfirm(true);
+    });
+    document.getElementById("adminConfirmModal")?.addEventListener("click", event => {
+        if (event.target.closest("[data-close-confirm-modal]")) {
+            closeAdminConfirm(false);
+        }
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        const planModal = document.getElementById("planChangeModal");
+        const confirmModal = document.getElementById("adminConfirmModal");
+        if (confirmModal && !confirmModal.hidden) {
+            closeAdminConfirm(false);
+            return;
+        }
+        if (planModal && !planModal.hidden) closePlanChangeModal();
+    });
+    document.getElementById("deleteLoadedWeddingBtn")?.addEventListener("click", async () => {
+        const id = String(loadInput?.value || currentConfig.weddingId || "").trim();
+        if (!id) {
+            showToast("Chưa có weddingId để xóa.", "error");
+            return;
+        }
+        const ok = await deleteWeddingById(id, { confirm: true });
+        if (ok) {
+            showWeddingListMode();
+            await loadPaymentList();
+        }
+    });
     musicList?.addEventListener("click", handleMusicListClick);
     resetMusicBtn?.addEventListener("click", resetMusicForm);
     resetBtn?.addEventListener("click", () => loadConfigById(""));
@@ -763,7 +1474,7 @@ function initEvents() {
 
 try {
     fillGalleryFields();
-    fillForm(createDefaultConfig());
+    fillForm(createEmptyAdminConfig());
     initEvents();
 } catch (error) {
     console.error("Admin init error:", error);

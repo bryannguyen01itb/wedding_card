@@ -1,9 +1,31 @@
-@import url("parts/base.css");
-@import url("parts/cover.css");
-@import url("parts/sections.css");
-@import url("parts/countdown-thanks.css");
-@import url("parts/animations.css");
-@import url("parts/concept-1-classic.css");
-@import url("parts/gift-polish.css");
-@import url("parts/block-builder.css");
-@import url("blocks/index.css");
+/**
+ * Entry CSS thiệp (fallback / link đơn).
+ *
+ * ƯU TIÊN: index.html load từng file phẳng + ?v= (cache rõ, sửa file con ăn ngay).
+ * File này = 1 tầng @import (không lồng blocks/index) — vẫn dùng được nếu chỉ link style.css.
+ *
+ * Bump ?v= trên MỌI dòng @import khi đổi CSS (hoặc chỉ dùng link list trong index.html).
+ */
+@import url("tokens.css?v=20260715g");
+@import url("parts/base.css?v=20260715g");
+@import url("parts/cover.css?v=20260715g");
+@import url("parts/sections.css?v=20260715g");
+@import url("parts/countdown-thanks.css?v=20260715g");
+@import url("parts/animations.css?v=20260715g");
+@import url("parts/concept-1-classic.css?v=20260715g");
+@import url("parts/gift-polish.css?v=20260715g");
+@import url("parts/block-builder.css?v=20260715g");
+/* Section skins — 1 tầng, không qua blocks/index */
+@import url("blocks/cover/skins.css?v=20260715g");
+@import url("blocks/poster/skins.css?v=20260715g");
+@import url("blocks/save-date/skins.css?v=20260715g");
+@import url("blocks/about/skins.css?v=20260715g");
+@import url("blocks/timeline/skins.css?v=20260715g");
+@import url("blocks/gallery/skins.css?v=20260715g");
+@import url("blocks/countdown/skins.css?v=20260715g");
+@import url("blocks/divider/skins.css?v=20260715g");
+@import url("blocks/gift/skins.css?v=20260715g");
+@import url("blocks/wish/skins.css?v=20260715g");
+@import url("blocks/thanks/skins.css?v=20260715g");
+/* Luôn cuối */
+@import url("blocks/theme-unifier.css?v=20260715g");

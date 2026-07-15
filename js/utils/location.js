@@ -1,5 +1,7 @@
 /**
- * Poster location helpers — tỉnh/TP nhà trai & nhà gái, format "HÀ NỘI, VIỆT NAM".
+ * Poster location helpers — tỉnh/TP nhà trai & nhà gái trên poster.
+ * Hiển thị: "HÀ NỘI · HẢI PHÒNG" (cô dâu · chú rể), không kèm ", VIỆT NAM".
+ * Một link thiệp chung — không còn ?side=groom|bride.
  */
 
 const VN_SUFFIX = /,?\s*vi[eệ]t\s*nam\s*$/i;
@@ -23,12 +25,14 @@ export function extractProvinceFromAddress(address) {
     return province;
 }
 
-/** Chuẩn hoá thành "TỈNH/TP, VIỆT NAM" (uppercase vi-VN). */
-export function formatPosterLocation(provinceOrAddress) {
+/**
+ * Chuẩn hoá thành tên tỉnh/TP uppercase (không kèm VIỆT NAM).
+ * Chấp nhận "Hà Nội", "HÀ NỘI, VIỆT NAM", hoặc địa chỉ đầy đủ.
+ */
+export function formatProvinceName(provinceOrAddress) {
     let raw = String(provinceOrAddress || "").trim();
     if (!raw) return "";
 
-    // Đã là dạng "X, VIỆT NAM"
     const withoutVn = raw.replace(VN_SUFFIX, "").trim();
     let province = withoutVn.includes(",")
         ? extractProvinceFromAddress(withoutVn)
@@ -37,39 +41,36 @@ export function formatPosterLocation(provinceOrAddress) {
     if (!province) province = extractProvinceFromAddress(raw);
     if (!province) return "";
 
-    const upper = province.toLocaleUpperCase("vi-VN");
-    return `${upper}, VIỆT NAM`;
+    return province.toLocaleUpperCase("vi-VN");
+}
+
+/** @deprecated Dùng formatProvinceName — giữ alias để builder cũ không vỡ */
+export function formatPosterLocation(provinceOrAddress) {
+    return formatProvinceName(provinceOrAddress);
+}
+
+export function resolveHouseProvince(wedding, houseKey) {
+    const house = wedding?.ceremony?.[houseKey] || {};
+    return (
+        formatProvinceName(house.location)
+        || formatProvinceName(house.address)
+        || ""
+    );
 }
 
 /**
- * side: "groom" | "bride" | "trai" | "gai" | ...
- * Ưu tiên ceremony[side].location → ceremony[side].address
+ * Poster: tỉnh cô dâu · tỉnh chú rể (1 link thiệp).
+ * Trùng tỉnh → chỉ hiện 1 lần. Thiếu 1 bên → hiện bên còn lại.
  */
-export function resolveInviteSide(sideRaw) {
-    const s = String(sideRaw || "").trim().toLowerCase();
-    if (["bride", "gai", "nha-gai", "nhagai", "nhà gái", "nhà-gái"].includes(s)) {
-        return "bride";
+export function resolvePosterLocation(wedding) {
+    const bride = resolveHouseProvince(wedding, "bride");
+    const groom = resolveHouseProvince(wedding, "groom");
+
+    if (bride && groom) {
+        if (bride === groom) return bride;
+        // Cô dâu · chú rể
+        return `${bride} · ${groom}`;
     }
-    if (["groom", "trai", "nha-trai", "nhatrai", "nhà trai", "nhà-trai"].includes(s)) {
-        return "groom";
-    }
-    return "groom";
-}
 
-export function getInviteSideFromUrl(search = typeof window !== "undefined" ? window.location.search : "") {
-    const params = new URLSearchParams(search);
-    return resolveInviteSide(params.get("side") || params.get("nha") || "");
-}
-
-export function resolvePosterLocation(wedding, sideRaw = "groom") {
-    const side = resolveInviteSide(sideRaw);
-    const house = wedding?.ceremony?.[side] || {};
-
-    const fromHouseLocation = formatPosterLocation(house.location);
-    if (fromHouseLocation) return fromHouseLocation;
-
-    const fromAddress = formatPosterLocation(house.address);
-    if (fromAddress) return fromAddress;
-
-    return "VIỆT NAM";
+    return bride || groom || "";
 }

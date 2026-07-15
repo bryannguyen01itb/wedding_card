@@ -57,7 +57,6 @@ body[class*="block-"] .save-date.block-skin-concept-2 .section-subtitle {
     overflow: visible !important;
     color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .28rem !important;
     font-weight: 400 !important;
     line-height: 1.55 !important;
     letter-spacing: .02em !important;
@@ -326,9 +325,8 @@ body.block-save-date-concept-3 .save-title,
     padding: .28rem .28rem .16rem !important;
     max-width: 100%;
     color: color-mix(in srgb, var(--primary-color) 82%, #1a1210 18%) !important;
-    /* Theo phông nickname user chọn — không ép Parisienne */
+    /* size: --section-title-script-size (theme-unifier) */
     font-family: var(--font-nickname, "Great Vibes", cursive) !important;
-    font-size: clamp(1.05rem, 15vw, 1.65rem) !important;
     font-weight: 400 !important;
     font-style: normal !important;
     letter-spacing: .01rem !important;
@@ -453,7 +451,6 @@ body.block-save-date-concept-3 .section-subtitle,
     padding: 0 .2rem !important;
     color: color-mix(in srgb, var(--primary-color) 62%, #5a4a40 38%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .28rem !important;
     font-weight: 400 !important;
     letter-spacing: .02em !important;
     line-height: 1.55 !important;
@@ -476,7 +473,7 @@ body.block-save-date-concept-3 .month-year.save-date-date-row,
     justify-content: center;
     align-items: center;
     gap: .34rem;
-    margin: .1rem 0 .48rem !important;
+    margin: .4rem 0 .48rem !important;
     color: color-mix(in srgb, var(--primary-color) 78%, #1e1612 22%);
     font-family: "Lora", Georgia, "Times New Roman", serif;
     font-size: .5rem;
@@ -672,7 +669,6 @@ body[class*="block-"] .save-date.block-skin-concept-4 .section-subtitle {
     overflow: visible !important;
     color: color-mix(in srgb, var(--primary-color) 40%, #5a4a40 60%) !important;
     font-family: var(--font-body, "Quicksand", sans-serif) !important;
-    font-size: .28rem !important;
     font-weight: 400 !important;
     line-height: 1.55 !important;
     letter-spacing: .02em !important;

@@ -237,6 +237,300 @@ a {
 .toast.success {
     background:#4d7548
 }
+
+/* ===== Admin confirm modal (đổi gói) ===== */
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+}
+
+.admin-modal[hidden] {
+    display: none !important;
+}
+
+.admin-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(43, 31, 20, .48);
+    backdrop-filter: blur(8px);
+}
+
+.admin-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(440px, 100%);
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+    padding: 26px 22px 20px;
+    border-radius: 22px;
+    background: #fffaf1;
+    box-shadow: 0 28px 90px rgba(52, 35, 18, .32);
+    text-align: center;
+}
+
+.admin-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #fff;
+    color: #9a6c2d;
+    border: 1px solid rgba(201, 151, 79, .24);
+    box-shadow: none;
+}
+
+.admin-modal__icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 10px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(201, 151, 79, .16);
+    color: #9a6c2d;
+    font-size: 24px;
+}
+
+.admin-modal__eyebrow {
+    margin: 0 0 4px;
+    color: #c9974f;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.admin-modal__dialog h2 {
+    margin: 0;
+    color: #4b3827;
+    font-family: Lora, serif;
+    font-size: 24px;
+    line-height: 1.25;
+}
+
+.admin-modal__wedding-id {
+    margin: 8px 0 0;
+    color: #7b6147;
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.plan-change-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px 0 14px;
+}
+
+.plan-change-chip {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(201, 151, 79, .2);
+    background: #fff;
+    text-align: center;
+}
+
+.plan-change-chip span {
+    display: block;
+    margin-bottom: 4px;
+    color: #8a735d;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.plan-change-chip strong {
+    display: block;
+    color: #4b3827;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.plan-change-chip--to {
+    border-color: rgba(201, 151, 79, .45);
+    background: rgba(201, 151, 79, .1);
+}
+
+.plan-change-chip--to strong {
+    color: #9a6c2d;
+}
+
+.plan-change-arrow {
+    flex: 0 0 auto;
+    color: #c9974f;
+    font-size: 18px;
+}
+
+.admin-modal__warning {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-align: left;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(159, 63, 50, .22);
+    background: rgba(159, 63, 50, .08);
+    color: #9f3f32;
+}
+
+.admin-modal__warning[hidden] {
+    display: none !important;
+}
+
+.admin-modal__warning i {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+
+.admin-modal__warning p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.admin-modal__prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.admin-modal__prices > div {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(201, 151, 79, .18);
+    background: #fff;
+}
+
+.admin-modal__prices span {
+    display: block;
+    margin-bottom: 4px;
+    color: #8a735d;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.admin-modal__prices strong {
+    color: #4b3827;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.admin-modal__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(201, 151, 79, .2);
+    background: rgba(255, 255, 255, .85);
+    text-align: left;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b3827;
+    line-height: 1.4;
+}
+
+.admin-modal__check input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    flex: 0 0 auto;
+    accent-color: #c9974f;
+}
+
+.admin-modal__actions {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 10px;
+}
+
+.admin-modal__actions button {
+    width: 100%;
+    height: 46px;
+    box-shadow: none;
+}
+
+.admin-modal__actions #planChangeConfirmBtn {
+    box-shadow: 0 12px 28px rgba(201, 151, 79, .28);
+}
+
+@media (max-width: 480px) {
+    .plan-change-flow {
+        flex-direction: column;
+    }
+
+    .plan-change-arrow {
+        transform: rotate(90deg);
+    }
+
+    .admin-modal__prices,
+    .admin-modal__actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+body.admin-modal-open {
+    overflow: hidden;
+}
+
+.admin-modal__message {
+    margin: 12px 0 0;
+    color: #7b6147;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.55;
+    text-align: left;
+    white-space: pre-line;
+}
+
+.admin-modal__icon--paid {
+    background: rgba(77, 117, 72, .16);
+    color: #4d7548;
+}
+
+.admin-modal__icon--lock {
+    background: rgba(159, 63, 50, .12);
+    color: #9f3f32;
+}
+
+.admin-modal__icon--delete {
+    background: rgba(159, 63, 50, .14);
+    color: #9f3f32;
+}
+
+.admin-modal__actions #adminConfirmOkBtn.is-danger {
+    background: #9f3f32;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(159, 63, 50, .28);
+}
+
+.admin-modal__actions #adminConfirmOkBtn.is-success {
+    background: #4d7548;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(77, 117, 72, .28);
+}
 @media(max-width:760px) {
     .admin-shell {
     width:min(100% - 20px,560px);
@@ -449,28 +743,6 @@ button.danger {
     align-items: center;
 }
 
-.payment-current {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    padding: 16px;
-    border: 1px solid var(--admin-line);
-    border-radius: 16px;
-    background: rgba(255,255,255,.68);
-}
-
-.payment-current h3 {
-    margin: 0 0 6px;
-    color: var(--admin-primary);
-}
-
-.payment-current p {
-    margin: 0;
-    color: var(--admin-muted);
-    line-height: 1.5;
-}
-
 button.danger,
 button.ghost.danger {
     color: #9f3f32;
@@ -478,11 +750,6 @@ button.ghost.danger {
 }
 
 @media(max-width:760px) {
-    .payment-current {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
     .payment-actions button {
         width: 100%;
     }
@@ -525,6 +792,44 @@ button.ghost.danger {
 .payment-item.is-paid {
     border-color: rgba(77,117,72,.2);
     background: rgba(77,117,72,.08);
+}
+
+.payment-item.is-stale {
+    border-color: rgba(159,63,50,.28);
+    background: rgba(159,63,50,.06);
+}
+
+.payment-item__badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(159,63,50,.12);
+    color: #9f3f32;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    vertical-align: middle;
+}
+
+.payment-list-desc {
+    margin: 4px 0 0;
+    color: var(--admin-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.payment-list-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.load-row .ghost.danger {
+    white-space: nowrap;
 }
 
 .payment-item__info,
@@ -583,18 +888,29 @@ button.ghost.danger {
 }
 
 .payment-item {
-    cursor: pointer;
-    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    cursor: default;
+    transition: border-color .18s ease, box-shadow .18s ease;
 }
 
 .payment-item:hover {
     border-color: rgba(var(--admin-primary-rgb), .34);
     box-shadow: 0 12px 34px rgba(98,69,38,.1);
-    transform: translateY(-1px);
+}
+
+#weddingListPanel[hidden],
+#weddingEditPanel[hidden] {
+    display: none !important;
 }
 
 .payment-item__actions button {
     cursor: pointer;
+}
+
+.payment-item__actions button.is-plan-active {
+    background: rgba(201, 151, 79, .16);
+    color: #9a6c2d;
+    border-color: rgba(201, 151, 79, .4);
+    font-weight: 900;
 }
 
 /* ===== Admin app layout: sidebar menu + single view ===== */

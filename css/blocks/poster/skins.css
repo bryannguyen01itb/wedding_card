@@ -88,8 +88,8 @@ body.block-poster-concept-1 .info {
     margin-top: .12rem;
 }
 
-body.block-poster-concept-1 .date__time,
-body.block-poster-concept-1 .location {
+.poster.block-skin-concept-1 .date__time,
+.poster.block-skin-concept-1 .location {
     color: #fff;
     font-weight: 700;
     text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
@@ -211,9 +211,9 @@ body.block-poster-concept-2 .info {
     line-height: 1.15;
 }
 
-body.block-poster-concept-2 .date__time,
-body.block-poster-concept-2 .location {
-    margin: 0 !important;
+.poster.block-skin-concept-2 .date__time,
+.poster.block-skin-concept-2 .location {
+    margin: 0;
     padding: 0;
     color: var(--botanical-ink, #1f2a25);
     font-family: "Nunito Sans", "Quicksand", sans-serif;
@@ -224,16 +224,10 @@ body.block-poster-concept-2 .location {
     text-align: center;
 }
 
-body.block-poster-concept-2 .date__time {
-    font-size: .22rem;
-}
-
-body.block-poster-concept-2 .location {
+.poster.block-skin-concept-2 .location {
     color: var(--botanical-muted, #5a6760);
-    font-size: .18rem;
     font-weight: 700;
     letter-spacing: .03rem;
-    opacity: 1;
 }
 
 
@@ -345,9 +339,9 @@ body.block-poster-concept-3 .info {
     line-height: 1.15;
 }
 
-body.block-poster-concept-3 .date__time,
-body.block-poster-concept-3 .location {
-    margin: 0 !important;
+.poster.block-skin-concept-3 .date__time,
+.poster.block-skin-concept-3 .location {
+    margin: 0;
     padding: 0;
     color: #fff;
     font-family: "Quicksand", sans-serif;
@@ -355,20 +349,12 @@ body.block-poster-concept-3 .location {
     letter-spacing: .1rem;
     text-align: center;
     line-height: 1.2;
-    background: none;
-    border: 0;
     text-shadow: 0 2px 8px rgba(0, 0, 0, .4);
 }
 
-body.block-poster-concept-3 .date__time {
-    font-size: .24rem;
-}
-
-body.block-poster-concept-3 .location {
+.poster.block-skin-concept-3 .location {
     color: rgba(255, 255, 255, .9);
-    font-size: .2rem;
     letter-spacing: .05rem;
-    opacity: 1;
 }
 
 
@@ -527,11 +513,11 @@ body.block-poster-concept-4 .info {
     line-height: 1.15;
 }
 
-body.block-poster-concept-4 .date__time,
-body.block-poster-concept-4 .location {
-    margin: 0 !important;
+.poster.block-skin-concept-4 .date__time,
+.poster.block-skin-concept-4 .location {
+    margin: 0;
     padding: 0;
-    color: #fff !important;
+    color: #fff;
     font-family: "Lora", Georgia, serif;
     font-weight: 600;
     letter-spacing: .06rem;
@@ -540,11 +526,6 @@ body.block-poster-concept-4 .location {
     text-shadow: 0 2px 8px rgba(0, 0, 0, .55);
 }
 
-body.block-poster-concept-4 .date__time {
-    font-size: .24rem;
-}
-
-body.block-poster-concept-4 .location {
-    font-size: .2rem;
+.poster.block-skin-concept-4 .location {
     opacity: .92;
 }

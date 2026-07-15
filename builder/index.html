@@ -36,10 +36,40 @@
                         <label>Nhạc nền (Liên hệ admin thêm bài yêu thích)<select name="music" id="musicSelect"></select></label>
                         <label>Wedding ID<input id="weddingId" name="weddingId" readonly></label>
                     </div>
+
+                    <div class="invite-plan" role="radiogroup" aria-label="Loại thiệp">
+                        <p class="invite-plan__label">Loại thiệp</p>
+                        <div class="invite-plan__options">
+                            <label class="invite-plan__card">
+                                <input type="radio" name="invitePlan" value="single" checked>
+                                <span class="invite-plan__body">
+                                    <strong>1 link thiệp</strong>
+                                    <em id="planPriceSingle">99.000 VND</em>
+                                    <span>Một link chung</span>
+                                </span>
+                            </label>
+                            <label class="invite-plan__card">
+                                <input type="radio" name="invitePlan" value="multi">
+                                <span class="invite-plan__body">
+                                    <strong>Nhiều link theo tên khách</strong>
+                                    <em id="planPriceMulti">129.000 VND</em>
+                                    <span>Mỗi tên khách sẽ có một link riêng</span>
+                                </span>
+                            </label>
+                        </div>
+                        <p id="invitePlanLockHint" class="hint invite-plan__lock" hidden>Gói thiệp đã lưu — không thể đổi trên builder. Liên hệ admin nếu cần đổi gói.</p>
+                    </div>
+
+                    <div id="guestNamesPanel" class="guest-names-panel" hidden>
+                        <label class="guest-names-field">Danh sách khách mời
+                            <textarea name="guestNames" rows="5" placeholder="Anh A&#10;Chị B&#10;Em C"></textarea>
+                        </label>
+                        <p class="hint">Mỗi dòng một tên. Sau khi mở khóa: mỗi tên một link thiệp riêng.</p>
+                    </div>
                     </div>
                 </details>
 
-                <details class="card builder-step" open>
+                <details class="card builder-step">
                     <summary><span class="step-index">2</span> Cô dâu & chú rể</summary>
                     <div class="card-body">
                     <div class="split-builder">
@@ -49,7 +79,7 @@
                             <label>Con ông<input name="groomFather" value="Nguyễn Văn C"></label>
                             <label>Và bà<input name="groomMother" value="Trần Thị D"></label>
                             <label>Địa chỉ nhà trai<textarea name="groomAddress" rows="2">Nhà trai - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
-                            <label>Tỉnh/TP nhà trai (poster)<input name="groomLocation" value="Hải Phòng" placeholder="vd: Hải Phòng — để trống sẽ lấy từ địa chỉ"></label>
+                            <label>Tỉnh/TP nhà trai (hiện trên poster)<input name="groomLocation" value="Hải Phòng" placeholder="vd: Hải Phòng — để trống lấy từ địa chỉ"></label>
                         </div>
                         <div class="mini-card">
                             <h3>Cô dâu</h3>
@@ -57,7 +87,7 @@
                             <label>Con ông<input name="brideFather" value="Trần Văn E"></label>
                             <label>Và bà<input name="brideMother" value="Nguyễn Thị F"></label>
                             <label>Địa chỉ nhà gái<textarea name="brideAddress" rows="2">Nhà gái - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
-                            <label>Tỉnh/TP nhà gái (poster)<input name="brideLocation" value="Hải Phòng" placeholder="vd: Hà Nội — để trống sẽ lấy từ địa chỉ"></label>
+                            <label>Tỉnh/TP nhà gái (hiện trên poster)<input name="brideLocation" value="Hà Nội" placeholder="vd: Hà Nội — để trống lấy từ địa chỉ"></label>
                         </div>
                     </div>
                     </div>
@@ -134,7 +164,7 @@
                 </details>
 
                 
-<details class="card builder-step" open>
+<details class="card builder-step">
                     <summary><span class="step-index">5</span> Giao diện & phông chữ</summary>
                     <div class="card-body">
                     <h3 class="card-subheading">Chọn concept từng phần</h3>
@@ -187,34 +217,55 @@
 <details class="card media-card gallery-media-card builder-step">
                     <summary><span class="step-index">6</span> Ảnh thiệp</summary>
                     <div class="card-body">
-                    <p class="hint">Upload ảnh cover/poster, album và các ảnh section. Ảnh tự nén; cùng field + Wedding ID sẽ <strong>ghi đè</strong> file cũ trên Cloudinary.</p>
+                    <p class="hint">Bấm <strong>Chọn ảnh</strong> → chọn file là xong (tự hiện thumb + preview). Chỉ upload Cloudinary khi bấm <strong>Lưu Firebase</strong>.</p>
 
                     <h3 class="card-subheading">Ảnh chính</h3>
                     <div class="media-grid">
-                        <div class="media-label">Ảnh đầu thiệp / poster<input type="hidden" name="coverPosterImage"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh đầu thiệp / poster<input type="hidden" name="coverPosterImage"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="coverPosterImage" hidden><img alt="Poster" data-media-thumb="coverPosterImage"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh preview khi gửi link<input type="hidden" name="previewImage"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage"><button type="button" data-upload-button="previewImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh preview khi gửi link<input type="hidden" name="previewImage"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="previewImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="previewImage" hidden><img alt="Preview" data-media-thumb="previewImage"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh đôi (concept 1 hoặc 4 — Đôi nét)<input type="hidden" name="aboutImage"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage"><button type="button" data-upload-button="aboutImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh đôi (concept 1 hoặc 4 — Đôi nét về chúng tôi)<input type="hidden" name="aboutImage"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="aboutImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="aboutImage" hidden><img alt="About" data-media-thumb="aboutImage"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh lịch trình<input type="hidden" name="timelineImage"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage"><button type="button" data-upload-button="timelineImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh lịch trình<input type="hidden" name="timelineImage"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="timelineImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="timelineImage" hidden><img alt="Timeline" data-media-thumb="timelineImage"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh đếm ngược<input type="hidden" name="countdownImage"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage"><button type="button" data-upload-button="countdownImage"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh đếm ngược<input type="hidden" name="countdownImage"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="countdownImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="countdownImage" hidden><img alt="Countdown" data-media-thumb="countdownImage"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh chú rể (concept 2 hoặc 3 — Đôi nét)<input type="hidden" name="groomAvatar"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh chú rể (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="groomAvatar"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="groomAvatar" hidden><img alt="Groom" data-media-thumb="groomAvatar"><strong>Đã có ảnh</strong></div>
+                        </div>
 
-                        <div class="media-label">Ảnh cô dâu (concept 2 hoặc 3 — Đôi nét)<input type="hidden" name="brideAvatar"></div>
-                        <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+                        <div class="media-item">
+                            <div class="media-label">Ảnh cô dâu (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="brideAvatar"></div>
+                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+                            <div class="media-ready" data-media-ready="brideAvatar" hidden><img alt="Bride" data-media-thumb="brideAvatar"><strong>Đã có ảnh</strong></div>
+                        </div>
                     </div>
 
                     <h3 class="card-subheading">Album 7 ảnh</h3>
-                    <p class="hint">Chọn file cho từng ảnh gallery. Ảnh được nén trước khi lưu Cloudinary.</p>
+                    <p class="hint">Bấm Chọn ảnh → chọn file là xong. Ảnh đã lưu hiện thumbnail.</p>
                     <div id="builderGalleryFields" class="builder-gallery-fields"></div>
                     </div>
                 </details>
@@ -223,28 +274,44 @@
 <details class="card builder-step">
                     <summary><span class="step-index">7</span> QR mừng cưới</summary>
                     <div class="card-body">
-                    <p class="hint">Cắt QR vuông rồi upload. Điền ngân hàng / số TK để hiển thị trên thiệp.</p>
+                    <p class="hint">Chọn ảnh QR → chỉnh trong popup → bấm <strong>Áp dụng QR</strong>.</p>
                     <div class="qr-stack">
                         <div class="qr-upload" data-qr-box="giftGroomQr">
                             <div class="media-label">QR chú rể<input type="hidden" name="giftGroomQr"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-qr-input="giftGroomQr"><button type="button" data-upload-button="giftGroomQr"><i class="bi bi-crop"></i> Cắt & upload QR</button></div>
+                            <div class="upload-row">
+                                <input type="file" accept="image/*" data-qr-input="giftGroomQr" tabindex="-1" aria-hidden="true">
+                                <button type="button" data-upload-button="giftGroomQr"><i class="bi bi-crop"></i> Chọn &amp; cắt QR</button>
+                            </div>
+                            <div class="qr-ready" data-qr-ready="giftGroomQr" hidden>
+                                <img alt="QR chú rể đã cắt" data-qr-thumb="giftGroomQr">
+                                <div>
+                                    <strong>Đã cắt QR chú rể</strong>
+                                </div>
+                            </div>
                             <div class="grid two compact-grid">
                                 <label>Ngân hàng chú rể<input name="giftGroomBank" placeholder="vd: Vietcombank"></label>
                                 <label>Số tài khoản chú rể<input name="giftGroomAccountNumber" placeholder="vd: 0123456789"></label>
                             </div>
                             <label>Tên tài khoản chú rể<input name="giftGroomAccountName" placeholder="vd: NGUYỄN VĂN A"></label>
-                            <div class="qr-crop" hidden><canvas width="240" height="240"></canvas><label>Zoom<input type="range" min="1" max="2.5" step="0.05" value="1" data-qr-zoom></label><div class="grid two compact-grid"><label>Dịch ngang<input type="range" min="-100" max="100" step="1" value="0" data-qr-x></label><label>Dịch dọc<input type="range" min="-100" max="100" step="1" value="0" data-qr-y></label></div></div>
                         </div>
 
                         <div class="qr-upload" data-qr-box="giftBrideQr">
                             <div class="media-label">QR cô dâu<input type="hidden" name="giftBrideQr"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-qr-input="giftBrideQr"><button type="button" data-upload-button="giftBrideQr"><i class="bi bi-crop"></i> Cắt & upload QR</button></div>
+                            <div class="upload-row">
+                                <input type="file" accept="image/*" data-qr-input="giftBrideQr" tabindex="-1" aria-hidden="true">
+                                <button type="button" data-upload-button="giftBrideQr"><i class="bi bi-crop"></i> Chọn &amp; cắt QR</button>
+                            </div>
+                            <div class="qr-ready" data-qr-ready="giftBrideQr" hidden>
+                                <img alt="QR cô dâu đã cắt" data-qr-thumb="giftBrideQr">
+                                <div>
+                                    <strong>Đã cắt QR cô dâu</strong>
+                                </div>
+                            </div>
                             <div class="grid two compact-grid">
                                 <label>Ngân hàng cô dâu<input name="giftBrideBank" placeholder="vd: Techcombank"></label>
                                 <label>Số tài khoản cô dâu<input name="giftBrideAccountNumber" placeholder="vd: 9876543210"></label>
                             </div>
                             <label>Tên tài khoản cô dâu<input name="giftBrideAccountName" placeholder="vd: TRẦN THỊ B"></label>
-                            <div class="qr-crop" hidden><canvas width="240" height="240"></canvas><label>Zoom<input type="range" min="1" max="2.5" step="0.05" value="1" data-qr-zoom></label><div class="grid two compact-grid"><label>Dịch ngang<input type="range" min="-100" max="100" step="1" value="0" data-qr-x></label><label>Dịch dọc<input type="range" min="-100" max="100" step="1" value="0" data-qr-y></label></div></div>
                         </div>
                     </div>
                     </div>
@@ -282,9 +349,9 @@
                 </div>
                 <p id="status" class="status"></p>
                 <div id="resultLinks" class="result-links" hidden>
-                    <p>Đã lưu thành công. Gửi link thiệp nhà trai / nhà gái (poster tỉnh/TP tương ứng) và link sửa thiệp.</p>
-                    <a id="invitationLinkGroom" href="#" target="_blank" rel="noopener noreferrer">Link thiệp nhà trai</a>
-                    <a id="invitationLinkBride" href="#" target="_blank" rel="noopener noreferrer">Link thiệp nhà gái</a>
+                    <p>Đã lưu thành công. Gửi link thiệp theo từng khách (hoặc link chung) và link sửa thiệp.</p>
+                    <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link thiệp chung (Quý khách)</a>
+                    <div id="guestLinksList" class="guest-links" hidden></div>
                     <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sửa thiệp</a>
                 </div>
             </form>
@@ -310,15 +377,18 @@
             <p class="save-modal__eyebrow">Đã lưu thông tin thành công</p>
             <h2 id="saveModalTitle">Vui lòng lưu lại link thiệp</h2>
             <div class="save-modal__links">
-                <div class="save-modal__link-card">
-                    <span>Link thiệp nhà trai</span>
-                    <a id="modalInvitationLinkGroom" href="#" target="_blank" rel="noopener noreferrer"></a>
-                    <button id="copyInvitationLinkGroom" type="button"><i class="bi bi-copy"></i> Copy</button>
+                <div id="modalSingleInviteCard" class="save-modal__link-card">
+                    <span>Link thiệp chung (Quý khách)</span>
+                    <a id="modalInvitationLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+                    <button id="copyInvitationLink" type="button"><i class="bi bi-copy"></i> Copy</button>
                 </div>
-                <div class="save-modal__link-card">
-                    <span>Link thiệp nhà gái</span>
-                    <a id="modalInvitationLinkBride" href="#" target="_blank" rel="noopener noreferrer"></a>
-                    <button id="copyInvitationLinkBride" type="button"><i class="bi bi-copy"></i> Copy</button>
+                <div id="modalGuestLinksList" class="guest-links guest-links--modal" hidden></div>
+                <div id="modalGeneralGuestCard" class="save-modal__link-card save-modal__link-card--slim" hidden>
+                    <span>Link chung (Quý khách) — tùy chọn</span>
+                    <div class="save-modal__slim-row">
+                        <a id="modalGeneralInviteLink" href="#" target="_blank" rel="noopener noreferrer">Mở link chung</a>
+                        <button id="copyGeneralInviteLink" type="button" class="guest-links__icon-btn" title="Copy link chung"><i class="bi bi-copy"></i></button>
+                    </div>
                 </div>
                 <div class="save-modal__link-card save-modal__link-card--important">
                     <span>Link sửa thiệp</span>
@@ -360,6 +430,42 @@
     </div>
 
 
+    <!-- Popup cắt QR — cố định giữa màn, không đẩy form xuống dưới -->
+    <div id="qrCropModal" class="qr-crop-modal" hidden>
+        <div class="qr-crop-modal__backdrop" data-close-qr-crop></div>
+        <section class="qr-crop-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="qrCropModalTitle">
+            <div class="qr-crop-modal__header">
+                <div>
+                    <p class="qr-crop-modal__eyebrow">Bước cắt QR</p>
+                    <h2 id="qrCropModalTitle">Căn QR vào khung vuông</h2>
+                </div>
+                <button type="button" class="qr-crop-modal__close" data-close-qr-crop aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <p class="qr-crop-modal__hint">Kéo <strong>Zoom</strong> / <strong>Dịch ngang/dọc</strong> để QR gọn trong khung, rồi bấm <strong>Áp dụng QR</strong>.</p>
+            <div class="qr-crop-modal__stage">
+                <canvas id="qrCropCanvas" width="280" height="280" aria-label="Xem trước QR đã cắt"></canvas>
+            </div>
+            <div class="qr-crop-modal__controls">
+                <label class="qr-crop-modal__control">
+                    <span><i class="bi bi-zoom-in"></i> Zoom</span>
+                    <input id="qrCropZoom" type="range" min="1" max="2.5" step="0.05" value="1">
+                </label>
+                <label class="qr-crop-modal__control">
+                    <span><i class="bi bi-arrows-move"></i> Dịch ngang</span>
+                    <input id="qrCropX" type="range" min="-100" max="100" step="1" value="0">
+                </label>
+                <label class="qr-crop-modal__control">
+                    <span><i class="bi bi-arrows-expand"></i> Dịch dọc</span>
+                    <input id="qrCropY" type="range" min="-100" max="100" step="1" value="0">
+                </label>
+            </div>
+            <div class="qr-crop-modal__actions">
+                <button type="button" class="ghost" data-close-qr-crop>Hủy</button>
+                <button type="button" id="qrCropSaveBtn"><i class="bi bi-check2"></i> Áp dụng QR</button>
+            </div>
+        </section>
+    </div>
+
     <div id="mapPickerModal" class="map-picker-modal" hidden>
         <div class="map-picker-modal__backdrop" data-close-map-picker></div>
         <section class="map-picker-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle">
@@ -370,8 +476,18 @@
                 </div>
                 <button type="button" class="map-picker-modal__close" data-close-map-picker aria-label="Đóng bản đồ"><i class="bi bi-x-lg"></i></button>
             </div>
+            <div class="map-picker-search">
+                <label class="map-picker-search__label" for="mapPickerSearchInput">
+                    <span><i class="bi bi-search"></i> Tìm địa điểm</span>
+                    <div class="map-picker-search__row">
+                        <input id="mapPickerSearchInput" type="search" placeholder="vd: 123 Nguyễn Huệ, Quận 1, TP.HCM" autocomplete="street-address" enterkeyhint="search">
+                        <button type="button" id="mapPickerSearchBtn"><i class="bi bi-geo-alt"></i> Tìm</button>
+                    </div>
+                </label>
+                <ul id="mapPickerSearchResults" class="map-picker-search__results" hidden></ul>
+            </div>
             <div id="mapPickerCanvas" class="map-picker-canvas"></div>
-            <p id="mapPickerHint" class="map-picker-hint">Kéo bản đồ, có thể bật lớp vệ tinh nếu cần, rồi click đúng điểm nhà trai hoặc nhà gái và bấm lưu tọa độ.</p>
+            <p id="mapPickerHint" class="map-picker-hint">Nhập địa chỉ để nhảy tới vị trí, hoặc click trực tiếp trên bản đồ rồi bấm <strong>Lưu điểm này</strong>.</p>
             <div class="map-picker-modal__actions">
                 <button type="button" class="ghost" data-close-map-picker>Hủy</button>
                 <button type="button" id="saveMapPointBtn"><i class="bi bi-check2-circle"></i> Lưu điểm này</button>

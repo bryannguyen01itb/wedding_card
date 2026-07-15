@@ -5,7 +5,8 @@ import { formatDate } from "../../utils/date.js";
 export function renderCover() {
     const { groom, bride } = wedding;
 
-    setText("coverHeadline", wedding.cover.headline);
+    setText("coverHeadline", wedding.cover?.headline || "TRÂN TRỌNG KÍNH MỜI");
+    setText("coverGuest", wedding.cover?.guest || "Quý khách");
     setSplitName("coverGroom", groom.nickname);
     setSplitName("coverBride", bride.nickname);
     setText("coverDate", formatDate(wedding.date));

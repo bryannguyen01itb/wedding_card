@@ -504,19 +504,7 @@ content: "";
     pointer-events: none;
 }
 
-body .cover.block-skin-concept-4::after {
-content: "Quý Khách";
-    position: absolute;
-    top: 2.42rem;
-    left: 0;
-    right: 0;
-    z-index: 3;
-    color: var(--na01-gold);
-    font-family: "Great Vibes", cursive;
-    font-size: .76rem;
-    line-height: 1;
-    text-align: center;
-}
+/* "Quý khách" dùng .cover__guest (HTML) — không còn pseudo cover::after */
 
 body .cover.block-skin-concept-4.cover__headline {
 position: relative;
@@ -967,19 +955,11 @@ body.block-cover-concept-4 .cover::before,
     pointer-events: none !important;
 }
 
+/* Concept 4: tắt pseudo cũ (đổi sang .cover__guest) */
 body.block-cover-concept-4 .cover::after,
 .cover.block-skin-concept-4::after {
-    content: "Quý Khách" !important;
-    position: absolute !important;
-    top: 2.42rem !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 3 !important;
-    color: var(--na01-gold, #928362) !important;
-    font-family: "Great Vibes", cursive !important;
-    font-size: .76rem !important;
-    line-height: 1 !important;
-    text-align: center !important;
+    content: none !important;
+    display: none !important;
 }
 
 body.block-cover-concept-4 .cover .cover__headline,
@@ -1231,12 +1211,7 @@ body.block-cover-concept-3 .cover.opening.hide,
     pointer-events: none !important;
 }
 
-body.block-cover-concept-4 .cover::after,
-.cover.block-skin-concept-4::after {
-    z-index: 4 !important;
-    color: var(--na01-gold, #928362) !important;
-    text-shadow: none !important;
-}
+
 
 body.block-cover-concept-4 .cover .cover__footer,
 .cover.block-skin-concept-4 .cover__footer {
@@ -1268,7 +1243,40 @@ body.block-cover-concept-4 .cover .cover__footer .heartbeat,
     background: var(--primary-color) !important;
 }
 
-body.block-cover-concept-4 .cover::after,
-.cover.block-skin-concept-4::after {
+/* Guest line under headline — all cover concepts */
+body.block-cover-concept-1 .cover .cover__guest,
+.cover.block-skin-concept-1 .cover__guest {
     color: var(--primary-color) !important;
+    font-size: .68rem !important;
+    margin-top: .08rem !important;
+}
+
+body.block-cover-concept-2 .cover .cover__guest,
+.cover.block-skin-concept-2 .cover__guest {
+    color: var(--botanical-leaf, var(--primary-color)) !important;
+    font-size: .68rem !important;
+    margin-top: .08rem !important;
+}
+
+body.block-cover-concept-3 .cover .cover__guest,
+.cover.block-skin-concept-3 .cover__guest {
+    color: var(--sunset-coral, var(--primary-color)) !important;
+    font-size: .68rem !important;
+    margin-top: .08rem !important;
+}
+
+/* Concept 4: giữ vị trí cũ (trước đây cover::after absolute) — dưới headline, trên dòng mời dài */
+body.block-cover-concept-4 .cover .cover__guest,
+.cover.block-skin-concept-4 .cover__guest {
+    position: absolute !important;
+    top: 2.42rem !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 4 !important;
+    margin: 0 !important;
+    color: var(--primary-color) !important;
+    font-family: "Great Vibes", cursive !important;
+    font-size: .76rem !important;
+    line-height: 1 !important;
+    text-align: center !important;
 }

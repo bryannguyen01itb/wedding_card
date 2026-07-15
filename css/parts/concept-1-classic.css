@@ -266,7 +266,7 @@ body.concept-1 .about .person img {
 
 body.concept-1 .about .person-name {
     margin: 0 0 .2rem;
-    color: #817858;
+    color: var(--primary-color);
     font-family: "Lora", Georgia, serif;
     font-size: .4rem;
     font-weight: 600;

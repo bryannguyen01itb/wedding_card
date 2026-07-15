@@ -18,7 +18,32 @@
     <meta name="twitter:title" content="THƯ MỜI CƯỚI CHÚ RỂ & CÔ DÂU">
     <meta name="twitter:description" content="Trân trọng kính mời bạn đến chung vui cùng gia đình chúng tôi.">
     <meta name="twitter:image" content="https://wedding-card-2yw.pages.dev/img/preview.jpeg">
-    <link rel="stylesheet" href="css/style.css">
+    <!--
+      CSS phẳng + cùng ?v= → sửa file con browser fetch lại đúng.
+      Bump v= (1 chỗ trong HTML) khi đổi CSS quan trọng.
+      tokens → parts → skins → unifier (cuối = thắng).
+    -->
+    <link rel="stylesheet" href="css/tokens.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/base.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/cover.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/sections.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/countdown-thanks.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/animations.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/concept-1-classic.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/gift-polish.css?v=20260715g">
+    <link rel="stylesheet" href="css/parts/block-builder.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/cover/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/poster/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/save-date/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/about/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/timeline/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/gallery/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/countdown/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/divider/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/gift/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/wish/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/thanks/skins.css?v=20260715g">
+    <link rel="stylesheet" href="css/blocks/theme-unifier.css?v=20260715g">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Serif+Display&family=Dancing+Script:wght@400;500;600;700&family=Great+Vibes&family=Josefin+Sans:wght@400;500;600;700&family=Lobster&family=Lora:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Mr+De+Haviland&family=Nunito+Sans:wght@400;600;700;800;900&family=Open+Sans:wght@400;500;600;700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Playwrite+VN:wght@300;400&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Sacramento&family=Satisfy&family=Source+Serif+4:wght@400;500;600;700&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
@@ -43,6 +68,7 @@
     <div class="container">
         <div class="cover">
             <div class="cover__headline" id="coverHeadline"></div>
+            <div class="cover__guest" id="coverGuest"></div>
             <div class="card" id="openCard">
                 <div class="cover__click">
                     <img src="img/click.png" alt="">

@@ -11,7 +11,8 @@ import {
 import {
     generateAccessToken,
     isWeddingPaymentUnlocked,
-    buildInvitationUrlFromBase
+    buildInvitationUrlFromBase,
+    normalizeGuestNames
 } from "../js/utils/access.js";
 import {
     extractProvinceFromAddress,
@@ -26,15 +27,12 @@ const musicSelect = document.getElementById("musicSelect");
 const previewBtn = document.getElementById("previewBtn");
 const saveBtn = document.getElementById("saveBtn");
 const resultLinks = document.getElementById("resultLinks");
-const invitationLinkGroom = document.getElementById("invitationLinkGroom");
-const invitationLinkBride = document.getElementById("invitationLinkBride");
+const invitationLink = document.getElementById("invitationLink");
 const editLink = document.getElementById("editLink");
 const saveModal = document.getElementById("saveModal");
-const modalInvitationLinkGroom = document.getElementById("modalInvitationLinkGroom");
-const modalInvitationLinkBride = document.getElementById("modalInvitationLinkBride");
+const modalInvitationLink = document.getElementById("modalInvitationLink");
 const modalEditLink = document.getElementById("modalEditLink");
-const copyInvitationLinkGroom = document.getElementById("copyInvitationLinkGroom");
-const copyInvitationLinkBride = document.getElementById("copyInvitationLinkBride");
+const copyInvitationLink = document.getElementById("copyInvitationLink");
 const copyEditLink = document.getElementById("copyEditLink");
 const paymentModal = document.getElementById("paymentModal");
 const paymentQrPreview = document.getElementById("paymentQrPreview");
@@ -50,12 +48,25 @@ const builderGalleryFields = document.getElementById("builderGalleryFields");
 const mapPickerModal = document.getElementById("mapPickerModal");
 const mapPickerCanvas = document.getElementById("mapPickerCanvas");
 const saveMapPointBtn = document.getElementById("saveMapPointBtn");
+const mapPickerSearchInput = document.getElementById("mapPickerSearchInput");
+const mapPickerSearchBtn = document.getElementById("mapPickerSearchBtn");
+const mapPickerSearchResults = document.getElementById("mapPickerSearchResults");
+const mapPickerHint = document.getElementById("mapPickerHint");
+const mapPickerTitle = document.getElementById("mapPickerTitle");
+const qrCropModal = document.getElementById("qrCropModal");
+const qrCropCanvas = document.getElementById("qrCropCanvas");
+const qrCropZoom = document.getElementById("qrCropZoom");
+const qrCropX = document.getElementById("qrCropX");
+const qrCropY = document.getElementById("qrCropY");
+const qrCropSaveBtn = document.getElementById("qrCropSaveBtn");
+const qrCropModalTitle = document.getElementById("qrCropModalTitle");
 
 const WEDDING_QUERY_KEY = "wedding";
 const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
 const GALLERY_SIZE = 7;
 const DEFAULT_PAYMENT_SETTINGS = {
-    amount: 0,
+    amount: 99000,       // gói 1 link
+    amountMulti: 129000, // gói nhiều link theo khách
     currency: "VND",
     contactUrl: "",
     qrImage: "",
@@ -80,7 +91,34 @@ let activeMapPickerRole = "";
 let mapPicker = null;
 let mapPickerMarker = null;
 let selectedMapPoint = null;
+let activeQrField = "";
 const qrCropStates = new Map();
+/** QR đã cắt chờ upload: fieldName → { blob, objectUrl, sourceHash, previousRemoteUrl } */
+const pendingQrBlobs = new Map();
+/** Ảnh media chờ upload: fieldName → { blob, objectUrl, sourceHash, previousRemoteUrl } */
+const pendingMediaBlobs = new Map();
+/** fieldName → SHA-256 file gốc (+ crop QR) đã gắn với URL Cloudinary hiện tại */
+let mediaFingerprints = {};
+/** fieldName → URL https Cloudinary gần nhất (để reuse khi chọn lại đúng ảnh) */
+const lastRemoteMediaUrls = new Map();
+
+const QR_FIELD_LABELS = {
+    giftGroomQr: "QR chú rể",
+    giftBrideQr: "QR cô dâu"
+};
+
+const QR_PENDING_FIELDS = ["giftGroomQr", "giftBrideQr"];
+
+const MEDIA_FIELD_NAMES = [
+    "coverPosterImage",
+    "previewImage",
+    "aboutImage",
+    "timelineImage",
+    "countdownImage",
+    "groomAvatar",
+    "brideAvatar",
+    ...Array.from({ length: GALLERY_SIZE }, (_, index) => `galleryPhoto${index + 1}`)
+];
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -169,12 +207,8 @@ function splitMealTime(value) {
     };
 }
 
-function normalizeLocationProvince(value) {
-    return formatPosterLocation(value) || "VIỆT NAM";
-}
-
 function getProvinceFromLocation(value) {
-    // Ô input builder: chỉ tỉnh/TP, không kèm ", VIỆT NAM"
+    // Ô input builder: chỉ tỉnh/TP (bỏ legacy ", VIỆT NAM" nếu có)
     const fromFormat = extractProvinceFromAddress(String(value || "").replace(/,?\s*VIỆT\s*NAM\s*$/i, ""));
     if (fromFormat) return fromFormat;
     return String(value || "")
@@ -182,15 +216,15 @@ function getProvinceFromLocation(value) {
         .trim();
 }
 
-/** Resolve tỉnh/TP: field riêng → extract address → fallback config house */
+/** Resolve tỉnh/TP lưu Firebase: field riêng → extract address → fallback config */
 function resolveHouseLocationInput(data, houseKey, addressField, locationField) {
     const explicit = readText(data, locationField);
-    if (explicit) return formatPosterLocation(explicit);
+    if (explicit) return formatPosterLocation(explicit) || explicit;
 
     const fromAddress = formatPosterLocation(readText(data, addressField));
     if (fromAddress) return fromAddress;
 
-    return formatPosterLocation(fallbackWedding.ceremony?.[houseKey]?.location) || "VIỆT NAM";
+    return formatPosterLocation(fallbackWedding.ceremony?.[houseKey]?.location) || "";
 }
 
 function readText(data, name) {
@@ -329,7 +363,9 @@ async function loadMusicLibrary() {
 }
 
 function setStatus(message, type = "") {
-    statusEl.textContent = message;
+    // Truncate to avoid long Cloudinary JSON breaking builder layout
+    const text = String(message || "").trim();
+    statusEl.textContent = text.length > 220 ? `${text.slice(0, 220)}…` : text;
     statusEl.dataset.type = type;
 }
 
@@ -354,18 +390,157 @@ function markWeddingMissing(weddingId) {
 function markWeddingEditable() {
     missingWeddingConfig = false;
     setBuilderLocked(false);
+    // Bật form lại rồi áp khóa gói (nếu đã lưu nháp / đã paid)
+    syncInvitePlanUI();
 }
 
 function getWeddingAccessToken(config = loadedWeddingConfig) {
     return String(config?.payment?.accessToken || "").trim();
 }
 
-function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), side = "") {
+function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), guestIndex = null) {
     return buildInvitationUrlFromBase(new URL("../", window.location.href).href, {
         accessToken,
         weddingId,
-        side
+        guestIndex
     });
+}
+
+function readGuestNamesFromForm() {
+    return normalizeGuestNames(readField("guestNames") || getField("guestNames")?.value || "");
+}
+
+function getSelectedInvitePlan() {
+    const checked = form?.querySelector?.('input[name="invitePlan"]:checked');
+    return checked?.value === "multi" ? "multi" : "single";
+}
+
+/**
+ * Khóa gói thiệp khi:
+ * - Đã lưu nháp Firebase (có wedding id edit), hoặc
+ * - Đã paid/unlocked
+ * Lần đầu tạo thiệp (chưa có id) vẫn chọn tự do.
+ * Admin đổi gói trên trang admin.
+ */
+function isInvitePlanLocked(config = loadedWeddingConfig) {
+    if (missingWeddingConfig) return true;
+    if (isPaymentUnlocked(config)) return true;
+    // Đã từng lưu / mở link sửa → không cho đổi gói nữa
+    if (originalEditingWeddingId || editingWeddingId) return true;
+    return false;
+}
+
+/**
+ * Gói đã chốt (ưu tiên payment.plan snapshot lúc lưu nháp/paid).
+ * Không đọc radio form khi đã khóa.
+ */
+function getLockedInvitePlan(config = loadedWeddingConfig) {
+    const paidPlan = config?.payment?.plan;
+    if (paidPlan === "multi" || paidPlan === "single") return paidPlan;
+    if (config?.plan === "multi" || config?.plan === "single") return config.plan;
+    return getSelectedInvitePlan();
+}
+
+/** Gói hiệu lực khi lưu: đã khóa → gói chốt; chưa khóa → radio form. */
+function getEffectiveInvitePlan(config = loadedWeddingConfig) {
+    if (isInvitePlanLocked(config)) return getLockedInvitePlan(config);
+    return getSelectedInvitePlan();
+}
+
+function setInvitePlan(plan) {
+    const value = plan === "multi" ? "multi" : "single";
+    const input = form?.querySelector?.(`input[name="invitePlan"][value="${value}"]`);
+    if (input) input.checked = true;
+    syncInvitePlanUI();
+}
+
+function formatPlanPriceLabel(amount, currency = "VND") {
+    const value = Number(amount);
+    if (Number.isNaN(value)) return "Liên hệ";
+    return `${new Intl.NumberFormat("vi-VN").format(value)} ${currency || "VND"}`;
+}
+
+function getPlanAmountFromSettings(plan = getSelectedInvitePlan()) {
+    const currency = paymentSettings.currency || "VND";
+    if (plan === "multi") {
+        if (hasPaymentAmount({ amount: paymentSettings.amountMulti })) {
+            return { amount: Number(paymentSettings.amountMulti), currency };
+        }
+        // fallback amountMulti chưa cấu hình → amount single hoặc default
+        if (hasPaymentAmount(paymentSettings)) {
+            return { amount: Number(paymentSettings.amount), currency };
+        }
+        return { amount: DEFAULT_PAYMENT_SETTINGS.amountMulti, currency };
+    }
+    if (hasPaymentAmount(paymentSettings)) {
+        return { amount: Number(paymentSettings.amount), currency };
+    }
+    return { amount: DEFAULT_PAYMENT_SETTINGS.amount, currency };
+}
+
+function updatePlanPriceLabels() {
+    const singleEl = document.getElementById("planPriceSingle");
+    const multiEl = document.getElementById("planPriceMulti");
+    const single = getPlanAmountFromSettings("single");
+    const multi = getPlanAmountFromSettings("multi");
+    if (singleEl) singleEl.textContent = formatPlanPriceLabel(single.amount, single.currency);
+    if (multiEl) multiEl.textContent = formatPlanPriceLabel(multi.amount, multi.currency);
+}
+
+function syncInvitePlanUI() {
+    const locked = isInvitePlanLocked();
+    const plan = locked ? getLockedInvitePlan() : getSelectedInvitePlan();
+    const paid = isPaymentUnlocked();
+
+    // Đã chốt gói: ép radio + disable
+    if (locked) {
+        const lockedInput = form?.querySelector?.(`input[name="invitePlan"][value="${plan}"]`);
+        if (lockedInput) lockedInput.checked = true;
+    }
+
+    form?.querySelectorAll?.('input[name="invitePlan"]').forEach(input => {
+        input.disabled = locked;
+    });
+
+    const panel = document.getElementById("guestNamesPanel");
+    if (panel) {
+        panel.hidden = plan !== "multi";
+    }
+
+    const lockHint = document.getElementById("invitePlanLockHint");
+    if (lockHint) {
+        lockHint.hidden = !locked;
+        if (locked) {
+            if (paid) {
+                lockHint.textContent = plan === "multi"
+                    ? "Gói nhiều link đã thanh toán — không đổi gói trên builder. Liên hệ admin nếu cần."
+                    : "Gói 1 link đã thanh toán — không nâng lên nhiều link trên builder. Liên hệ admin nếu cần nâng cấp.";
+            } else {
+                lockHint.textContent = plan === "multi"
+                    ? "Gói nhiều link đã lưu nháp — không đổi gói. Liên hệ admin nếu cần đổi sang 1 link."
+                    : "Gói 1 link đã lưu nháp — không đổi sang nhiều link. Liên hệ admin nếu cần nâng cấp.";
+            }
+        }
+    }
+
+    // Gói single đã chốt: khóa textarea khách (tránh lách multi)
+    const guestTa = getField("guestNames");
+    if (guestTa) {
+        const lockGuests = locked && plan === "single";
+        guestTa.readOnly = lockGuests;
+        guestTa.disabled = lockGuests;
+    }
+
+    updatePlanPriceLabels();
+}
+
+function getGuestsForLinks(config = loadedWeddingConfig) {
+    // Chỉ gói multi (hiệu lực) mới có link theo tên
+    const plan = getEffectiveInvitePlan(config);
+    if (plan !== "multi") return [];
+    const fromForm = readGuestNamesFromForm();
+    if (fromForm.length) return fromForm;
+    return normalizeGuestNames(config?.guests);
 }
 
 function buildEditUrl(weddingId) {
@@ -386,12 +561,87 @@ function applyLink(anchor, url) {
     anchor.textContent = url;
 }
 
-function getShareUrls(weddingId, accessToken = getWeddingAccessToken()) {
+function getShareUrls(weddingId, accessToken = getWeddingAccessToken(), guestIndex = null) {
     return {
-        invitationUrlGroom: buildInvitationUrl(weddingId, accessToken, "groom"),
-        invitationUrlBride: buildInvitationUrl(weddingId, accessToken, "bride"),
+        invitationUrl: buildInvitationUrl(weddingId, accessToken, guestIndex),
         editUrl: buildEditUrl(weddingId)
     };
+}
+
+function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
+    if (!container) return;
+    container.textContent = "";
+
+    const list = normalizeGuestNames(guests);
+    if (!list.length) {
+        container.hidden = true;
+        return;
+    }
+
+    container.hidden = false;
+    container.classList.add("guest-links--compact");
+
+    // Header: số lượng + copy all
+    const head = document.createElement("div");
+    head.className = "guest-links__head";
+    const title = document.createElement("p");
+    title.className = "guest-links__title";
+    title.textContent = `${list.length} link khách`;
+    const copyAllBtn = document.createElement("button");
+    copyAllBtn.type = "button";
+    copyAllBtn.className = "guest-links__copy-all";
+    copyAllBtn.innerHTML = '<i class="bi bi-clipboard-check"></i> Copy all';
+    const allText = list
+        .map((name, index) => `${name}\t${buildInvitationUrl(weddingId, accessToken, index)}`)
+        .join("\n");
+    copyAllBtn.dataset.copyUrl = allText;
+    head.append(title, copyAllBtn);
+    container.appendChild(head);
+
+    // Danh sách gọn: # | tên | mở | copy — cuộn trong khung cố định
+    const scroller = document.createElement("div");
+    scroller.className = "guest-links__scroll";
+
+    list.forEach((name, index) => {
+        const url = buildInvitationUrl(weddingId, accessToken, index);
+        const row = document.createElement("div");
+        row.className = "guest-links__row";
+
+        const num = document.createElement("span");
+        num.className = "guest-links__num";
+        num.textContent = String(index + 1);
+
+        const nameEl = document.createElement("span");
+        nameEl.className = "guest-links__name";
+        nameEl.textContent = name;
+        nameEl.title = url;
+
+        const actions = document.createElement("div");
+        actions.className = "guest-links__actions";
+
+        const openBtn = document.createElement("a");
+        openBtn.className = "guest-links__icon-btn";
+        openBtn.href = url;
+        openBtn.target = "_blank";
+        openBtn.rel = "noopener noreferrer";
+        openBtn.title = "Mở link";
+        openBtn.setAttribute("aria-label", `Mở link ${name}`);
+        openBtn.innerHTML = '<i class="bi bi-box-arrow-up-right"></i>';
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "guest-links__icon-btn";
+        copyBtn.dataset.copyUrl = url;
+        copyBtn.title = "Copy link";
+        copyBtn.setAttribute("aria-label", `Copy link ${name}`);
+        copyBtn.innerHTML = '<i class="bi bi-copy"></i>';
+
+        actions.append(openBtn, copyBtn);
+        row.append(num, nameEl, actions);
+        scroller.appendChild(row);
+    });
+
+    container.appendChild(scroller);
 }
 
 function updateResultLinks(weddingId, accessToken = getWeddingAccessToken()) {
@@ -399,14 +649,49 @@ function updateResultLinks(weddingId, accessToken = getWeddingAccessToken()) {
         return;
     }
 
-    const { invitationUrlGroom, invitationUrlBride, editUrl } = getShareUrls(weddingId, accessToken);
+    const guests = getGuestsForLinks();
+    const { invitationUrl, editUrl } = getShareUrls(
+        weddingId,
+        accessToken,
+        guests.length ? 0 : null
+    );
 
-    applyLink(invitationLinkGroom, invitationUrlGroom);
-    applyLink(invitationLinkBride, invitationUrlBride);
+    // Link chung (không ?g=) = Quý khách
+    const generalUrl = buildInvitationUrl(weddingId, accessToken, null);
+    applyLink(invitationLink, generalUrl);
     applyLink(editLink, editUrl);
-    applyLink(modalInvitationLinkGroom, invitationUrlGroom);
-    applyLink(modalInvitationLinkBride, invitationUrlBride);
+    applyLink(modalInvitationLink, generalUrl);
     applyLink(modalEditLink, editUrl);
+
+    const modalGeneralInviteLink = document.getElementById("modalGeneralInviteLink");
+    if (modalGeneralInviteLink) {
+        modalGeneralInviteLink.href = generalUrl;
+    }
+    const copyGeneralInviteLink = document.getElementById("copyGeneralInviteLink");
+    if (copyGeneralInviteLink) {
+        copyGeneralInviteLink.dataset.copyUrl = generalUrl;
+    }
+
+    renderGuestInvitationLinks(document.getElementById("guestLinksList"), weddingId, accessToken, guests);
+    renderGuestInvitationLinks(document.getElementById("modalGuestLinksList"), weddingId, accessToken, guests);
+
+    // Có list khách → ẩn card “Link thiệp chung” to; chỉ còn list + 1 dòng link chung gọn
+    const singleInviteCard = document.getElementById("modalSingleInviteCard");
+    const generalGuestCard = document.getElementById("modalGeneralGuestCard");
+    const hasGuests = guests.length > 0;
+    if (singleInviteCard) {
+        singleInviteCard.hidden = hasGuests;
+        singleInviteCard.style.display = hasGuests ? "none" : "";
+    }
+    if (generalGuestCard) {
+        generalGuestCard.hidden = !hasGuests;
+        generalGuestCard.style.display = hasGuests ? "" : "none";
+    }
+    if (invitationLink) {
+        invitationLink.hidden = hasGuests;
+        invitationLink.style.display = hasGuests ? "none" : "";
+    }
+
     resultLinks.hidden = false;
 }
 
@@ -414,7 +699,7 @@ function hasPaymentAmount(source = {}) {
     return source.amount !== undefined && source.amount !== null && source.amount !== "";
 }
 
-/** Ưu tiên amount gắn trên wedding.payment; fallback settings global */
+/** Ưu tiên amount snapshot trên wedding.payment; không có thì theo gói (single/multi). */
 function resolvePaymentAmountSource(config = loadedWeddingConfig) {
     const weddingPayment = config?.payment || {};
     if (hasPaymentAmount(weddingPayment)) {
@@ -423,13 +708,8 @@ function resolvePaymentAmountSource(config = loadedWeddingConfig) {
             currency: weddingPayment.currency || paymentSettings.currency || "VND"
         };
     }
-    if (hasPaymentAmount(paymentSettings)) {
-        return {
-            amount: Number(paymentSettings.amount),
-            currency: paymentSettings.currency || "VND"
-        };
-    }
-    return null;
+    const plan = weddingPayment.plan || config?.plan || getSelectedInvitePlan();
+    return getPlanAmountFromSettings(plan);
 }
 
 function formatPaymentAmount(source) {
@@ -500,20 +780,38 @@ function showUnlockedLinks(weddingId, accessToken = getWeddingAccessToken()) {
 function buildPendingPayment(weddingId) {
     const current = loadedWeddingConfig.payment || {};
     if (current.unlocked === true || current.status === "paid") {
-        // Giữ amount + token đã có; chỉ bổ sung token nếu thiếu
-        if (current.accessToken) return current;
+        // Đã thanh toán: KHÓA plan + amount
+        const lockedPlan = current.plan === "multi" || current.plan === "single"
+            ? current.plan
+            : getLockedInvitePlan();
         return {
             ...current,
-            accessToken: generateAccessToken()
+            plan: lockedPlan,
+            amount: current.amount,
+            currency: current.currency || paymentSettings.currency || "VND",
+            accessToken: current.accessToken || generateAccessToken(),
+            unlocked: true,
+            status: current.status === "locked" ? "locked" : "paid"
         };
     }
+
+    // Nháp / chờ TT: nếu gói đã chốt (đã lưu trước) giữ plan+amount; lần đầu snapshot theo form
+    const planLocked = isInvitePlanLocked();
+    const plan = planLocked ? getLockedInvitePlan() : getSelectedInvitePlan();
+    const priced = getPlanAmountFromSettings(plan);
+    // Giữ amount đã snapshot nếu gói không đổi
+    const keepAmount = planLocked
+        && hasPaymentAmount(current)
+        && (current.plan === plan || !current.plan);
 
     return {
         status: "pending",
         unlocked: false,
-        // Snapshot số tiền settings tại thời điểm tạo đơn — không đổi khi admin sửa settings sau
-        amount: hasPaymentAmount(paymentSettings) ? Number(paymentSettings.amount) : 0,
-        currency: paymentSettings.currency || "VND",
+        plan,
+        amount: keepAmount ? Number(current.amount) : priced.amount,
+        currency: keepAmount
+            ? (current.currency || priced.currency || "VND")
+            : (priced.currency || "VND"),
         accessToken: current.accessToken || generateAccessToken(),
         weddingId,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -530,7 +828,16 @@ function listenWeddingPayment(weddingId) {
     unsubscribeWeddingPayment = db.collection("weddings").doc(weddingId).onSnapshot(doc => {
         if (!doc.exists) return;
         const data = doc.data() || {};
-        loadedWeddingConfig = mergeConfig(loadedWeddingConfig, data);
+        // Chỉ đồng bộ payment — không merge toàn bộ doc (tránh snapshot cũ ghi đè ảnh vừa lưu)
+        if (data.payment) {
+            loadedWeddingConfig = {
+                ...loadedWeddingConfig,
+                payment: { ...(loadedWeddingConfig.payment || {}), ...data.payment },
+                // Đồng bộ plan root với payment.plan khi admin mở khóa
+                plan: data.payment.plan || data.plan || loadedWeddingConfig.plan
+            };
+            syncInvitePlanUI();
+        }
         if (data.payment?.unlocked === true || data.payment?.status === "paid") {
             setStatus(`Da mo khoa thiep: ${weddingId}`, "success");
             showUnlockedLinks(weddingId, data.payment?.accessToken || "");
@@ -549,10 +856,12 @@ async function loadPaymentSettings() {
         console.warn("Khong tai duoc cau hinh thanh toan, dung mac dinh.", error);
         paymentSettings = { ...DEFAULT_PAYMENT_SETTINGS };
     }
+    updatePlanPriceLabels();
+    syncInvitePlanUI();
 }
 
 function showSaveModal(weddingId) {
-    updateResultLinks(weddingId);
+    updateResultLinks(weddingId, getWeddingAccessToken());
     if (!saveModal) {
         return;
     }
@@ -560,6 +869,14 @@ function showSaveModal(weddingId) {
     hidePaymentModal();
     saveModal.hidden = false;
     document.body.classList.add("modal-open");
+
+    const guests = getGuestsForLinks();
+    const titleEl = document.getElementById("saveModalTitle");
+    if (titleEl) {
+        titleEl.textContent = guests.length
+            ? `Đã tạo ${guests.length} link thiệp theo khách mời`
+            : "Vui lòng lưu lại link thiệp";
+    }
 }
 
 function hideSaveModal() {
@@ -602,7 +919,12 @@ function buildCloudinaryFolder() {
 }
 
 function getField(name) {
-    return form.elements[name];
+    const fromElements = form?.elements?.[name];
+    // RadioNodeList / multi → lấy phần tử input/hidden đầu
+    if (fromElements && typeof fromElements === "object" && "length" in fromElements && !fromElements.tagName) {
+        return fromElements[0] || form.querySelector(`[name="${CSS.escape(name)}"]`);
+    }
+    return fromElements || form?.querySelector(`[name="${CSS.escape(name)}"]`) || null;
 }
 
 function readField(name) {
@@ -613,7 +935,10 @@ function setField(name, value) {
     const field = getField(name);
     if (field && value !== undefined && value !== null) {
         field.value = value;
+        return true;
     }
+    console.warn("[builder] setField miss:", name);
+    return false;
 }
 
 function renderBuilderGalleryFields() {
@@ -622,11 +947,13 @@ function renderBuilderGalleryFields() {
 
     Array.from({ length: GALLERY_SIZE }, (_, index) => {
         const number = index + 1;
+        const fieldName = `galleryPhoto${number}`;
         const row = document.createElement("div");
-        row.className = "builder-gallery-row";
+        row.className = "builder-gallery-row media-item";
         row.innerHTML = `
-            <div class="gallery-index">Ảnh ${number}<input type="hidden" name="galleryPhoto${number}"></div>
-            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="galleryPhoto${number}"><button type="button" data-upload-button="galleryPhoto${number}"><i class="bi bi-cloud-arrow-up-fill"></i> Upload</button></div>
+            <div class="gallery-index">Ảnh ${number}<input type="hidden" name="${fieldName}"></div>
+            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="${fieldName}" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="${fieldName}"><i class="bi bi-image"></i> Chọn ảnh</button></div>
+            <div class="media-ready" data-media-ready="${fieldName}" hidden><img alt="Gallery ${number}" data-media-thumb="${fieldName}"><strong>Đã có ảnh</strong></div>
         `;
         builderGalleryFields.appendChild(row);
     });
@@ -692,13 +1019,210 @@ async function compressImageFile(file, options = {}) {
 }
 
 /**
- * Upload ảnh với public_id cố định theo field + weddingId để ghi đè (update).
- * Lưu ý Cloudinary: preset unsigned cần bật "Overwrite" / cho phép public_id.
- * Docs: https://cloudinary.com/documentation/upload_images#public_id
+ * Parse lỗi Cloudinary (JSON dài) thành message ngắn, tránh vỡ layout status.
+ */
+function formatCloudinaryError(detail) {
+    const raw = String(detail || "").trim();
+    if (!raw) return "Upload Cloudinary thất bại.";
+    try {
+        const parsed = JSON.parse(raw);
+        const msg = parsed?.error?.message || parsed?.message || raw;
+        return String(msg).slice(0, 180);
+    } catch {
+        return raw.slice(0, 180);
+    }
+}
+
+/** SHA-256 hex của File/Blob — nhận diện “cùng ảnh” khi user chọn lại. */
+async function hashSourceFile(fileOrBlob) {
+    if (!fileOrBlob) return "";
+    try {
+        const buffer = await fileOrBlob.arrayBuffer();
+        const digest = await crypto.subtle.digest("SHA-256", buffer);
+        return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+    } catch (error) {
+        console.warn("hashSourceFile failed", error);
+        // Fallback yếu: name|size|lastModified (File) hoặc size (Blob)
+        if (typeof fileOrBlob.name === "string") {
+            return `meta:${fileOrBlob.name}|${fileOrBlob.size}|${fileOrBlob.lastModified || 0}`;
+        }
+        return `meta:blob|${fileOrBlob.size || 0}`;
+    }
+}
+
+function isRemoteMediaUrl(value) {
+    return /^https?:\/\//i.test(String(value || "").trim());
+}
+
+/**
+ * URL ảnh hiển thị trong builder: chỉ https/http hoặc blob tạm.
+ * Path mẫu `img/...` từ fallback thiệp không tính là “đã có ảnh”.
+ */
+function isDisplayableMediaUrl(value) {
+    const url = String(value || "").trim();
+    if (!url) return false;
+    if (url.startsWith("blob:")) return true;
+    return isRemoteMediaUrl(url);
+}
+
+function normalizeBuilderMediaUrl(value) {
+    const url = String(value || "").trim();
+    return isDisplayableMediaUrl(url) ? url : "";
+}
+
+function rememberRemoteMediaUrl(fieldName, url) {
+    if (fieldName && isRemoteMediaUrl(url)) {
+        lastRemoteMediaUrls.set(fieldName, String(url).trim());
+    }
+}
+
+function getPreviousRemoteUrl(fieldName) {
+    const current = readField(fieldName);
+    if (isRemoteMediaUrl(current)) return String(current).trim();
+
+    const pendingMedia = pendingMediaBlobs.get(fieldName);
+    if (pendingMedia?.previousRemoteUrl) return pendingMedia.previousRemoteUrl;
+
+    const pendingQr = pendingQrBlobs.get(fieldName);
+    if (pendingQr?.previousRemoteUrl) return pendingQr.previousRemoteUrl;
+
+    return lastRemoteMediaUrls.get(fieldName) || "";
+}
+
+function getStoredFingerprint(fieldName) {
+    return String(mediaFingerprints[fieldName] || "").trim();
+}
+
+function setStoredFingerprint(fieldName, hash) {
+    if (!fieldName || !hash) return;
+    mediaFingerprints = {
+        ...mediaFingerprints,
+        [fieldName]: hash
+    };
+}
+
+/**
+ * Kiểm tra URL Cloudinary còn tồn tại không.
+ * Dùng trước khi skip-upload theo fingerprint — tránh reuse URL đã bị xóa trên Cloudinary.
+ */
+async function remoteMediaUrlAlive(url) {
+    const clean = String(url || "").trim();
+    if (!isRemoteMediaUrl(clean)) return false;
+
+    try {
+        const response = await fetch(clean, {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store"
+        });
+        if (response.ok) return true;
+        if (response.status === 404 || response.status === 401 || response.status === 403) {
+            return false;
+        }
+    } catch {
+        // CORS / network — fallback probe bằng Image + cache-bust
+    }
+
+    return new Promise(resolve => {
+        const img = new Image();
+        const timer = window.setTimeout(() => resolve(false), 6000);
+        const bust = clean.includes("?") ? `${clean}&_cb=${Date.now()}` : `${clean}?_cb=${Date.now()}`;
+        img.onload = () => {
+            window.clearTimeout(timer);
+            resolve(true);
+        };
+        img.onerror = () => {
+            window.clearTimeout(timer);
+            resolve(false);
+        };
+        img.src = bust;
+    });
+}
+
+function isQrMediaField(fieldName) {
+    return QR_PENDING_FIELDS.includes(fieldName);
+}
+
+/**
+ * Cùng file đã gắn URL Cloudinary (fingerprint) + URL còn sống → không upload lại.
+ * Ảnh khác (hash khác) → false → upload public_id unique.
+ */
+async function canReusePendingRemote(fieldName, pending) {
+    if (!pending?.previousRemoteUrl || !pending?.sourceHash) return false;
+    if (!isRemoteMediaUrl(pending.previousRemoteUrl)) return false;
+    const knownFp = getStoredFingerprint(fieldName);
+    if (!knownFp || knownFp !== pending.sourceHash) return false;
+    return remoteMediaUrlAlive(pending.previousRemoteUrl);
+}
+
+/** Cache-bust để thumb không hiện ảnh đã xóa còn kẹt trong browser cache. */
+function cacheBustMediaUrl(url) {
+    const clean = String(url || "").trim();
+    if (!isRemoteMediaUrl(clean)) return clean;
+    return clean.includes("?") ? `${clean}&_v=${Date.now()}` : `${clean}?_v=${Date.now()}`;
+}
+
+function clearStoredFingerprint(fieldName) {
+    if (!fieldName || !mediaFingerprints[fieldName]) return;
+    const next = { ...mediaFingerprints };
+    delete next[fieldName];
+    mediaFingerprints = next;
+}
+
+/**
+ * URL Cloudinary chết phía client: xóa field + thumb + fingerprint
+ * để user thấy “chưa có ảnh” và upload lại.
+ */
+function invalidateBrokenRemoteField(fieldName) {
+    if (!fieldName) return;
+    setField(fieldName, "");
+    lastRemoteMediaUrls.delete(fieldName);
+    clearStoredFingerprint(fieldName);
+    clearPendingMedia(fieldName);
+    clearPendingQr(fieldName);
+    if (isQrMediaField(fieldName)) {
+        showQrReady(fieldName, "");
+    } else {
+        showMediaReady(fieldName, "");
+    }
+}
+
+/**
+ * Sau khi load form: kiểm tra mọi URL https còn sống không.
+ * Ảnh đã xóa trên Cloudinary → ẩn thumb, bắt chọn lại.
+ */
+async function verifyAllBuilderRemoteMedia() {
+    const fields = [...MEDIA_FIELD_NAMES, ...QR_PENDING_FIELDS];
+    const broken = [];
+
+    await Promise.all(fields.map(async fieldName => {
+        const url = readField(fieldName);
+        if (!isRemoteMediaUrl(url)) return;
+        const alive = await remoteMediaUrlAlive(url);
+        if (!alive) {
+            invalidateBrokenRemoteField(fieldName);
+            broken.push(fieldName);
+        }
+    }));
+
+    if (broken.length) {
+        setStatus(
+            `Có ${broken.length} ảnh không còn trên Cloudinary (đã xóa/hỏng). Chọn lại ảnh rồi Lưu Firebase.`,
+            "error"
+        );
+    }
+    return broken;
+}
+
+/**
+ * Upload ảnh qua unsigned preset.
+ * Luôn dùng public_id UNIQUE — unsigned preset không overwrite an toàn;
+ * public_id cố định khiến Cloudinary trả asset CŨ khi đổi ảnh (bug “lưu lại vẫn ảnh cũ”).
+ * Ảnh trùng (cùng file) được chặn trước bằng fingerprint + URL còn sống (không gọi upload).
  */
 async function uploadBlobToCloudinary(blob, filename, options = {}) {
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
-        throw new Error("Chua cau hinh CLOUDINARY_CLOUD_NAME hoac CLOUDINARY_UPLOAD_PRESET trong builder.js");
+        throw new Error("Chưa cấu hình CLOUDINARY_CLOUD_NAME hoặc CLOUDINARY_UPLOAD_PRESET trong builder.js");
     }
 
     const folder = buildCloudinaryFolder();
@@ -706,15 +1230,14 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
         .replace(/\.[a-z0-9]+$/i, "")
         .replace(/[^a-zA-Z0-9/_-]+/g, "-")
         .replace(/^-+|-+$/g, "") || "image";
-    // public_id đầy đủ path → cùng wedding + cùng field = cùng file, overwrite thay vì tạo bản mới
-    const publicId = `${folder}/${assetKey}`;
+    // Unique mỗi lần upload thật (ảnh mới / URL cũ đã xóa)
+    const publicId = `${assetKey}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
     const data = new FormData();
     data.append("file", blob, filename);
     data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    data.append("folder", folder);
     data.append("public_id", publicId);
-    data.append("overwrite", "true");
-    data.append("invalidate", "true");
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
         method: "POST",
@@ -723,63 +1246,237 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
 
     if (!response.ok) {
         const detail = await response.text();
-        throw new Error(detail || "Upload Cloudinary that bai");
+        throw new Error(formatCloudinaryError(detail));
     }
 
     const result = await response.json();
-    // Cache-bust khi URL giữ nguyên sau overwrite
+    const url = String(result.secure_url || "").trim();
+    if (!url) throw new Error("Cloudinary không trả về URL ảnh.");
     const version = result.version || Date.now();
-    const url = String(result.secure_url || "");
     return url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
 }
 
-async function uploadImageForField(fieldName, file, options = {}) {
+function clearPendingMedia(fieldName) {
+    const prev = pendingMediaBlobs.get(fieldName);
+    if (prev?.objectUrl) {
+        try {
+            URL.revokeObjectURL(prev.objectUrl);
+        } catch {
+            /* ignore */
+        }
+    }
+    pendingMediaBlobs.delete(fieldName);
+}
+
+function clearAllPendingMedia() {
+    [...pendingMediaBlobs.keys()].forEach(clearPendingMedia);
+}
+
+function setPendingMediaBlob(fieldName, blob, meta = {}) {
+    clearPendingMedia(fieldName);
+    const objectUrl = URL.createObjectURL(blob);
+    pendingMediaBlobs.set(fieldName, {
+        blob,
+        objectUrl,
+        sourceHash: String(meta.sourceHash || ""),
+        previousRemoteUrl: String(meta.previousRemoteUrl || "")
+    });
+    return objectUrl;
+}
+
+function showMediaReady(fieldName, url) {
+    const ready = document.querySelector(`[data-media-ready="${fieldName}"]`);
+    const thumb = document.querySelector(`[data-media-thumb="${fieldName}"]`);
+    if (!ready) return;
+
+    const displayUrl = normalizeBuilderMediaUrl(url);
+    if (displayUrl) {
+        if (thumb) {
+            thumb.onload = null;
+            thumb.onerror = () => {
+                // Ảnh hỏng / 404 → coi như chưa có (phía user thấy mất thumb)
+                if (isRemoteMediaUrl(displayUrl) && readField(fieldName) === displayUrl) {
+                    invalidateBrokenRemoteField(fieldName);
+                } else {
+                    showMediaReady(fieldName, "");
+                }
+            };
+            // Remote: cache-bust để không hiện bản đã xóa còn cache
+            thumb.src = isRemoteMediaUrl(displayUrl) ? cacheBustMediaUrl(displayUrl) : displayUrl;
+        }
+        ready.hidden = false;
+
+        // Verify nền: URL Cloudinary chết → xóa luôn field + fingerprint
+        if (isRemoteMediaUrl(displayUrl)) {
+            remoteMediaUrlAlive(displayUrl).then(alive => {
+                if (!alive && readField(fieldName) === displayUrl) {
+                    invalidateBrokenRemoteField(fieldName);
+                }
+            });
+        }
+    } else {
+        if (thumb) {
+            thumb.onload = null;
+            thumb.onerror = null;
+            thumb.removeAttribute("src");
+        }
+        ready.hidden = true;
+    }
+}
+
+/**
+ * Chọn ảnh: nén + lưu blob tạm (không Cloudinary). Upload khi Lưu Firebase.
+ * Hash file gốc để nếu chọn lại đúng ảnh đã lưu → không upload Cloudinary lần nữa.
+ */
+/** Đếm stage đang chạy — Lưu Firebase chờ xong để không mất pending. */
+let mediaStageInFlight = 0;
+
+async function stageImageForField(fieldName, file, options = {}) {
     const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
     const oldLabel = button?.innerHTML;
+    mediaStageInFlight += 1;
 
     try {
         if (!file) {
-            setStatus("Chon file anh truoc khi upload.", "error");
+            setStatus("Chọn file ảnh trước.", "error");
             return;
         }
         if (button) {
             button.disabled = true;
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading';
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý…';
         }
-        setStatus("Dang nen anh va upload Cloudinary...");
+        const previousRemoteUrl = getPreviousRemoteUrl(fieldName);
+        const sourceHash = await hashSourceFile(file);
+        const knownFp = getStoredFingerprint(fieldName);
+
+        // Chọn lại đúng file đã có trên Cloudinary → giữ URL, không tạo pending upload
+        if (
+            previousRemoteUrl &&
+            sourceHash &&
+            knownFp &&
+            knownFp === sourceHash &&
+            await remoteMediaUrlAlive(previousRemoteUrl)
+        ) {
+            clearPendingMedia(fieldName);
+            setField(fieldName, previousRemoteUrl);
+            showMediaReady(fieldName, previousRemoteUrl);
+            rememberRemoteMediaUrl(fieldName, previousRemoteUrl);
+            setStatus("");
+            refreshPreview(false);
+            return;
+        }
+
         const blob = await compressImageFile(file, options);
-        const url = await uploadBlobToCloudinary(blob, `${fieldName}.jpg`, { assetKey: fieldName });
-        setField(fieldName, url);
-        setStatus("Da upload anh va dien URL vao form.", "success");
+        if (!blob) throw new Error("Không nén được ảnh.");
+        // Ảnh mới (hoặc URL cũ chết) → pending, Lưu Firebase sẽ upload public_id unique
+        const objectUrl = setPendingMediaBlob(fieldName, blob, { sourceHash, previousRemoteUrl });
+        setField(fieldName, objectUrl);
+        showMediaReady(fieldName, objectUrl);
+        setStatus("");
         refreshPreview(false);
     } catch (error) {
         console.error(error);
-        setStatus(error.message || "Upload Cloudinary that bai.", "error");
+        setStatus(error.message || "Xử lý ảnh thất bại.", "error");
     } finally {
+        mediaStageInFlight = Math.max(0, mediaStageInFlight - 1);
         if (button) {
             button.disabled = false;
-            button.innerHTML = oldLabel;
+            button.innerHTML = oldLabel || '<i class="bi bi-image"></i> Chọn ảnh';
         }
     }
 }
 
-function getQrBox(fieldName) {
-    return document.querySelector(`[data-qr-box="${fieldName}"]`);
+/**
+ * Khôi phục pending từ hidden field blob:… (nếu Map bị mất nhưng form vẫn giữ blob).
+ */
+async function recoverPendingMediaFromBlobFields() {
+    for (const fieldName of MEDIA_FIELD_NAMES) {
+        if (pendingMediaBlobs.has(fieldName)) continue;
+        const value = readField(fieldName);
+        if (!isBlobUrl(value)) continue;
+        try {
+            const response = await fetch(value);
+            const blob = await response.blob();
+            if (!blob || !blob.size) continue;
+            pendingMediaBlobs.set(fieldName, {
+                blob,
+                objectUrl: value,
+                sourceHash: "",
+                previousRemoteUrl: lastRemoteMediaUrls.get(fieldName) || ""
+            });
+        } catch (error) {
+            console.warn("[builder] recover pending failed:", fieldName, error);
+        }
+    }
 }
 
-function renderQrCrop(fieldName) {
-    const state = qrCropStates.get(fieldName);
-    const box = getQrBox(fieldName);
-    const crop = box?.querySelector(".qr-crop");
-    const canvas = crop?.querySelector("canvas");
+/**
+ * Upload media pending:
+ * - Cùng file (fingerprint) + URL còn → giữ URL, không upload (tránh trùng Cloudinary)
+ * - File khác → upload public_id unique (không đè public_id cũ)
+ */
+async function flushPendingMediaUploads() {
+    await recoverPendingMediaFromBlobFields();
+    const fields = [...pendingMediaBlobs.keys()];
+    if (!fields.length) return;
+
+    for (const fieldName of fields) {
+        const pending = pendingMediaBlobs.get(fieldName);
+        if (!pending?.blob) {
+            clearPendingMedia(fieldName);
+            continue;
+        }
+
+        if (await canReusePendingRemote(fieldName, pending)) {
+            clearPendingMedia(fieldName);
+            setField(fieldName, pending.previousRemoteUrl);
+            showMediaReady(fieldName, pending.previousRemoteUrl);
+            rememberRemoteMediaUrl(fieldName, pending.previousRemoteUrl);
+            continue;
+        }
+
+        setStatus(`Đang upload ảnh ${fieldName}…`);
+        const url = await uploadBlobToCloudinary(pending.blob, `${fieldName}.jpg`, {
+            assetKey: fieldName
+        });
+        if (!url || !isRemoteMediaUrl(url)) {
+            throw new Error(`Upload ${fieldName} thất bại — không có URL Cloudinary.`);
+        }
+        if (pending.sourceHash) setStoredFingerprint(fieldName, pending.sourceHash);
+        const wrote = setField(fieldName, url);
+        if (!wrote) {
+            throw new Error(`Không ghi được URL vào form: ${fieldName}`);
+        }
+        clearPendingMedia(fieldName);
+        showMediaReady(fieldName, url);
+        rememberRemoteMediaUrl(fieldName, url);
+    }
+}
+
+function assertNoBlobMediaUrls() {
+    const bad = MEDIA_FIELD_NAMES.filter(name => isBlobUrl(readField(name)));
+    if (bad.length) {
+        throw new Error(`Ảnh vẫn còn bản tạm: ${bad.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
+    }
+}
+
+function resetQrCropControls() {
+    if (qrCropZoom) qrCropZoom.value = "1";
+    if (qrCropX) qrCropX.value = "0";
+    if (qrCropY) qrCropY.value = "0";
+}
+
+function renderQrCrop() {
+    const fieldName = activeQrField;
+    const state = fieldName ? qrCropStates.get(fieldName) : null;
+    const canvas = qrCropCanvas;
     if (!state || !canvas) return;
 
-    crop.hidden = false;
     const context = canvas.getContext("2d");
     const size = canvas.width;
-    const zoom = Number(crop.querySelector("[data-qr-zoom]")?.value || 1);
-    const shiftX = Number(crop.querySelector("[data-qr-x]")?.value || 0) / 100;
-    const shiftY = Number(crop.querySelector("[data-qr-y]")?.value || 0) / 100;
+    const zoom = Number(qrCropZoom?.value || 1);
+    const shiftX = Number(qrCropX?.value || 0) / 100;
+    const shiftY = Number(qrCropY?.value || 0) / 100;
     const image = state.image;
     const baseScale = Math.max(size / image.naturalWidth, size / image.naturalHeight);
     const drawWidth = image.naturalWidth * baseScale * zoom;
@@ -796,49 +1493,208 @@ function renderQrCrop(fieldName) {
     context.drawImage(image, x, y, drawWidth, drawHeight);
 }
 
-async function loadQrFile(fieldName, file) {
-    if (!file) return;
-    const image = await loadImageFromFile(file);
-    qrCropStates.set(fieldName, { image, file });
-    renderQrCrop(fieldName);
+function isBlobUrl(value) {
+    return String(value || "").startsWith("blob:");
 }
 
-async function uploadQrForField(fieldName) {
-    const state = qrCropStates.get(fieldName);
-    const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
-    const oldLabel = button?.innerHTML;
-
-    if (!state) {
-        const input = document.querySelector(`[data-qr-input="${fieldName}"]`);
-        if (input?.files?.[0]) await loadQrFile(fieldName, input.files[0]);
+function clearPendingQr(fieldName) {
+    const prev = pendingQrBlobs.get(fieldName);
+    if (prev?.objectUrl) {
+        try {
+            URL.revokeObjectURL(prev.objectUrl);
+        } catch {
+            /* ignore */
+        }
     }
+    pendingQrBlobs.delete(fieldName);
+}
 
-    const box = getQrBox(fieldName);
-    const canvas = box?.querySelector("canvas");
-    if (!canvas || !qrCropStates.has(fieldName)) {
-        setStatus("Chon file QR truoc khi upload.", "error");
+function setPendingQrBlob(fieldName, blob, meta = {}) {
+    clearPendingQr(fieldName);
+    const objectUrl = URL.createObjectURL(blob);
+    pendingQrBlobs.set(fieldName, {
+        blob,
+        objectUrl,
+        sourceHash: String(meta.sourceHash || ""),
+        previousRemoteUrl: String(meta.previousRemoteUrl || "")
+    });
+    return objectUrl;
+}
+
+function showQrReady(fieldName, url) {
+    const ready = document.querySelector(`[data-qr-ready="${fieldName}"]`);
+    const thumb = document.querySelector(`[data-qr-thumb="${fieldName}"]`);
+    if (!ready) return;
+
+    const displayUrl = normalizeBuilderMediaUrl(url);
+    if (displayUrl) {
+        if (thumb) {
+            thumb.onload = null;
+            thumb.onerror = () => {
+                if (isRemoteMediaUrl(displayUrl) && readField(fieldName) === displayUrl) {
+                    invalidateBrokenRemoteField(fieldName);
+                } else {
+                    showQrReady(fieldName, "");
+                }
+            };
+            thumb.src = isRemoteMediaUrl(displayUrl) ? cacheBustMediaUrl(displayUrl) : displayUrl;
+        }
+        ready.hidden = false;
+        const title = ready.querySelector("strong");
+        if (title) {
+            title.textContent = `Đã cắt ${QR_FIELD_LABELS[fieldName] || "QR"}`;
+        }
+
+        if (isRemoteMediaUrl(displayUrl)) {
+            remoteMediaUrlAlive(displayUrl).then(alive => {
+                if (!alive && readField(fieldName) === displayUrl) {
+                    invalidateBrokenRemoteField(fieldName);
+                }
+            });
+        }
+    } else {
+        if (thumb) {
+            thumb.onload = null;
+            thumb.onerror = null;
+            thumb.removeAttribute("src");
+        }
+        ready.hidden = true;
+    }
+}
+
+/**
+ * Upload QR pending: cùng file+crop + URL còn → giữ; khác → upload unique.
+ */
+async function flushPendingQrUploads() {
+    const fields = QR_PENDING_FIELDS.filter(name => pendingQrBlobs.has(name));
+    if (!fields.length) return;
+
+    for (const fieldName of fields) {
+        const pending = pendingQrBlobs.get(fieldName);
+        if (!pending?.blob) {
+            clearPendingQr(fieldName);
+            continue;
+        }
+
+        if (await canReusePendingRemote(fieldName, pending)) {
+            clearPendingQr(fieldName);
+            setField(fieldName, pending.previousRemoteUrl);
+            showQrReady(fieldName, pending.previousRemoteUrl);
+            rememberRemoteMediaUrl(fieldName, pending.previousRemoteUrl);
+            continue;
+        }
+
+        setStatus(`Đang upload ${QR_FIELD_LABELS[fieldName] || "QR"} lên Cloudinary…`);
+        const url = await uploadBlobToCloudinary(pending.blob, `${fieldName}.png`, {
+            assetKey: fieldName
+        });
+        if (!url || !isRemoteMediaUrl(url)) {
+            throw new Error(`Upload ${QR_FIELD_LABELS[fieldName] || fieldName} thất bại.`);
+        }
+        if (pending.sourceHash) setStoredFingerprint(fieldName, pending.sourceHash);
+        clearPendingQr(fieldName);
+        setField(fieldName, url);
+        showQrReady(fieldName, url);
+        rememberRemoteMediaUrl(fieldName, url);
+    }
+}
+
+function openQrCropModal(fieldName) {
+    if (!qrCropModal || !fieldName || !qrCropStates.has(fieldName)) return;
+    activeQrField = fieldName;
+    if (qrCropModalTitle) {
+        qrCropModalTitle.textContent = `Căn ${QR_FIELD_LABELS[fieldName] || "QR"} vào khung vuông`;
+    }
+    resetQrCropControls();
+    qrCropModal.hidden = false;
+    document.body.classList.add("modal-open");
+    renderQrCrop();
+}
+
+function closeQrCropModal() {
+    if (!qrCropModal) return;
+    qrCropModal.hidden = true;
+    activeQrField = "";
+    document.body.classList.remove("modal-open");
+}
+
+async function loadQrFile(fieldName, file) {
+    if (!file || !fieldName) return;
+    try {
+        const image = await loadImageFromFile(file);
+        qrCropStates.set(fieldName, { image, file });
+        openQrCropModal(fieldName);
+        setStatus("");
+    } catch (error) {
+        console.error(error);
+        setStatus("Không đọc được ảnh QR. Thử file khác.", "error");
+    }
+}
+
+function pickQrFile(fieldName) {
+    const input = document.querySelector(`[data-qr-input="${fieldName}"]`);
+    if (!input) return;
+    input.value = "";
+    input.click();
+}
+
+async function saveQrFromModal() {
+    const fieldName = activeQrField;
+    if (!fieldName || !qrCropStates.has(fieldName) || !qrCropCanvas) {
+        setStatus("Chọn file QR trước khi lưu.", "error");
         return;
     }
 
+    const oldLabel = qrCropSaveBtn?.innerHTML;
     try {
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading';
+        if (qrCropSaveBtn) {
+            qrCropSaveBtn.disabled = true;
+            qrCropSaveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang áp dụng…';
         }
-        setStatus("Dang cat QR va upload Cloudinary...");
-        renderQrCrop(fieldName);
-        const blob = await canvasToBlob(canvas, "image/png", 0.95);
-        const url = await uploadBlobToCloudinary(blob, `${fieldName}.png`, { assetKey: fieldName });
-        setField(fieldName, url);
-        setStatus("Da upload QR va dien URL vao form.", "success");
+        renderQrCrop();
+        const blob = await canvasToBlob(qrCropCanvas, "image/png", 0.95);
+        if (!blob) throw new Error("Không tạo được ảnh QR đã cắt.");
+
+        const state = qrCropStates.get(fieldName);
+        const sourceFileHash = state?.file ? await hashSourceFile(state.file) : await hashSourceFile(blob);
+        const cropSig = `${qrCropZoom?.value || 1}|${qrCropX?.value || 0}|${qrCropY?.value || 0}`;
+        const sourceHash = `${sourceFileHash}#${cropSig}`;
+        const previousRemoteUrl = getPreviousRemoteUrl(fieldName);
+        const knownFp = getStoredFingerprint(fieldName);
+
+        // Cùng file + cùng crop + URL còn → giữ, không pending upload
+        if (
+            previousRemoteUrl &&
+            sourceHash &&
+            knownFp &&
+            knownFp === sourceHash &&
+            await remoteMediaUrlAlive(previousRemoteUrl)
+        ) {
+            clearPendingQr(fieldName);
+            setField(fieldName, previousRemoteUrl);
+            showQrReady(fieldName, previousRemoteUrl);
+            rememberRemoteMediaUrl(fieldName, previousRemoteUrl);
+            closeQrCropModal();
+            setStatus("");
+            refreshPreview(false);
+            return;
+        }
+
+        // QR mới / crop khác — pending, Lưu Firebase mới upload
+        const objectUrl = setPendingQrBlob(fieldName, blob, { sourceHash, previousRemoteUrl });
+        setField(fieldName, objectUrl);
+        showQrReady(fieldName, objectUrl);
+        closeQrCropModal();
+        setStatus("");
         refreshPreview(false);
     } catch (error) {
         console.error(error);
-        setStatus(error.message || "Upload QR that bai.", "error");
+        const message = String(error?.message || "Áp dụng QR thất bại.").slice(0, 180);
+        setStatus(message, "error");
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.innerHTML = oldLabel;
+        if (qrCropSaveBtn) {
+            qrCropSaveBtn.disabled = false;
+            qrCropSaveBtn.innerHTML = oldLabel || '<i class="bi bi-check2"></i> Áp dụng QR';
         }
     }
 }
@@ -865,6 +1721,142 @@ function getDefaultMapCenter(role) {
     return { lat: 20.8449, lng: 106.6881 };
 }
 
+function getRoleAddressSeed(role) {
+    return readField(role === "bride" ? "brideAddress" : "groomAddress");
+}
+
+function setMapPickerHint(message) {
+    if (mapPickerHint) mapPickerHint.textContent = message;
+}
+
+function clearMapSearchResults() {
+    if (!mapPickerSearchResults) return;
+    mapPickerSearchResults.textContent = "";
+    mapPickerSearchResults.hidden = true;
+}
+
+function renderMapSearchResults(items) {
+    if (!mapPickerSearchResults) return;
+    mapPickerSearchResults.textContent = "";
+    if (!items.length) {
+        mapPickerSearchResults.hidden = true;
+        return;
+    }
+
+    items.forEach(item => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = item.display_name || `${item.lat}, ${item.lon}`;
+        btn.addEventListener("click", () => {
+            applyMapSearchResult(item);
+        });
+        li.appendChild(btn);
+        mapPickerSearchResults.appendChild(li);
+    });
+    mapPickerSearchResults.hidden = false;
+}
+
+function applyMapSearchResult(item) {
+    const lat = Number(item.lat);
+    const lng = Number(item.lon);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+    setMapPoint({ lat, lng }, 17);
+    if (mapPickerSearchInput && item.display_name) {
+        mapPickerSearchInput.value = item.display_name;
+    }
+    clearMapSearchResults();
+    setMapPickerHint("Đã nhảy tới địa điểm tìm được. Chỉnh marker nếu cần rồi bấm Lưu điểm này.");
+}
+
+async function reverseGeocodeMapPoint(point) {
+    if (!point) return "";
+    try {
+        const url = new URL("https://nominatim.openstreetmap.org/reverse");
+        url.searchParams.set("format", "jsonv2");
+        url.searchParams.set("lat", String(point.lat));
+        url.searchParams.set("lon", String(point.lng));
+        url.searchParams.set("zoom", "18");
+        url.searchParams.set("addressdetails", "0");
+
+        const response = await fetch(url.toString(), {
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) return "";
+        const data = await response.json();
+        return String(data?.display_name || "").trim();
+    } catch (error) {
+        console.warn("reverse geocode failed", error);
+        return "";
+    }
+}
+
+async function searchMapAddress(query) {
+    const q = String(query || "").trim();
+    if (!q) {
+        setMapPickerHint("Nhập địa chỉ hoặc tên địa điểm để tìm.");
+        return;
+    }
+
+    if (mapPickerSearchBtn) {
+        mapPickerSearchBtn.disabled = true;
+        mapPickerSearchBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang tìm…';
+    }
+    setMapPickerHint("Đang tìm địa điểm…");
+
+    try {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "json");
+        url.searchParams.set("q", q);
+        url.searchParams.set("limit", "6");
+        url.searchParams.set("addressdetails", "0");
+        // Ưu tiên VN nhưng vẫn cho kết quả ngoài nếu cần
+        url.searchParams.set("countrycodes", "vn");
+        url.searchParams.set("accept-language", "vi");
+
+        const response = await fetch(url.toString(), {
+            headers: { Accept: "application/json" }
+        });
+        if (!response.ok) throw new Error("Tìm địa điểm thất bại.");
+
+        const results = await response.json();
+        if (!Array.isArray(results) || !results.length) {
+            // Thử lại không giới hạn country nếu không ra kết quả VN
+            url.searchParams.delete("countrycodes");
+            const retry = await fetch(url.toString(), { headers: { Accept: "application/json" } });
+            const retryResults = retry.ok ? await retry.json() : [];
+            if (!Array.isArray(retryResults) || !retryResults.length) {
+                clearMapSearchResults();
+                setMapPickerHint("Không tìm thấy địa điểm. Thử mô tả rõ hơn hoặc click trực tiếp trên bản đồ.");
+                return;
+            }
+            if (retryResults.length === 1) {
+                applyMapSearchResult(retryResults[0]);
+                return;
+            }
+            renderMapSearchResults(retryResults);
+            setMapPickerHint(`Tìm thấy ${retryResults.length} kết quả — chọn một dòng bên dưới.`);
+            return;
+        }
+
+        if (results.length === 1) {
+            applyMapSearchResult(results[0]);
+            return;
+        }
+        renderMapSearchResults(results);
+        setMapPickerHint(`Tìm thấy ${results.length} kết quả — chọn một dòng bên dưới.`);
+    } catch (error) {
+        console.error(error);
+        clearMapSearchResults();
+        setMapPickerHint("Không tìm được địa điểm (mạng / dịch vụ bản đồ). Hãy click trực tiếp trên map.");
+    } finally {
+        if (mapPickerSearchBtn) {
+            mapPickerSearchBtn.disabled = false;
+            mapPickerSearchBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Tìm';
+        }
+    }
+}
 
 function setMapPoint(point, zoom = 16) {
     selectedMapPoint = point;
@@ -878,10 +1870,22 @@ function setMapPoint(point, zoom = 16) {
     }
 }
 
+async function handleMapClick(event) {
+    const point = { lat: event.latlng.lat, lng: event.latlng.lng };
+    setMapPoint(point, mapPicker?.getZoom?.() || 16);
+    setMapPickerHint("Đã chọn điểm. Đang lấy tên địa điểm…");
+    const label = await reverseGeocodeMapPoint(point);
+    if (label && mapPickerSearchInput) {
+        mapPickerSearchInput.value = label;
+        setMapPickerHint("Đã chọn điểm trên bản đồ. Có thể chỉnh lại ô tìm hoặc bấm Lưu điểm này.");
+    } else {
+        setMapPickerHint("Đã chọn điểm trên bản đồ. Bấm Lưu điểm này khi xong.");
+    }
+}
 
 function ensureMapPicker(role) {
     if (!window.L || !mapPickerCanvas) {
-        setStatus("Khong tai duoc ban do. Hay dan truc tiep link chia se Google Maps vao o Link Maps.", "error");
+        setStatus("Không tải được bản đồ. Hãy dán trực tiếp link chia sẻ Google Maps vào ô Link Maps.", "error");
         return false;
     }
 
@@ -897,14 +1901,7 @@ function ensureMapPicker(role) {
             attribution: "Tiles &copy; Esri"
         });
         window.L.control.layers({ "Bản đồ": streetLayer, "Vệ tinh": satelliteLayer }, null, { position: "topright" }).addTo(mapPicker);
-        mapPicker.on("click", event => {
-            selectedMapPoint = { lat: event.latlng.lat, lng: event.latlng.lng };
-            if (!mapPickerMarker) {
-                mapPickerMarker = window.L.marker(event.latlng).addTo(mapPicker);
-            } else {
-                mapPickerMarker.setLatLng(event.latlng);
-            }
-        });
+        mapPicker.on("click", handleMapClick);
     } else {
         mapPicker.setView([center.lat, center.lng], 15);
     }
@@ -920,28 +1917,52 @@ function openMapPicker(role) {
     if (!mapPickerModal) return;
     mapPickerModal.hidden = false;
     document.body.classList.add("modal-open");
+
+    if (mapPickerTitle) {
+        mapPickerTitle.textContent = role === "bride"
+            ? "Chọn điểm nhà gái trên bản đồ"
+            : "Chọn điểm nhà trai trên bản đồ";
+    }
+
+    // Prefill ô tìm từ địa chỉ đã nhập (nếu có)
+    const seed = getRoleAddressSeed(role);
+    if (mapPickerSearchInput) {
+        mapPickerSearchInput.value = seed || "";
+    }
+    clearMapSearchResults();
+    setMapPickerHint("Nhập địa chỉ để tìm, hoặc click trực tiếp trên bản đồ rồi bấm Lưu điểm này.");
+
     if (!ensureMapPicker(role)) {
         closeMapPicker();
+        return;
     }
+
+    // Có địa chỉ sẵn → tự tìm 1 lần cho tiện
+    if (seed && seed.length >= 6) {
+        window.setTimeout(() => searchMapAddress(seed), 120);
+    }
+
+    window.setTimeout(() => mapPickerSearchInput?.focus(), 200);
 }
 
 function closeMapPicker() {
     if (!mapPickerModal) return;
     mapPickerModal.hidden = true;
     activeMapPickerRole = "";
+    clearMapSearchResults();
     document.body.classList.remove("modal-open");
 }
 
 function saveSelectedMapPoint() {
     if (!activeMapPickerRole || !selectedMapPoint) {
-        setStatus("Hay click vao vi tri tren ban do truoc khi luu.", "error");
+        setStatus("Hãy click vị trí trên bản đồ hoặc tìm địa điểm trước khi lưu.", "error");
         return;
     }
 
     const fieldName = activeMapPickerRole === "bride" ? "brideMapUrl" : "groomMapUrl";
     setField(fieldName, buildCoordinateMapUrl(selectedMapPoint));
     closeMapPicker();
-    setStatus("Da luu link Google Maps theo toa do da chon.", "success");
+    setStatus("Đã lưu link Google Maps theo tọa độ đã chọn.", "success");
     refreshPreview(false);
 }
 
@@ -975,41 +1996,52 @@ function createCustomerConfig() {
     const groomNickname = readText(data, "groomNickname");
     const brideNickname = readText(data, "brideNickname");
 
+    // Gói hiệu lực: đã paid → khóa theo payment.plan (chống trả 99k rồi lách multi)
+    const invitePlan = getEffectiveInvitePlan();
+    const guestNames = invitePlan === "multi" ? readGuestNamesFromForm() : [];
+
     return {
         weddingId: builderTheme.weddingId,
         date: builderTheme.date,
         music: readText(data, "music") || loadedWeddingConfig.music || fallbackWedding.music,
+        plan: invitePlan,
+        guests: guestNames,
+        cover: {
+            ...(loadedWeddingConfig.cover || fallbackWedding.cover || {}),
+            guest: "Quý khách"
+        },
         theme: {
             ...builderTheme.theme,
             concepts: (() => {
                 const concepts = {};
-                setConceptImage(concepts, getSelectedBlockValue("blockCover"), "cover", readText(data, "coverPosterImage"));
-                setConceptImage(concepts, getSelectedBlockValue("blockCountdown"), "countdown", readText(data, "countdownImage"));
+                // Media: đọc thẳng field (readField) — tránh FormData miss sau setField
+                setConceptImage(concepts, getSelectedBlockValue("blockCover"), "cover", readField("coverPosterImage"));
+                setConceptImage(concepts, getSelectedBlockValue("blockCountdown"), "countdown", readField("countdownImage"));
                 return concepts;
             })()
         },
         poster: {
-            image: readText(data, "coverPosterImage")
+            image: readField("coverPosterImage")
         },
         preview: {
-            image: readText(data, "previewImage")
+            image: readField("previewImage")
         },
         aboutCard: {
-            image: readText(data, "aboutImage")
+            image: readField("aboutImage")
         },
         groom: {
             nickname: groomNickname,
             fullName: readText(data, "groomFullName"),
             father: readText(data, "groomFather"),
             mother: readText(data, "groomMother"),
-            avatar: readText(data, "groomAvatar")
+            avatar: readField("groomAvatar")
         },
         bride: {
             nickname: brideNickname,
             fullName: readText(data, "brideFullName"),
             father: readText(data, "brideFather"),
             mother: readText(data, "brideMother"),
-            avatar: readText(data, "brideAvatar")
+            avatar: readField("brideAvatar")
         },
         sections: {
             ...(loadedWeddingConfig.sections || fallbackWedding.sections || {}),
@@ -1058,7 +2090,7 @@ function createCustomerConfig() {
             thanks: readText(data, "subtitleThanks")
         },
         ceremony: {
-            image: readText(data, "timelineImage"),
+            image: readField("timelineImage"),
             bride: {
                 title: readText(data, "brideCeremonyTitle")
                     || loadedWeddingConfig.ceremony?.bride?.title
@@ -1099,13 +2131,13 @@ function createCustomerConfig() {
         },
         gift: {
             groom: {
-                qr: readText(data, "giftGroomQr"),
+                qr: readField("giftGroomQr"),
                 bank: readText(data, "giftGroomBank"),
                 accountName: readText(data, "giftGroomAccountName"),
                 accountNumber: readText(data, "giftGroomAccountNumber")
             },
             bride: {
-                qr: readText(data, "giftBrideQr"),
+                qr: readField("giftBrideQr"),
                 bank: readText(data, "giftBrideBank"),
                 accountName: readText(data, "giftBrideAccountName"),
                 accountNumber: readText(data, "giftBrideAccountNumber")
@@ -1113,7 +2145,9 @@ function createCustomerConfig() {
         },
         builder: {
             groomNickname,
-            brideNickname
+            brideNickname,
+            // Fingerprint ảnh đã upload — để Lưu Firebase lần sau bỏ qua nếu chọn lại đúng file
+            mediaFingerprints: { ...mediaFingerprints }
         }
     };
 }
@@ -1141,6 +2175,9 @@ function removeEmptyMediaFields(config) {
     });
 
     if (!next.gallery?.photos?.length) delete next.gallery;
+    if (!Array.isArray(next.guests) || !next.guests.length) {
+        next.guests = [];
+    }
 
     if (!next.poster?.image) delete next.poster;
     if (!next.preview?.image) delete next.preview;
@@ -1157,6 +2194,16 @@ function createPreviewConfig() {
     return {
         ...config,
         ...customerConfig,
+        plan: getEffectiveInvitePlan({ ...config, ...customerConfig, payment: loadedWeddingConfig.payment })
+            || customerConfig.plan
+            || config.plan
+            || "single",
+        guests: Array.isArray(customerConfig.guests) ? customerConfig.guests : (config.guests || []),
+        cover: {
+            ...(config.cover || {}),
+            ...(customerConfig.cover || {}),
+            guest: "Quý khách"
+        },
         theme: {
             ...(config.theme || {}),
             ...(customerConfig.theme || {}),
@@ -1197,7 +2244,10 @@ function createPreviewConfig() {
         gallery: {
             ...(config.gallery || {}),
             ...(customerConfig.gallery || {}),
-            photos: customerConfig.gallery?.photos?.length ? customerConfig.gallery.photos : config.gallery?.photos
+            // Luôn ưu tiên form hiện tại — không fallback album cũ khi user đã đổi ảnh
+            photos: Array.isArray(customerConfig.gallery?.photos)
+                ? customerConfig.gallery.photos
+                : (config.gallery?.photos || [])
         },
         gift: {
             ...(config.gift || {}),
@@ -1278,6 +2328,16 @@ function fillBuilderForm(config = {}) {
 
     setControlValue("groomNickname", builder.groomNickname || config.groom?.nickname);
     setControlValue("brideNickname", builder.brideNickname || config.bride?.nickname);
+    // Ưu tiên gói đã thanh toán (payment.plan), rồi plan/guests trên doc
+    const invitePlan = (config.payment?.plan === "multi" || config.payment?.plan === "single")
+        ? config.payment.plan
+        : (config.plan === "multi" || normalizeGuestNames(config.guests).length ? "multi" : "single");
+    setInvitePlan(invitePlan);
+    setControlValue(
+        "guestNames",
+        invitePlan === "multi" ? normalizeGuestNames(config.guests).join("\n") : ""
+    );
+    syncInvitePlanUI();
     setControlValue("groomFullName", config.groom?.fullName);
     setControlValue("groomFather", config.groom?.father);
     setControlValue("groomMother", config.groom?.mother);
@@ -1303,27 +2363,77 @@ function fillBuilderForm(config = {}) {
     setControlValue("primaryColor", theme.primaryColor);
     populateMusicOptions(config);
     setControlValue("music", config.music);
-    setControlValue("coverPosterImage", config.poster?.image || getConceptMedia(config, "cover", "cover"));
-    setControlValue("previewImage", config.preview?.image);
-    setControlValue("aboutImage", config.aboutCard?.image);
-    setControlValue("timelineImage", config.ceremony?.image);
-    setControlValue("countdownImage", getConceptMedia(config, "countdown", "countdown"));
-    setControlValue("groomAvatar", config.groom?.avatar);
-    setControlValue("brideAvatar", config.bride?.avatar);
-    setControlValue("giftGroomQr", config.gift?.groom?.qr);
+    clearAllPendingMedia();
+    clearPendingQr("giftGroomQr");
+    clearPendingQr("giftBrideQr");
+    lastRemoteMediaUrls.clear();
+    mediaFingerprints = {
+        ...(config.builder?.mediaFingerprints && typeof config.builder.mediaFingerprints === "object"
+            ? config.builder.mediaFingerprints
+            : {})
+    };
+
+    // Chỉ nhận URL thật (https/blob). Bỏ path mẫu img/... từ thiệp fallback.
+    const coverUrl = normalizeBuilderMediaUrl(
+        config.poster?.image || getConceptMedia(config, "cover", "cover") || ""
+    );
+    const previewUrl = normalizeBuilderMediaUrl(config.preview?.image || "");
+    const aboutUrl = normalizeBuilderMediaUrl(config.aboutCard?.image || "");
+    const timelineUrl = normalizeBuilderMediaUrl(config.ceremony?.image || "");
+    const countdownUrl = normalizeBuilderMediaUrl(getConceptMedia(config, "countdown", "countdown") || "");
+    const groomAvatarUrl = normalizeBuilderMediaUrl(config.groom?.avatar || "");
+    const brideAvatarUrl = normalizeBuilderMediaUrl(config.bride?.avatar || "");
+    const giftGroomQrUrl = normalizeBuilderMediaUrl(config.gift?.groom?.qr || "");
+    const giftBrideQrUrl = normalizeBuilderMediaUrl(config.gift?.bride?.qr || "");
+
+    setControlValue("coverPosterImage", coverUrl);
+    showMediaReady("coverPosterImage", coverUrl);
+    rememberRemoteMediaUrl("coverPosterImage", coverUrl);
+    setControlValue("previewImage", previewUrl);
+    showMediaReady("previewImage", previewUrl);
+    rememberRemoteMediaUrl("previewImage", previewUrl);
+    setControlValue("aboutImage", aboutUrl);
+    showMediaReady("aboutImage", aboutUrl);
+    rememberRemoteMediaUrl("aboutImage", aboutUrl);
+    setControlValue("timelineImage", timelineUrl);
+    showMediaReady("timelineImage", timelineUrl);
+    rememberRemoteMediaUrl("timelineImage", timelineUrl);
+    setControlValue("countdownImage", countdownUrl);
+    showMediaReady("countdownImage", countdownUrl);
+    rememberRemoteMediaUrl("countdownImage", countdownUrl);
+    setControlValue("groomAvatar", groomAvatarUrl);
+    showMediaReady("groomAvatar", groomAvatarUrl);
+    rememberRemoteMediaUrl("groomAvatar", groomAvatarUrl);
+    setControlValue("brideAvatar", brideAvatarUrl);
+    showMediaReady("brideAvatar", brideAvatarUrl);
+    rememberRemoteMediaUrl("brideAvatar", brideAvatarUrl);
+
+    setControlValue("giftGroomQr", giftGroomQrUrl);
+    showQrReady("giftGroomQr", giftGroomQrUrl);
+    rememberRemoteMediaUrl("giftGroomQr", giftGroomQrUrl);
     setControlValue("giftGroomBank", config.gift?.groom?.bank);
     setControlValue("giftGroomAccountName", config.gift?.groom?.accountName);
     setControlValue("giftGroomAccountNumber", config.gift?.groom?.accountNumber);
-    setControlValue("giftBrideQr", config.gift?.bride?.qr);
+    setControlValue("giftBrideQr", giftBrideQrUrl);
+    showQrReady("giftBrideQr", giftBrideQrUrl);
+    rememberRemoteMediaUrl("giftBrideQr", giftBrideQrUrl);
     setControlValue("giftBrideBank", config.gift?.bride?.bank);
     setControlValue("giftBrideAccountName", config.gift?.bride?.accountName);
     setControlValue("giftBrideAccountNumber", config.gift?.bride?.accountNumber);
+
     Array.from({ length: GALLERY_SIZE }, (_, index) => {
-        setControlValue(`galleryPhoto${index + 1}`, "");
+        const fieldName = `galleryPhoto${index + 1}`;
+        setControlValue(fieldName, "");
+        showMediaReady(fieldName, "");
     });
-    const galleryPhotos = config.gallery?.photos?.length ? config.gallery.photos : fallbackWedding.gallery?.photos || [];
+    // Không fallback album mẫu — chỉ ảnh user đã lưu trên wedding này
+    const galleryPhotos = Array.isArray(config.gallery?.photos) ? config.gallery.photos : [];
     galleryPhotos.slice(0, GALLERY_SIZE).forEach((photo, index) => {
-        setControlValue(`galleryPhoto${index + 1}`, photo.src);
+        const fieldName = `galleryPhoto${index + 1}`;
+        const src = normalizeBuilderMediaUrl(photo?.src || "");
+        setControlValue(fieldName, src);
+        showMediaReady(fieldName, src);
+        rememberRemoteMediaUrl(fieldName, src);
     });
     getBuildableSections().forEach(section => {
         setControlValue(section.builderField, blocks[section.id] || section.defaultSkin);
@@ -1400,35 +2510,25 @@ async function loadConfigForEdit() {
                     ...(doc.data().bride || {})
                 },
                 poster: {
-                    ...(fallbackWedding.poster || {}),
                     ...(doc.data().poster || {})
                 },
                 preview: {
-                    ...(fallbackWedding.preview || {}),
                     ...(doc.data().preview || {})
                 },
                 aboutCard: {
-                    ...(fallbackWedding.aboutCard || {}),
                     ...(doc.data().aboutCard || {})
                 },
+                // Album / QR / media: chỉ lấy từ Firebase — không trộn ảnh mẫu fallback
                 gallery: {
                     ...(fallbackWedding.gallery || {}),
                     ...(doc.data().gallery || {}),
-                    photos: doc.data().gallery?.photos?.length
+                    photos: Array.isArray(doc.data().gallery?.photos)
                         ? doc.data().gallery.photos
-                        : fallbackWedding.gallery?.photos
+                        : []
                 },
                 gift: {
-                    ...(fallbackWedding.gift || {}),
-                    ...(doc.data().gift || {}),
-                    groom: {
-                        ...(fallbackWedding.gift?.groom || {}),
-                        ...(doc.data().gift?.groom || {})
-                    },
-                    bride: {
-                        ...(fallbackWedding.gift?.bride || {}),
-                        ...(doc.data().gift?.bride || {})
-                    }
+                    groom: { ...(doc.data().gift?.groom || {}) },
+                    bride: { ...(doc.data().gift?.bride || {}) }
                 },
                 sectionSubtitles: {
                     ...(fallbackWedding.sectionSubtitles || {}),
@@ -1456,6 +2556,8 @@ async function loadConfigForEdit() {
                 }
             };
             fillBuilderForm(loadedWeddingConfig);
+            // Phía user: URL Cloudinary đã xóa → ẩn thumb + xóa field (không để “ảo” còn ảnh)
+            await verifyAllBuilderRemoteMedia();
             markWeddingEditable();
             listenWeddingPayment(weddingId);
             if (isPaymentUnlocked(loadedWeddingConfig)) {
@@ -1463,7 +2565,10 @@ async function loadConfigForEdit() {
             } else {
                 showPaymentModal(weddingId);
             }
-            setStatus(`Dang sua: ${weddingId}`);
+            // verify có thể đã setStatus lỗi ảnh — chỉ ghi “đang sửa” nếu không có ảnh hỏng
+            if (!statusEl?.dataset?.type || statusEl.dataset.type !== "error") {
+                setStatus(`Dang sua: ${weddingId}`);
+            }
             refreshPreview(false);
         } else {
             loadedWeddingConfig = { ...clone(fallbackWedding), weddingId };
@@ -1808,14 +2913,56 @@ async function saveConfig(event) {
         setStatus("Wedding ID nay khong ton tai, khong the luu de tranh tao nham thiep.", "error");
         return;
     }
-    let payload = createSavePayload();
 
-    if (!payload.weddingId) {
+    // Cần weddingId sớm để folder Cloudinary đúng trước khi flush QR
+    let probePayload = createSavePayload();
+    if (!probePayload.weddingId) {
         setStatus("Nhap ten co dau va chu re de tao weddingId.", "error");
         return;
     }
 
     try {
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Dang luu';
+        }
+
+        // Chờ nén/stage ảnh xong (tránh Lưu khi pending chưa kịp set)
+        let wait = 0;
+        while (mediaStageInFlight > 0 && wait < 100) {
+            await new Promise(r => setTimeout(r, 50));
+            wait += 1;
+        }
+        if (mediaStageInFlight > 0) {
+            throw new Error("Đang xử lý ảnh — đợi giây lát rồi Lưu Firebase lại.");
+        }
+
+        // 1) Mọi ảnh/QR user vừa chọn (pending / blob field) → upload Cloudinary
+        await recoverPendingMediaFromBlobFields();
+        const pendingCount = pendingMediaBlobs.size + pendingQrBlobs.size;
+        if (pendingCount) {
+            setStatus(`Đang upload ${pendingCount} ảnh/QR mới lên Cloudinary…`);
+        }
+        if (pendingMediaBlobs.size) {
+            await flushPendingMediaUploads();
+        }
+        if (pendingQrBlobs.size) {
+            await flushPendingQrUploads();
+        }
+
+        assertNoBlobMediaUrls();
+        const blobMedia = MEDIA_FIELD_NAMES.filter(name => isBlobUrl(readField(name)));
+        if (blobMedia.length) {
+            throw new Error(`Ảnh tạm chưa upload xong: ${blobMedia.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
+        }
+
+        let payload = createSavePayload();
+        const groomQr = payload.gift?.groom?.qr || "";
+        const brideQr = payload.gift?.bride?.qr || "";
+        if (isBlobUrl(groomQr) || isBlobUrl(brideQr)) {
+            throw new Error("QR vẫn còn bản tạm (blob). Thử cắt lại rồi Lưu Firebase.");
+        }
+
         const availableWeddingId = await findAvailableWeddingId(payload.weddingId);
         if (!availableWeddingId) {
             setStatus("Khong tao duoc weddingId. Hay kiem tra lai ten co dau chu re.", "error");
@@ -1827,9 +2974,25 @@ async function saveConfig(event) {
         payload = applyWeddingIdToPayload(payload, availableWeddingId);
         payload.payment = buildPendingPayment(payload.weddingId);
 
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Dang luu';
+        // Chống lỗ: gói đã chốt (nháp hoặc paid) — ép plan/guests/amount, không tin radio form
+        if (isInvitePlanLocked()) {
+            const lockedPlan = getLockedInvitePlan();
+            payload.plan = lockedPlan;
+            payload.payment.plan = lockedPlan;
+            if (lockedPlan !== "multi") {
+                payload.guests = [];
+            }
+            if (loadedWeddingConfig.payment?.amount !== undefined
+                && loadedWeddingConfig.payment?.amount !== null
+                && loadedWeddingConfig.payment?.amount !== "") {
+                payload.payment.amount = loadedWeddingConfig.payment.amount;
+            }
+        }
+
+        // Ghi dấu thời gian để admin dọn thiệp > 30 ngày
+        payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        if (!loadedWeddingConfig.createdAt) {
+            payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         }
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
@@ -1837,13 +3000,18 @@ async function saveConfig(event) {
         loadedWeddingConfig = {
             ...createPreviewConfig(),
             weddingId: payload.weddingId,
-            payment: payload.payment
+            payment: payload.payment,
+            plan: payload.plan,
+            createdAt: loadedWeddingConfig.createdAt || true
         };
         editingWeddingId = payload.weddingId;
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
         syncUrlForEdit(payload.weddingId);
         listenWeddingPayment(payload.weddingId);
+        // Lưu nháp xong → khóa gói ngay (không chờ admin duyệt)
+        setInvitePlan(payload.plan || "single");
+        syncInvitePlanUI();
         setStatus(`Da luu ban nhap Firebase: ${payload.weddingId}`, "success");
         refreshPreview(false);
         if (isPaymentUnlocked(payload)) {
@@ -1853,7 +3021,13 @@ async function saveConfig(event) {
         }
     } catch (error) {
         console.error(error);
-        setStatus("Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.", "error");
+        const message = String(error?.message || "").trim();
+        setStatus(
+            message
+                ? `Lưu thất bại: ${message.slice(0, 160)}`
+                : "Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.",
+            "error"
+        );
     } finally {
         if (saveBtn) {
             saveBtn.disabled = false;
@@ -1863,18 +3037,26 @@ async function saveConfig(event) {
 }
 
 
+function pickMediaFile(fieldName) {
+    const input = document.querySelector(`[data-upload-target="${fieldName}"]`);
+    if (!input) return;
+    input.value = "";
+    input.click();
+}
+
 function handleUploadClick(event) {
     const button = event.target.closest("[data-upload-button]");
     if (!button) return;
 
     const fieldName = button.dataset.uploadButton;
+    // QR: mở file → crop modal. Media: mở file → tự stage + preview (không bấm thêm)
     if (document.querySelector(`[data-qr-input="${fieldName}"]`)) {
-        uploadQrForField(fieldName);
+        pickQrFile(fieldName);
         return;
     }
-
-    const input = document.querySelector(`[data-upload-target="${fieldName}"]`);
-    uploadImageForField(fieldName, input?.files?.[0]);
+    if (document.querySelector(`[data-upload-target="${fieldName}"]`)) {
+        pickMediaFile(fieldName);
+    }
 }
 
 function handleQrInputChange(event) {
@@ -1883,10 +3065,13 @@ function handleQrInputChange(event) {
     loadQrFile(input.dataset.qrInput, input.files?.[0]);
 }
 
-function handleQrCropInput(event) {
-    const box = event.target.closest("[data-qr-box]");
-    if (!box || !event.target.matches("[data-qr-zoom], [data-qr-x], [data-qr-y]")) return;
-    renderQrCrop(box.dataset.qrBox);
+function handleMediaInputChange(event) {
+    const input = event.target.closest("[data-upload-target]");
+    if (!input) return;
+    const fieldName = input.dataset.uploadTarget;
+    const file = input.files?.[0];
+    if (!fieldName || !file) return;
+    stageImageForField(fieldName, file);
 }
 
 function handleMapButton(event) {
@@ -1922,6 +3107,25 @@ form.addEventListener("input", event => {
 
 form.addEventListener("change", handleBlockConceptChange);
 
+form.addEventListener("change", event => {
+    if (event.target?.name === "invitePlan") {
+        // Chặn đổi gói sau khi đã thanh toán (kể cả bẻ DOM)
+        if (isInvitePlanLocked()) {
+            setInvitePlan(getLockedInvitePlan());
+            setStatus(
+                isPaymentUnlocked()
+                    ? "Gói thiệp đã thanh toán — không thể đổi. Liên hệ admin nếu cần nâng cấp."
+                    : "Gói thiệp đã lưu nháp — không thể đổi. Liên hệ admin nếu cần đổi gói.",
+                "error"
+            );
+            return;
+        }
+        syncInvitePlanUI();
+        window.clearTimeout(refreshPreview.timer);
+        refreshPreview.timer = window.setTimeout(() => refreshPreview(false), 200);
+    }
+});
+
 previewBtn.addEventListener("click", handlePreviewClick);
 document.querySelectorAll("[data-builder-tab]").forEach(button => {
     button.addEventListener("click", () => {
@@ -1948,8 +3152,28 @@ frame.addEventListener("load", syncPreviewStateFromFrame);
 form.addEventListener("submit", saveConfig);
 form.addEventListener("click", handleUploadClick);
 form.addEventListener("change", handleQrInputChange);
-form.addEventListener("input", handleQrCropInput);
+form.addEventListener("change", handleMediaInputChange);
 form.addEventListener("click", handleMapButton);
+
+qrCropModal?.addEventListener("click", event => {
+    if (event.target.closest("[data-close-qr-crop]")) {
+        closeQrCropModal();
+    }
+});
+[qrCropZoom, qrCropX, qrCropY].forEach(input => {
+    input?.addEventListener("input", () => {
+        if (activeQrField) renderQrCrop();
+    });
+});
+qrCropSaveBtn?.addEventListener("click", () => {
+    saveQrFromModal();
+});
+document.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    if (qrCropModal && !qrCropModal.hidden) {
+        closeQrCropModal();
+    }
+});
 populateBuilderBlockSelects(form);
 renderBuilderGalleryFields();
 Promise.all([
@@ -1965,16 +3189,19 @@ if (saveModal) {
     });
 }
 
-copyInvitationLinkGroom?.addEventListener("click", () => {
-    copyText(modalInvitationLinkGroom?.href || "", copyInvitationLinkGroom);
-});
-
-copyInvitationLinkBride?.addEventListener("click", () => {
-    copyText(modalInvitationLinkBride?.href || "", copyInvitationLinkBride);
+copyInvitationLink?.addEventListener("click", () => {
+    copyText(modalInvitationLink?.href || "", copyInvitationLink);
 });
 
 copyEditLink?.addEventListener("click", () => {
     copyText(modalEditLink?.href || "", copyEditLink);
+});
+
+// Copy từng link khách trong modal / result list
+document.addEventListener("click", event => {
+    const button = event.target.closest("[data-copy-url]");
+    if (!button) return;
+    copyText(button.dataset.copyUrl || "", button);
 });
 
 copyPaymentEditLink?.addEventListener("click", () => {
@@ -1988,6 +3215,15 @@ paymentModal?.addEventListener("click", event => {
 });
 
 saveMapPointBtn?.addEventListener("click", saveSelectedMapPoint);
+mapPickerSearchBtn?.addEventListener("click", () => {
+    searchMapAddress(mapPickerSearchInput?.value || "");
+});
+mapPickerSearchInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        searchMapAddress(mapPickerSearchInput.value);
+    }
+});
 mapPickerModal?.addEventListener("click", event => {
     if (event.target.closest("[data-close-map-picker]")) {
         closeMapPicker();
