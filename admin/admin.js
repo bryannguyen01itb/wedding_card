@@ -847,13 +847,12 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
         // Best-effort xóa ảnh Cloudinary (cần Pages Function + env)
         let mediaNote = "";
         if (publicIds.length) {
-            const mediaResult = await requestCloudinaryCleanup(publicIds, {
-                cleanupKey: window.__CLOUDINARY_CLEANUP_KEY || ""
-            });
+            // Không cần gõ CLEANUP_KEY thủ công — API dùng secret trên Cloudflare env
+            const mediaResult = await requestCloudinaryCleanup(publicIds);
             if (mediaResult.ok && !mediaResult.skipped) {
                 mediaNote = ` · đã gửi xóa ${mediaResult.deleted ?? publicIds.length} ảnh Cloudinary`;
             } else {
-                mediaNote = ` · ${publicIds.length} ảnh Cloudinary: dọn tay hoặc cấu hình /api/cloudinary-cleanup`;
+                mediaNote = ` · ${publicIds.length} ảnh Cloudinary: ${mediaResult.error || "chưa cấu hình API / deploy CF"}`;
             }
         }
 

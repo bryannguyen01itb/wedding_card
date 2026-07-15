@@ -1,18 +1,34 @@
 /**
  * Cloudflare Pages Function — xóa ảnh Cloudinary khi admin xóa thiệp.
  *
- * Env (Pages → Settings → Environment variables):
+ * Env (Pages → Settings → Variables and secrets):
  *   CLOUDINARY_CLOUD_NAME
  *   CLOUDINARY_API_KEY
  *   CLOUDINARY_API_SECRET
- *   CLEANUP_KEY          (shared secret, admin gửi header X-Cleanup-Key)
  *
- * Local python server: endpoint không có → admin delete vẫn xóa Firestore.
+ * Admin KHÔNG cần gõ key thủ công — chỉ cần 3 biến Cloudinary trên CF.
+ * Bảo vệ nhẹ: chỉ nhận POST từ origin cùng site (bryaninvite / pages.dev).
+ *
+ * Local python server: endpoint không có → xóa Firestore vẫn OK.
  */
 async function sha1Hex(message) {
     const data = new TextEncoder().encode(message);
     const hash = await crypto.subtle.digest("SHA-1", data);
     return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function isAllowedOrigin(request) {
+    const origin = request.headers.get("Origin") || "";
+    const referer = request.headers.get("Referer") || "";
+    const host = request.headers.get("Host") || "";
+    const hay = `${origin} ${referer} ${host}`.toLowerCase();
+    // Site production + preview pages.dev
+    if (hay.includes("bryaninvite.homes")) return true;
+    if (hay.includes("wedding-card") && hay.includes("pages.dev")) return true;
+    if (hay.includes("localhost") || hay.includes("127.0.0.1")) return true;
+    // Không có Origin (same-origin một số trình duyệt) — cho qua nếu Host là pages
+    if (!origin && (host.includes("pages.dev") || host.includes("bryaninvite.homes"))) return true;
+    return false;
 }
 
 async function destroyCloudinaryAsset(publicId, env) {
@@ -24,7 +40,6 @@ async function destroyCloudinaryAsset(publicId, env) {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    // signature: public_id=...&timestamp=...{api_secret}
     const toSign = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
     const signature = await sha1Hex(toSign);
 
@@ -56,22 +71,34 @@ async function destroyCloudinaryAsset(publicId, env) {
 export async function onRequestPost(context) {
     const { request, env } = context;
 
+    if (!env.CLOUDINARY_API_SECRET || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_CLOUD_NAME) {
+        return new Response(JSON.stringify({
+            ok: false,
+            error: "cleanup_not_configured",
+            hint: "Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET on Pages"
+        }), {
+            status: 503,
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+
+    // Optional: nếu vẫn set CLEANUP_KEY thì chấp nhận header (tương thích cũ)
+    // Không bắt buộc — admin không cần gõ Console nữa
     const cleanupKey = env.CLEANUP_KEY || "";
     if (cleanupKey) {
         const headerKey = request.headers.get("X-Cleanup-Key") || "";
-        if (headerKey !== cleanupKey) {
+        if (headerKey && headerKey !== cleanupKey) {
             return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
                 status: 401,
                 headers: { "Content-Type": "application/json" }
             });
         }
-    } else if (!env.CLOUDINARY_API_SECRET) {
-        return new Response(JSON.stringify({
-            ok: false,
-            error: "cleanup_not_configured",
-            hint: "Set CLOUDINARY_* and CLEANUP_KEY on Cloudflare Pages"
-        }), {
-            status: 503,
+        // Không gửi header: vẫn cho qua nếu origin hợp lệ (bỏ bắt buộc gõ key)
+    }
+
+    if (!isAllowedOrigin(request)) {
+        return new Response(JSON.stringify({ ok: false, error: "forbidden_origin" }), {
+            status: 403,
             headers: { "Content-Type": "application/json" }
         });
     }
@@ -104,15 +131,19 @@ export async function onRequestPost(context) {
 
     const deleted = results.filter(item => item.ok).length;
     return new Response(JSON.stringify({ ok: true, deleted, results }), {
-        headers: { "Content-Type": "application/json" }
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": request.headers.get("Origin") || "*"
+        }
     });
 }
 
-export async function onRequestOptions() {
+export async function onRequestOptions(context) {
+    const origin = context.request.headers.get("Origin") || "*";
     return new Response(null, {
         status: 204,
         headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, X-Cleanup-Key, Authorization"
         }
