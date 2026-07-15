@@ -14,10 +14,27 @@ export const aboutModule = {
     buildable: true,
     cssFile: "css/blocks/about/skins.css",
     skinOptions: {
-        "concept-1": { layout: "portrait-card", usesAboutCardImage: true },
-        "concept-2": { layout: "dual-avatar", usesPersonAvatars: true },
-        "concept-3": { layout: "dual-avatar", usesPersonAvatars: true },
-        "concept-4": { layout: "portrait-card", usesAboutCardImage: true }
+        // Builder ẩn/hiện ô upload theo flags này (tránh upload Cloudinary thừa)
+        "concept-1": {
+            layout: "portrait-card",
+            usesAboutCardImage: true,
+            usesPersonAvatars: false
+        },
+        "concept-2": {
+            layout: "dual-avatar",
+            usesAboutCardImage: false,
+            usesPersonAvatars: true
+        },
+        "concept-3": {
+            layout: "dual-avatar",
+            usesAboutCardImage: false,
+            usesPersonAvatars: true
+        },
+        "concept-4": {
+            layout: "portrait-card",
+            usesAboutCardImage: true,
+            usesPersonAvatars: false
+        }
     },
     render: renderAbout
 };

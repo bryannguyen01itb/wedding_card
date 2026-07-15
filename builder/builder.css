@@ -183,6 +183,12 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(90,140,95,.22);border-
     background: rgba(255,255,255,.62);
 }
 
+/* JS set [hidden] theo concept — phải !important vì .media-item { display:grid } đè UA [hidden] */
+.media-item[hidden],
+.media-item.is-media-inactive {
+    display: none !important;
+}
+
 .media-item .upload-row,
 .builder-gallery-row .upload-row {
     grid-template-columns: 1fr;

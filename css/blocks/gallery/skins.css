@@ -3,26 +3,19 @@
    + maintained overrides below (if any).
    Module ownership: js/modules/<section>/
    ============================================================ */
-
 /* --- from block-concepts (gallery) --- */
-
 /* gallery from concept-1 */
-
 /* gallery from concept-2 */
 
 body .gallery.block-skin-concept-2 {
-position: relative;
+    position: relative;
     color: var(--botanical-ink);
-    background: var(--botanical-paper);
-}
-
-body .gallery.block-skin-concept-2 {
-padding: .05rem .2rem 1rem;
     background: linear-gradient(180deg, var(--botanical-paper), rgba(var(--botanical-mint-rgb), .52));
+    padding: .05rem .2rem 1rem;
 }
 
 body .gallery.block-skin-concept-2 .gallery-grid {
-border-radius: .42rem;
+    border-radius: .42rem;
     padding: .28rem;
     gap: .11rem;
     background: #fff;
@@ -30,49 +23,46 @@ border-radius: .42rem;
     box-shadow: var(--botanical-shadow);
 }
 
-body .gallery.block-skin-concept-2 .gallery-intro,
-body .gallery.block-skin-concept-2 .gallery-intro__eyebrow,
-body .gallery.block-skin-concept-2 .gallery-intro__title {
-color: var(--botanical-ink);
+body .gallery.block-skin-concept-2 .gallery-intro, body .gallery.block-skin-concept-2 .gallery-intro__eyebrow, body .gallery.block-skin-concept-2 .gallery-intro__title {
+    color: var(--botanical-ink);
     font-family: "Lora", Georgia, serif;
 }
 
 body .gallery.block-skin-concept-2 .gallery-intro__script {
-color: var(--botanical-rose);
+    color: var(--botanical-rose);
     font-family: "Parisienne", "Great Vibes", cursive;
 }
 
 body .gallery.block-skin-concept-2 .gallery-intro__line {
-background: var(--botanical-leaf);
+    background: var(--botanical-leaf);
 }
 
-body .gallery.block-skin-concept-2 .gallery-intro__date,
-body .gallery.block-skin-concept-2 .gallery-side-text {
-color: var(--botanical-muted);
+body .gallery.block-skin-concept-2 .gallery-intro__date, body .gallery.block-skin-concept-2 .gallery-side-text {
+    color: var(--botanical-muted);
 }
 
 body .gallery.block-skin-concept-2 .gallery-frame {
-border-radius: .18rem;
+    border-radius: .18rem;
     background: var(--botanical-mint);
 }
 
 body .gallery.block-skin-concept-2 .gallery-frame img {
-filter: saturate(1.04) brightness(1.03);
+    filter: saturate(1.04) brightness(1.03);
 }
 
 body .gallery.block-skin-concept-2 .gallery-fan {
-opacity: .18;
+    opacity: .18;
     background: repeating-conic-gradient(from -18deg, rgba(var(--botanical-leaf-rgb), .45) 0deg 2deg, transparent 2deg 10deg);
 }
-
 body .gallery.block-skin-concept-2 /* Concept 2 editorial gallery */
- .gallery {
-padding: .72rem .22rem 1.1rem;
+
+.gallery {
+    padding: .72rem .22rem 1.1rem;
     background: #fbfaf6;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid {
-display: flex !important;
+    display: flex !important;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: .12rem;
@@ -84,7 +74,7 @@ display: flex !important;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame {
-position: relative;
+    position: relative;
     z-index: 1;
     margin: 0;
     overflow: hidden;
@@ -95,7 +85,7 @@ position: relative;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame img {
-display: block;
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -103,7 +93,7 @@ display: block;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--1 {
-order: 1;
+    order: 1;
     flex: 0 0 100%;
     aspect-ratio: 3 / 2;
     min-height: 0 !important;
@@ -113,7 +103,7 @@ order: 1;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--1::after {
-content: "";
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(0, 0, 0, .2), transparent 44%, rgba(0, 0, 0, .14));
@@ -121,7 +111,7 @@ content: "";
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro {
-order: 2;
+    order: 2;
     margin-top: .8rem;
     position: relative !important;
     inset: auto !important;
@@ -138,7 +128,7 @@ order: 2;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__eyebrow {
-color: rgba(var(--botanical-ink-rgb), .58);
+    color: rgba(var(--botanical-ink-rgb), .58);
     font-family: "Lora", Georgia, serif;
     font-size: .1rem;
     letter-spacing: .06rem;
@@ -146,7 +136,7 @@ color: rgba(var(--botanical-ink-rgb), .58);
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__script {
-margin-top: .08rem;
+    margin-top: .08rem;
     color: var(--botanical-ink);
     font-family: "Parisienne", "Great Vibes", cursive;
     font-size: .36rem;
@@ -154,7 +144,7 @@ margin-top: .08rem;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__title {
-margin-top: .04rem;
+    margin-top: .04rem;
     color: var(--botanical-ink);
     font-family: "Lora", Georgia, serif;
     font-size: .16rem;
@@ -165,14 +155,14 @@ margin-top: .04rem;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__line {
-width: .7rem;
+    width: .7rem;
     height: 1px;
     margin: .12rem 0 .08rem;
     background: rgba(var(--botanical-ink-rgb), .24);
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-intro__date {
-color: rgba(var(--botanical-ink-rgb), .52);
+    color: rgba(var(--botanical-ink-rgb), .52);
     font-family: "Lora", Georgia, serif;
     font-size: .1rem;
     font-weight: 600;
@@ -180,7 +170,7 @@ color: rgba(var(--botanical-ink-rgb), .52);
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--3 {
-order: 3;
+    order: 3;
     margin-top: .8rem;
     flex: 0 0 calc(46% - .08rem);
     aspect-ratio: 3 / 2;
@@ -188,7 +178,7 @@ order: 3;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid::before {
-content: "109\A PHOTOS";
+    content: "109\A PHOTOS";
     order: 4;
     margin-top: .8rem;
     flex: 0 0 calc(27% - .08rem);
@@ -206,7 +196,7 @@ content: "109\A PHOTOS";
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--2 {
-order: 5;
+    order: 5;
     flex: 0 0 calc(27% - .08rem);
     aspect-ratio: 2 / 3;
     height: auto !important;
@@ -214,14 +204,14 @@ order: 5;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--4 {
-order: 6;
+    order: 6;
     flex: 0 0 calc(46% - .08rem);
     aspect-ratio: 3 / 2;
     height: auto !important;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--5 {
-order: 7;
+    order: 7;
     flex: 0 0 calc(27% - .08rem);
     aspect-ratio: 1 / 1.2;
     height: auto !important;
@@ -229,7 +219,7 @@ order: 7;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed.gallery-grid::after {
-content: "SAFE OF DATE";
+    content: "SAFE OF DATE";
     order: 8;
     flex: 0 0 100%;
     display: block;
@@ -243,39 +233,34 @@ content: "SAFE OF DATE";
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--6 {
-order: 9;
+    order: 9;
     flex: 0 0 calc(50% - .06rem);
     aspect-ratio: 3 / 2;
     height: auto !important;
 }
 
 body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-frame--7 {
-order: 10;
+    order: 10;
     flex: 0 0 calc(50% - .06rem);
     aspect-ratio: 3 / 2;
     height: auto !important;
 }
 
-body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-side-text,
-body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-fan {
-display: none !important;
+body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-side-text, body .gallery.block-skin-concept-2 .gallery-poster--fixed .gallery-fan {
+    display: none !important;
 }
-
 /* gallery from concept-3 */
 
 body .gallery.block-skin-concept-3 {
-color: var(--sunset-ink);
+    color: var(--sunset-ink);
     /* Nền nhạt giống concept-4 (#fffdf8) */
     background: #fffdf8;
-}
-
-body .gallery.block-skin-concept-3 {
-padding: .05rem .2rem 1rem;
+    padding: .05rem .2rem 1rem;
     background: #fffdf8;
 }
 
 body .gallery.block-skin-concept-3 .gallery-grid {
-border-radius: .54rem;
+    border-radius: .54rem;
     padding: .26rem;
     gap: .1rem;
     background: #fff;
@@ -283,42 +268,39 @@ border-radius: .54rem;
     box-shadow: var(--sunset-shadow);
 }
 
-body .gallery.block-skin-concept-3 .gallery-intro,
-body .gallery.block-skin-concept-3 .gallery-intro__eyebrow,
-body .gallery.block-skin-concept-3 .gallery-intro__title {
-color: var(--sunset-ink);
+body .gallery.block-skin-concept-3 .gallery-intro, body .gallery.block-skin-concept-3 .gallery-intro__eyebrow, body .gallery.block-skin-concept-3 .gallery-intro__title {
+    color: var(--sunset-ink);
     font-family: "DM Serif Display", Georgia, serif;
 }
 
 body .gallery.block-skin-concept-3 .gallery-intro__script {
-color: var(--sunset-coral);
+    color: var(--sunset-coral);
 }
 
 body .gallery.block-skin-concept-3 .gallery-intro__line {
-background: var(--sunset-lavender);
+    background: var(--sunset-lavender);
 }
 
-body .gallery.block-skin-concept-3 .gallery-intro__date,
-body .gallery.block-skin-concept-3 .gallery-side-text {
-color: var(--sunset-muted);
+body .gallery.block-skin-concept-3 .gallery-intro__date, body .gallery.block-skin-concept-3 .gallery-side-text {
+    color: var(--sunset-muted);
 }
 
 body .gallery.block-skin-concept-3 .gallery-frame {
-border-radius: .24rem;
+    border-radius: .24rem;
     background: rgba(var(--sunset-lemon-rgb), .34);
 }
 
 body .gallery.block-skin-concept-3 .gallery-frame img {
-filter: saturate(1.08) brightness(1.04);
+    filter: saturate(1.08) brightness(1.04);
 }
 
 body .gallery.block-skin-concept-3 .gallery-fan {
-opacity: .18;
+    opacity: .18;
     background: repeating-conic-gradient(from -18deg, rgba(var(--sunset-coral-rgb), .5) 0deg 2deg, transparent 2deg 10deg);
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid {
-display: grid;
+    display: grid;
     grid-template-columns: repeat(12, 1fr) !important;
     grid-auto-rows: .42rem !important;
     gap: .16rem !important;
@@ -331,7 +313,7 @@ display: grid;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame {
-position: relative;
+    position: relative;
     margin: 0;
     overflow: hidden;
     border: .04rem solid rgba(255, 255, 255, .86);
@@ -341,23 +323,22 @@ position: relative;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame img {
-width: 100%;
+    width: 100%;
     height: 100%;
     object-fit: cover;
     filter: saturate(.95) contrast(1.01) brightness(1.04);
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--1 {
-grid-column: 1 / -1 !important;
+    grid-column: 1 / -1 !important;
     grid-row: 1 / span 5 !important;
     border: .02rem solid #fff;
     border-radius: .01rem;
     box-shadow: 0 14px 30px rgba(var(--sunset-ink-rgb), .12);
 }
 
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--1::after,
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--5::after {
-content: "";
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--1::after, body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--5::after {
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, .12));
@@ -365,7 +346,7 @@ content: "";
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro {
-position: relative !important;
+    position: relative !important;
     inset: auto !important;
     grid-column: 1 / -1 !important;
     grid-row: 6 / span 2 !important;
@@ -382,18 +363,18 @@ position: relative !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__eyebrow {
-display: none;
+    display: none;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__script {
-color: #7e5a42;
+    color: #7e5a42;
     font-family: "Great Vibes", cursive;
     font-size: .32rem;
     line-height: .9;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__title {
-max-width: 5.8rem;
+    max-width: 5.8rem;
     color: #2c251f;
     font-family: "Lora", Georgia, serif;
     font-size: .32rem;
@@ -404,7 +385,7 @@ max-width: 5.8rem;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__title::before {
-content: "TIMELESS Elegance";
+    content: "TIMELESS Elegance";
     display: block;
     color: #7e5a42;
     font-family: "Lora", Georgia, serif;
@@ -416,39 +397,37 @@ content: "TIMELESS Elegance";
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__line {
-width: 1.05rem;
+    width: 1.05rem;
     height: 1px;
     margin: .08rem auto .04rem;
     background: rgba(44, 37, 31, .28);
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-intro__date {
-color: rgba(44, 37, 31, .54);
+    color: rgba(44, 37, 31, .54);
     font-size: .15rem;
     font-weight: 700;
     letter-spacing: .08rem;
 }
 
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--2,
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--3,
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--4 {
-grid-row: 8 / span 5 !important;
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--2, body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--3, body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--4 {
+    grid-row: 8 / span 5 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--2 {
-grid-column: 2 / span 3 !important;
+    grid-column: 2 / span 3 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--3 {
-grid-column: 5 / span 4 !important;
+    grid-column: 5 / span 4 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--4 {
-grid-column: 9 / span 3 !important;
+    grid-column: 9 / span 3 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--5 {
-grid-column: 1 / -1 !important;
+    grid-column: 1 / -1 !important;
     grid-row: 14 / span 6 !important;
     border: .02rem solid #fff;
     border-radius: .01rem;
@@ -456,7 +435,7 @@ grid-column: 1 / -1 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid::before {
-content: "EXPERTISE and\A ARTISTRY";
+    content: "EXPERTISE and\A ARTISTRY";
     grid-column: 3 / span 8;
     grid-row: 16 / span 3;
     z-index: 3;
@@ -473,17 +452,17 @@ content: "EXPERTISE and\A ARTISTRY";
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--6 {
-grid-column: 2 / span 3 !important;
+    grid-column: 2 / span 3 !important;
     grid-row: 21 / span 5 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-frame--7 {
-grid-column: 9 / span 3 !important;
+    grid-column: 9 / span 3 !important;
     grid-row: 21 / span 5 !important;
 }
 
 body .gallery.block-skin-concept-3 .gallery-poster--fixed.gallery-grid::after {
-content: "LET US CAPTURE\A YOUR\A unforgettable\A MOMENTS";
+    content: "LET US CAPTURE\A YOUR\A unforgettable\A MOMENTS";
     grid-column: 5 / span 4;
     grid-row: 21 / span 5;
     display: grid;
@@ -497,32 +476,29 @@ content: "LET US CAPTURE\A YOUR\A unforgettable\A MOMENTS";
     text-transform: uppercase;
 }
 
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-side-text,
-body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-fan {
-display: none !important;
+body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-side-text, body .gallery.block-skin-concept-3 .gallery-poster--fixed .gallery-fan {
+    display: none !important;
 }
-
 /* gallery from concept-4 */
 
 body .gallery.block-skin-concept-4 {
-position: relative;
+    position: relative;
     padding: 0.5rem .46rem 1.15rem .46rem;
     background: var(--na01-paper);
     color: var(--na01-gold);
 }
-
 body .gallery.block-skin-concept-4 /* Gallery hero */
- .gallery {
-padding: 0 0 1rem;
+
+.gallery {
+    padding: 0 0 1rem;
 }
 
-body .gallery.block-skin-concept-4.section-title,
-body .gallery.block-skin-concept-4.section-subtitle {
-display: none;
+body .gallery.block-skin-concept-4.section-title, body .gallery.block-skin-concept-4.section-subtitle {
+    display: none;
 }
 
 body .gallery.block-skin-concept-4 .gallery-grid {
-position: relative;
+    position: relative;
     width: 100%;
     min-height: 17.3rem;
     margin: 0;
@@ -531,7 +507,7 @@ position: relative;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro {
-position: absolute;
+    position: absolute;
     top: .78rem;
     left: .62rem;
     z-index: 4;
@@ -539,21 +515,19 @@ position: absolute;
     background: transparent;
 }
 
-body .gallery.block-skin-concept-4 .gallery-intro__eyebrow,
-body .gallery.block-skin-concept-4 .gallery-intro__date,
-body .gallery.block-skin-concept-4 .gallery-intro__line {
-display: none;
+body .gallery.block-skin-concept-4 .gallery-intro__eyebrow, body .gallery.block-skin-concept-4 .gallery-intro__date, body .gallery.block-skin-concept-4 .gallery-intro__line {
+    display: none;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro__script {
-color: #fff;
+    color: #fff;
     font-family: "Great Vibes", cursive;
     font-size: .92rem;
     line-height: .9;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro__title {
-color: #fff;
+    color: #fff;
     font-family: "Lora", Georgia, serif;
     font-size: .78rem;
     line-height: 1;
@@ -561,37 +535,37 @@ color: #fff;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame {
-overflow: hidden;
+    overflow: hidden;
     border: none;
     border-radius: 0;
     box-shadow: none;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame img {
-height: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--1 {
-grid-column: 1 / -1 !important;
+    grid-column: 1 / -1 !important;
     grid-row: span 8 !important;
     min-height: 8.8rem;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--1::after {
-content: "";
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(0,0,0,.28), transparent 52%, rgba(0,0,0,.12));
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame:not(.gallery-frame--1) {
-border: .08rem solid #fff;
+    border: .08rem solid #fff;
     box-shadow: 0 10px 24px rgba(60,45,35,.12);
 }
 
 body .gallery.block-skin-concept-4 .gallery-side-text {
-position: static;
+    position: static;
     grid-column: 1 / -1;
     color: var(--na01-gold);
     font-family: "Philosopher", serif;
@@ -603,37 +577,35 @@ position: static;
 }
 
 body .gallery.block-skin-concept-4 .gallery-fan {
-display: none;
+    display: none;
 }
 
 body .gallery.block-skin-concept-4 {
-padding: .82rem .2rem 1.18rem !important;
+    padding: .82rem .2rem 1.18rem !important;
     overflow: hidden;
     background: #fffdf8;
 }
 
-body .gallery.block-skin-concept-4.section-title,
-body .gallery.block-skin-concept-4.section-subtitle {
-display: block !important;
+body .gallery.block-skin-concept-4.section-title, body .gallery.block-skin-concept-4.section-subtitle {
+    display: block !important;
 }
 
 body .gallery.block-skin-concept-4.section-title {
-margin-bottom: .16rem;
+    margin-bottom: .16rem;
 }
 
 body .gallery.block-skin-concept-4.section-subtitle {
-margin: 0 auto .38rem;
+    margin: 0 auto .38rem;
     color: rgba(var(--primary-rgb), .82);
 }
 
-body .gallery.block-skin-concept-4 .gallery-frame--1,
-body .gallery.block-skin-concept-4 .gallery-frame--5 {
-border: .065rem solid #fff !important;
+body .gallery.block-skin-concept-4 .gallery-frame--1, body .gallery.block-skin-concept-4 .gallery-frame--5 {
+    border: .065rem solid #fff !important;
     box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid {
-display: grid;
+    display: grid;
     grid-template-columns: repeat(12, 1fr) !important;
     grid-auto-rows: .42rem !important;
     gap: .1rem !important;
@@ -645,7 +617,7 @@ display: grid;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame {
-position: relative;
+    position: relative;
     z-index: 1;
     margin: 0;
     overflow: hidden;
@@ -655,13 +627,13 @@ position: relative;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame img {
-width: 100% !important;
+    width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--1 {
-grid-column: 1 / -1 !important;
+    grid-column: 1 / -1 !important;
     grid-row: 1 / span 6 !important;
     min-height: 0 !important;
     height: 100% !important;
@@ -670,7 +642,7 @@ grid-column: 1 / -1 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro {
-position: relative !important;
+    position: relative !important;
     top: auto !important;
     left: auto !important;
     right: auto !important;
@@ -690,17 +662,15 @@ position: relative !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro::after {
-display: none !important;
+    display: none !important;
 }
 
-body .gallery.block-skin-concept-4 .gallery-intro__eyebrow,
-body .gallery.block-skin-concept-4 .gallery-intro__line,
-body .gallery.block-skin-concept-4 .gallery-intro__date {
-display: none !important;
+body .gallery.block-skin-concept-4 .gallery-intro__eyebrow, body .gallery.block-skin-concept-4 .gallery-intro__line, body .gallery.block-skin-concept-4 .gallery-intro__date {
+    display: none !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro__script {
-color: #322c28 !important;
+    color: #322c28 !important;
     font-family: "Great Vibes", cursive;
     font-size: .54rem !important;
     line-height: .76;
@@ -708,7 +678,7 @@ color: #322c28 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-intro__title {
-margin-top: .04rem;
+    margin-top: .04rem;
     color: var(--primary-color) !important;
     font-family: "Lora", Georgia, serif;
     font-size: .22rem !important;
@@ -719,26 +689,24 @@ margin-top: .04rem;
     text-transform: uppercase;
 }
 
-body .gallery.block-skin-concept-4 .gallery-frame--2,
-body .gallery.block-skin-concept-4 .gallery-frame--3,
-body .gallery.block-skin-concept-4 .gallery-frame--4 {
-grid-row: 9 / span 6 !important;
+body .gallery.block-skin-concept-4 .gallery-frame--2, body .gallery.block-skin-concept-4 .gallery-frame--3, body .gallery.block-skin-concept-4 .gallery-frame--4 {
+    grid-row: 9 / span 6 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--2 {
-grid-column: 2 / span 3 !important;
+    grid-column: 2 / span 3 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--3 {
-grid-column: 5 / span 4 !important;
+    grid-column: 5 / span 4 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--4 {
-grid-column: 9 / span 3 !important;
+    grid-column: 9 / span 3 !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid::before {
-content: "IT MUST\A BE HEAVEN";
+    content: "IT MUST\A BE HEAVEN";
     grid-column: 1 / span 5;
     grid-row: 17 / span 4;
     z-index: 2;
@@ -757,7 +725,7 @@ content: "IT MUST\A BE HEAVEN";
 }
 
 body .gallery.block-skin-concept-4 .gallery-poster--fixed.gallery-grid::after {
-content: "Cent\A chemins\A sont tous vers toi";
+    content: "Cent\A chemins\A sont tous vers toi";
     grid-column: 7 / -1;
     grid-row: 27 / span 5;
     z-index: 3;
@@ -776,56 +744,49 @@ content: "Cent\A chemins\A sont tous vers toi";
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--5 {
-grid-column: 2 / span 4 !important;
+    grid-column: 2 / span 4 !important;
     grid-row: 22 / span 9 !important;
     border: .065rem solid #fff !important;
     box-shadow: 0 12px 28px rgba(58, 46, 34, .14) !important;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--6 {
-grid-column: 5 / span 4 !important;
+    grid-column: 5 / span 4 !important;
     grid-row: 17 / span 12 !important;
     z-index: 2;
 }
 
 body .gallery.block-skin-concept-4 .gallery-frame--7 {
-grid-column: 9 / span 3 !important;
+    grid-column: 9 / span 3 !important;
     grid-row: 20 / span 8 !important;
     z-index: 2;
 }
 
-body .gallery.block-skin-concept-4 .gallery-frame--5::before,
-body .gallery.block-skin-concept-4 .gallery-frame--6::before,
-body .gallery.block-skin-concept-4 .gallery-frame--7::before {
-content: "";
+body .gallery.block-skin-concept-4 .gallery-frame--5::before, body .gallery.block-skin-concept-4 .gallery-frame--6::before, body .gallery.block-skin-concept-4 .gallery-frame--7::before {
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .16));
     pointer-events: none;
 }
 
-body .gallery.block-skin-concept-4 .gallery-side-text,
-body .gallery.block-skin-concept-4 .gallery-fan {
-display: none !important;
+body .gallery.block-skin-concept-4 .gallery-side-text, body .gallery.block-skin-concept-4 .gallery-fan {
+    display: none !important;
 }
-
-
 /* ============================================================
    Concept 5 — Editorial (7 photos)
    QUAN TRỌNG: reset grid-column/row từ sections.css (gây dính/chồng)
    ============================================================ */
 
-body.block-gallery-concept-5 .gallery,
-.gallery.block-skin-concept-5 {
+body.block-gallery-concept-5 .gallery, .gallery.block-skin-concept-5 {
     padding: .25rem .2rem 1.15rem !important;
     color: #2c2824;
     /* Nền nhạt giống concept-4 */
     background: #fffdf8 !important;
 }
-
 /* Hiện title (và subtitle nếu có) */
-body.block-gallery-concept-5 .gallery .section-title,
-.gallery.block-skin-concept-5 .section-title {
+
+body.block-gallery-concept-5 .gallery .section-title, .gallery.block-skin-concept-5 .section-title {
     display: block !important;
     margin: 0 0 .18rem;
     padding: 0 .12rem;
@@ -837,8 +798,7 @@ body.block-gallery-concept-5 .gallery .section-title,
     text-transform: uppercase;
 }
 
-body.block-gallery-concept-5 .gallery .section-subtitle,
-.gallery.block-skin-concept-5 .section-subtitle {
+body.block-gallery-concept-5 .gallery .section-subtitle, .gallery.block-skin-concept-5 .section-subtitle {
     display: block !important;
     margin: 0 0 .28rem;
     padding: 0 .2rem;
@@ -847,28 +807,21 @@ body.block-gallery-concept-5 .gallery .section-subtitle,
     text-align: center;
 }
 
-body.block-gallery-concept-5 .gallery .section-subtitle:empty,
-body.block-gallery-concept-5 .gallery .section-subtitle[hidden],
-.gallery.block-skin-concept-5 .section-subtitle:empty,
-.gallery.block-skin-concept-5 .section-subtitle[hidden] {
+body.block-gallery-concept-5 .gallery .section-subtitle:empty, body.block-gallery-concept-5 .gallery .section-subtitle[hidden], .gallery.block-skin-concept-5 .section-subtitle:empty, .gallery.block-skin-concept-5 .section-subtitle[hidden] {
     display: none !important;
 }
 
-body.block-gallery-concept-5 .gallery-side-text,
-body.block-gallery-concept-5 .gallery-fan {
+body.block-gallery-concept-5 .gallery-side-text, body.block-gallery-concept-5 .gallery-fan {
     display: none !important;
 }
-
 /* Grid container — force override base 6-col layout */
-body.block-gallery-concept-5 .gallery-grid.gallery-poster,
-body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid,
-.gallery.block-skin-concept-5 .gallery-poster--journey.gallery-grid {
+
+body.block-gallery-concept-5 .gallery-grid.gallery-poster, body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid, .gallery.block-skin-concept-5 .gallery-poster--journey.gallery-grid {
     display: grid !important;
     grid-template-columns: 1fr 1.12fr !important;
     grid-template-rows: none !important;
     grid-auto-rows: auto !important;
-    grid-template-areas:
-        "copy hero"
+    grid-template-areas: "copy hero"
         "cine cine"
         "banner banner"
         "rhead rhead"
@@ -885,11 +838,11 @@ body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid,
     box-shadow: none !important;
     overflow: visible !important;
 }
-
 /* RECENT MOMENTS — full width, 1 hàng, căn giữa thật */
+
 body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid::before {
     content: "RECENT MOMENTS";
-    /* Không set grid-column:auto — sẽ phá span 2 cột của grid-area */
+    /* Không set grid-column: auto — sẽ phá span 2 cột của grid-area */
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
     justify-self: stretch !important;
@@ -918,17 +871,9 @@ body.block-gallery-concept-5 .gallery-poster--journey.gallery-grid::after {
     display: none !important;
     grid-area: unset !important;
 }
-
 /* Reset EVERY frame position from sections.css */
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
+
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7, body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
     grid-column: auto !important;
     grid-row: auto !important;
     z-index: 1 !important;
@@ -942,8 +887,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
     margin: 0 !important;
     transform: none !important;
 }
-
 /* Intro */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro {
     grid-area: copy !important;
     display: flex !important;
@@ -1017,8 +962,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-intro__date {
     letter-spacing: .04rem;
     text-transform: uppercase;
 }
-
 /* Frames */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame {
     border: 0 !important;
     border-radius: .12rem !important;
@@ -1033,8 +978,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame img {
     height: 100% !important;
     object-fit: cover !important;
 }
-
 /* 1 hero portrait */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1 {
     grid-area: hero !important;
     height: 4.8rem !important;
@@ -1044,8 +989,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1 {
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--1 img {
     object-position: center 12% !important;
 }
-
 /* 2 cinematic */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2 {
     grid-area: cine !important;
     height: 3.55rem !important;
@@ -1076,8 +1021,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--2::after {
     text-shadow: 0 3px 14px rgba(0, 0, 0, .5);
     pointer-events: none;
 }
-
 /* 3 banner */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3 {
     grid-area: banner !important;
     height: 2.75rem !important;
@@ -1105,8 +1050,8 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--3::after {
     text-shadow: 0 4px 16px rgba(0, 0, 0, .45);
     pointer-events: none;
 }
-
 /* 4–7: 2x2 với khoảng trống THẬT (gap + ô cao) */
+
 body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4 {
     grid-area: p4 !important;
     height: 3.15rem !important;
@@ -1131,10 +1076,7 @@ body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7 {
     min-height: 3.15rem !important;
 }
 
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4 img,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5 img,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6 img,
-body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7 img {
+body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--4 img, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--5 img, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--6 img, body.block-gallery-concept-5 .gallery-poster--journey .gallery-frame--7 img {
     object-position: center 22% !important;
     filter: none !important;
 }

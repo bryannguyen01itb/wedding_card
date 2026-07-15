@@ -6,7 +6,8 @@ import {
     getDefaultBlocksConfig,
     blocksFromBuilderFields,
     populateBuilderBlockSelects,
-    normalizeSkinId
+    normalizeSkinId,
+    getSectionSkinOptions
 } from "../js/modules/index.js";
 import {
     generateAccessToken,
@@ -142,6 +143,80 @@ const MEDIA_FIELD_NAMES = [
     "brideAvatar",
     ...Array.from({ length: GALLERY_SIZE }, (_, index) => `galleryPhoto${index + 1}`)
 ];
+
+/**
+ * Ô upload nào cần hiện theo concept block hiện tại.
+ * About: c1/c4 → ảnh đôi; c2/c3 → avatar.
+ * Timeline: c1–c3 cần ảnh; c4–c7 CSS ẩn img → không upload.
+ * Cover/poster/preview/countdown/gallery: luôn cần ảnh.
+ */
+function isMediaFieldActive(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (!name) return false;
+
+    if (name === "aboutImage") {
+        const opts = getSectionSkinOptions("about", getSelectedBlockValue("blockAbout"));
+        return Boolean(opts.usesAboutCardImage);
+    }
+    if (name === "groomAvatar" || name === "brideAvatar") {
+        const opts = getSectionSkinOptions("about", getSelectedBlockValue("blockAbout"));
+        return Boolean(opts.usesPersonAvatars);
+    }
+    if (name === "timelineImage") {
+        const opts = getSectionSkinOptions("timeline", getSelectedBlockValue("blockTimeline"));
+        // default true nếu skin chưa khai báo
+        return opts.usesCeremonyImage !== false;
+    }
+
+    // cover, poster, preview, countdown, gallery — luôn dùng ảnh
+    return true;
+}
+
+/** Ẩn/hiện .media-item theo concept; hủy blob pending của field ẩn (không upload). */
+function syncMediaUploadVisibility() {
+    document.querySelectorAll("[data-media-field]").forEach(item => {
+        const field = item.dataset.mediaField || "";
+        const active = isMediaFieldActive(field);
+        item.hidden = !active;
+        item.classList.toggle("is-media-inactive", !active);
+        item.setAttribute("aria-hidden", active ? "false" : "true");
+
+        if (!active) {
+            // Bỏ blob chờ upload + khôi phục URL remote (tránh field dính blob: đã revoke → Lưu fail)
+            if (pendingMediaBlobs.has(field)) {
+                const pending = pendingMediaBlobs.get(field);
+                const restore = String(pending?.previousRemoteUrl || lastRemoteMediaUrls.get(field) || "").trim();
+                clearPendingMedia(field);
+                setField(field, restore);
+                showMediaReady(field, restore);
+            } else if (isBlobUrl(readField(field))) {
+                const restore = String(lastRemoteMediaUrls.get(field) || "").trim();
+                setField(field, restore);
+                showMediaReady(field, restore);
+            }
+            const fileInput = item.querySelector(`[data-upload-target="${field}"]`);
+            if (fileInput) fileInput.value = "";
+        }
+    });
+
+    const hint = document.getElementById("mediaConceptHint");
+    if (hint) {
+        const aboutOpts = getSectionSkinOptions("about", getSelectedBlockValue("blockAbout"));
+        const timelineOpts = getSectionSkinOptions("timeline", getSelectedBlockValue("blockTimeline"));
+        const bits = [];
+        if (aboutOpts.usesAboutCardImage) {
+            bits.push("Đôi nét: ảnh đôi (1 ảnh)");
+        } else if (aboutOpts.usesPersonAvatars) {
+            bits.push("Đôi nét: avatar chú rể & cô dâu");
+        }
+        if (timelineOpts.usesCeremonyImage === false) {
+            bits.push("Lịch trình concept này không dùng ảnh — đã ẩn ô upload");
+        }
+        hint.textContent = bits.length
+            ? `${bits.join(". ")}. Chỉ hiện ô cần thiết để tránh upload thừa.`
+            : "Chỉ hiện ô upload ảnh mà concept đang chọn thực sự dùng — tránh upload thừa lên Cloudinary.";
+    }
+}
 
 function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -289,14 +364,11 @@ function normalizeMusicItem(item, sourceHint = "") {
 }
 
 /**
- * Gộp nhạc local (config.js + music/) + Cloudinary/Firebase musicLibrary.
- * Ưu tiên giữ bản local nếu trùng URL.
+ * Gộp nhạc local (js/config.js + folder music/) + collection Firebase musicLibrary.
+ * Không đọc musicLibrary gắn trên doc thiệp (field thừa / snapshot cũ).
  */
-function getMusicLibrary(config = {}) {
-    const localFromConfig = [
-        ...(Array.isArray(fallbackWedding.musicLibrary) ? fallbackWedding.musicLibrary : []),
-        ...(Array.isArray(config.musicLibrary) ? config.musicLibrary : [])
-    ]
+function getMusicLibrary() {
+    const localItems = (Array.isArray(fallbackWedding.musicLibrary) ? fallbackWedding.musicLibrary : [])
         .map(item => normalizeMusicItem(item, "local"))
         .filter(Boolean);
 
@@ -307,8 +379,7 @@ function getMusicLibrary(config = {}) {
     const seen = new Set();
     const result = [];
 
-    // Local trước, rồi remote (Cloudinary / admin)
-    [...localFromConfig, ...remoteItems].forEach(item => {
+    [...localItems, ...remoteItems].forEach(item => {
         if (seen.has(item.url)) return;
         seen.add(item.url);
         result.push(item);
@@ -335,7 +406,7 @@ function populateMusicOptions(config = loadedWeddingConfig) {
     if (!musicSelect) return;
 
     const currentMusic = String(config.music || fallbackWedding.music || "").trim();
-    const library = getMusicLibrary(config);
+    const library = getMusicLibrary();
     const localItems = library.filter(item => item.source === "local");
     const remoteItems = library.filter(item => item.source !== "local");
     const hasCurrentMusic = library.some(item => item.url === currentMusic);
@@ -1451,6 +1522,10 @@ async function stageImageForField(fieldName, file, options = {}) {
     mediaStageInFlight += 1;
 
     try {
+        if (!isMediaFieldActive(fieldName)) {
+            setStatus("Concept hiện tại không dùng ô ảnh này — đổi concept block nếu cần upload.", "error");
+            return;
+        }
         if (!file) {
             setStatus("Chọn file ảnh trước.", "error");
             return;
@@ -1531,12 +1606,20 @@ async function recoverPendingMediaFromBlobFields() {
  */
 async function flushPendingMediaUploads() {
     await recoverPendingMediaFromBlobFields();
+    // Bỏ pending của field concept không dùng — không upload Cloudinary
+    [...pendingMediaBlobs.keys()].forEach(fieldName => {
+        if (!isMediaFieldActive(fieldName)) clearPendingMedia(fieldName);
+    });
     const fields = [...pendingMediaBlobs.keys()];
     if (!fields.length) return;
 
     for (const fieldName of fields) {
         const pending = pendingMediaBlobs.get(fieldName);
         if (!pending?.blob) {
+            clearPendingMedia(fieldName);
+            continue;
+        }
+        if (!isMediaFieldActive(fieldName)) {
             clearPendingMedia(fieldName);
             continue;
         }
@@ -1568,7 +1651,9 @@ async function flushPendingMediaUploads() {
 }
 
 function assertNoBlobMediaUrls() {
-    const bad = MEDIA_FIELD_NAMES.filter(name => isBlobUrl(readField(name)));
+    const bad = MEDIA_FIELD_NAMES.filter(
+        name => isMediaFieldActive(name) && isBlobUrl(readField(name))
+    );
     if (bad.length) {
         throw new Error(`Ảnh vẫn còn bản tạm: ${bad.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
     }
@@ -2129,33 +2214,48 @@ function createCustomerConfig() {
             concepts: (() => {
                 const concepts = {};
                 // Media: đọc thẳng field (readField) — tránh FormData miss sau setField
-                setConceptImage(concepts, getSelectedBlockValue("blockCover"), "cover", readField("coverPosterImage"));
-                setConceptImage(concepts, getSelectedBlockValue("blockCountdown"), "countdown", readField("countdownImage"));
+                if (isMediaFieldActive("coverPosterImage")) {
+                    setConceptImage(
+                        concepts,
+                        getSelectedBlockValue("blockCover"),
+                        "cover",
+                        readField("coverPosterImage")
+                    );
+                }
+                if (isMediaFieldActive("countdownImage")) {
+                    setConceptImage(
+                        concepts,
+                        getSelectedBlockValue("blockCountdown"),
+                        "countdown",
+                        readField("countdownImage")
+                    );
+                }
                 return concepts;
             })()
         },
         poster: {
-            image: readField("coverPosterImage")
+            image: isMediaFieldActive("coverPosterImage") ? readField("coverPosterImage") : ""
         },
         preview: {
-            image: readField("previewImage")
+            image: isMediaFieldActive("previewImage") ? readField("previewImage") : ""
         },
         aboutCard: {
-            image: readField("aboutImage")
+            // Chỉ ghi khi concept about dùng ảnh đôi (1/4)
+            image: isMediaFieldActive("aboutImage") ? readField("aboutImage") : ""
         },
         groom: {
             nickname: groomNickname,
             fullName: readText(data, "groomFullName"),
             father: readText(data, "groomFather"),
             mother: readText(data, "groomMother"),
-            avatar: readField("groomAvatar")
+            avatar: isMediaFieldActive("groomAvatar") ? readField("groomAvatar") : ""
         },
         bride: {
             nickname: brideNickname,
             fullName: readText(data, "brideFullName"),
             father: readText(data, "brideFather"),
             mother: readText(data, "brideMother"),
-            avatar: readField("brideAvatar")
+            avatar: isMediaFieldActive("brideAvatar") ? readField("brideAvatar") : ""
         },
         sections: {
             ...(loadedWeddingConfig.sections || fallbackWedding.sections || {}),
@@ -2204,7 +2304,7 @@ function createCustomerConfig() {
             thanks: readText(data, "subtitleThanks")
         },
         ceremony: {
-            image: readField("timelineImage"),
+            image: isMediaFieldActive("timelineImage") ? readField("timelineImage") : "",
             bride: {
                 title: readText(data, "brideCeremonyTitle")
                     || loadedWeddingConfig.ceremony?.bride?.title
@@ -2372,7 +2472,6 @@ function createPreviewConfig() {
                 ...(customerConfig.gift?.bride || {})
             }
         },
-        musicLibrary: getMusicLibrary(config),
         ceremony: {
             ...(config.ceremony || {}),
             ...(customerConfig.ceremony || {}),
@@ -2591,6 +2690,9 @@ function fillBuilderForm(config = {}) {
     setControlValue("brideMealTime", brideMeal.time);
     setControlValue("groomMealDate", groomMeal.date);
     setControlValue("groomMealTime", groomMeal.time);
+
+    // Sau khi gán block concept → ẩn ô ảnh không dùng
+    syncMediaUploadVisibility();
 }
 
 function buildLoadedConfigFromData(weddingId, data = {}) {
@@ -3126,6 +3228,12 @@ function handleBlockConceptChange(event) {
 
     if (!name.startsWith("block")) return;
 
+    // Đổi concept about → ẩn/hiện ô upload ảnh tương ứng
+    if (name === "blockAbout" || name === "blockCover" || name === "blockCountdown"
+        || name === "blockTimeline" || name === "blockGallery" || name === "blockPoster") {
+        syncMediaUploadVisibility();
+    }
+
     jumpPreviewToField(name);
 }
 
@@ -3213,8 +3321,12 @@ async function saveConfig(event) {
             await flushPendingQrUploads();
         }
 
+        // Đồng bộ ẩn concept + dọn blob field không active trước khi kiểm tra
+        syncMediaUploadVisibility();
         assertNoBlobMediaUrls();
-        const blobMedia = MEDIA_FIELD_NAMES.filter(name => isBlobUrl(readField(name)));
+        const blobMedia = MEDIA_FIELD_NAMES.filter(
+            name => isMediaFieldActive(name) && isBlobUrl(readField(name))
+        );
         if (blobMedia.length) {
             throw new Error(`Ảnh tạm chưa upload xong: ${blobMedia.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
         }
@@ -3289,10 +3401,26 @@ async function saveConfig(event) {
         if (!loadedWeddingConfig.createdAt) {
             payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
         }
+        // Gỡ field thừa: thư viện nhạc thuộc collection musicLibrary / config local, không lưu trong wedding
+        payload.musicLibrary = firebase.firestore.FieldValue.delete();
 
         await db.collection("weddings").doc(payload.weddingId).set(payload, { merge: true });
 
         // Map token + orderCode (SePay) + paymentStatus + editSessions
+        const sessionPayload = {
+            ...payload,
+            // FieldValue không serialize — dùng null, sessionUpdatedAt set trong helper
+            createdAt: null,
+            updatedAt: null,
+            musicLibrary: null,
+            payment: {
+                ...(payload.payment || {}),
+                updatedAt: null,
+                confirmedAt: null
+            }
+        };
+        delete sessionPayload.musicLibrary;
+
         await Promise.all([
             syncWeddingTokenMaps(db, {
                 weddingId: payload.weddingId,
@@ -3307,17 +3435,7 @@ async function saveConfig(event) {
                 status: "pending"
             }),
             upsertPaymentStatus(db, payload.weddingId, payload.payment),
-            upsertEditSession(db, editToken, {
-                ...payload,
-                // FieldValue không serialize — dùng null, sessionUpdatedAt set trong helper
-                createdAt: null,
-                updatedAt: null,
-                payment: {
-                    ...(payload.payment || {}),
-                    updatedAt: null,
-                    confirmedAt: null
-                }
-            })
+            upsertEditSession(db, editToken, sessionPayload)
         ]);
 
         sessionCloudinaryPublicIds = [];
@@ -3331,6 +3449,7 @@ async function saveConfig(event) {
             builder: payload.builder,
             createdAt: loadedWeddingConfig.createdAt || true
         };
+        delete loadedWeddingConfig.musicLibrary;
         editingWeddingId = payload.weddingId;
         originalEditingWeddingId = payload.weddingId;
         weddingIdInput.value = payload.weddingId;
@@ -3509,10 +3628,14 @@ document.addEventListener("keydown", event => {
 });
 populateBuilderBlockSelects(form);
 renderBuilderGalleryFields();
+syncMediaUploadVisibility();
 Promise.all([
     loadPaymentSettings(),
     loadMusicLibrary()
-]).then(() => loadConfigForEdit()).then(() => populateMusicOptions(loadedWeddingConfig));
+]).then(() => loadConfigForEdit()).then(() => {
+    populateMusicOptions(loadedWeddingConfig);
+    syncMediaUploadVisibility();
+});
 
 if (saveModal) {
     saveModal.addEventListener("click", event => {

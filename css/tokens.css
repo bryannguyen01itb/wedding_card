@@ -1,6 +1,7 @@
 /**
  * Design tokens — size / spacing chung.
- * Màu chủ đạo: css/brand.css (+ js/brand.js) — không khai báo lại hex ở đây.
+ * Màu chủ đạo: load css/brand.css TRƯỚC file này (index.html / style.css).
+ * Không @import brand ở đây — tránh tải brand 2 lần khi HTML đã link brand.css.
  *
  * Quy ước:
  *  - Màu brand  → css/brand.css / js/brand.js
@@ -8,7 +9,6 @@
  *  - Style 1 concept → css/blocks/<section>/skins.css
  *  - Đè chắc chắn → css/blocks/theme-unifier.css (load cuối)
  */
-@import url("brand.css");
 
 :root {
     /* Section title / subtitle (about, timeline, gallery, gift, thanks, save-date…) */

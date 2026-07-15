@@ -224,44 +224,45 @@
                     <p class="hint">Bấm <strong>Chọn ảnh</strong> → chọn file là xong (tự hiện thumb + preview). Chỉ upload Cloudinary khi bấm <strong>Lưu Firebase</strong>.</p>
 
                     <h3 class="card-subheading">Ảnh chính</h3>
+                    <p class="hint media-concept-hint" id="mediaConceptHint">Ô upload phụ thuộc concept “Đôi nét về chúng tôi”: concept 1/4 → ảnh đôi; concept 2/3 → avatar chú rể &amp; cô dâu.</p>
                     <div class="media-grid">
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="coverPosterImage">
                             <div class="media-label">Ảnh đầu thiệp / poster<input type="hidden" name="coverPosterImage"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="coverPosterImage" hidden><img alt="Poster" data-media-thumb="coverPosterImage"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="previewImage">
                             <div class="media-label">Ảnh preview khi gửi link<input type="hidden" name="previewImage"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="previewImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="previewImage" hidden><img alt="Preview" data-media-thumb="previewImage"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="aboutImage">
                             <div class="media-label">Ảnh đôi (concept 1 hoặc 4 — Đôi nét về chúng tôi)<input type="hidden" name="aboutImage"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="aboutImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="aboutImage" hidden><img alt="About" data-media-thumb="aboutImage"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="timelineImage">
                             <div class="media-label">Ảnh lịch trình<input type="hidden" name="timelineImage"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="timelineImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="timelineImage" hidden><img alt="Timeline" data-media-thumb="timelineImage"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="countdownImage">
                             <div class="media-label">Ảnh đếm ngược<input type="hidden" name="countdownImage"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="countdownImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="countdownImage" hidden><img alt="Countdown" data-media-thumb="countdownImage"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="groomAvatar">
                             <div class="media-label">Ảnh chú rể (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="groomAvatar"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="groomAvatar" hidden><img alt="Groom" data-media-thumb="groomAvatar"><strong>Đã có ảnh</strong></div>
                         </div>
 
-                        <div class="media-item">
+                        <div class="media-item" data-media-field="brideAvatar">
                             <div class="media-label">Ảnh cô dâu (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="brideAvatar"></div>
                             <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
                             <div class="media-ready" data-media-ready="brideAvatar" hidden><img alt="Bride" data-media-thumb="brideAvatar"><strong>Đã có ảnh</strong></div>

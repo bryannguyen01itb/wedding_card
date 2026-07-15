@@ -1,44 +1,40 @@
 # CSS structure
 
-## Entry (`style.css`)
+## Entry
+
+**Production:** `index.html` load phẳng từng file + `?v=` (không dùng `@import` lồng).
+
+**Fallback:** `style.css` — 1 tầng `@import` (brand → tokens → parts → skins → unifier).
 
 ```txt
-parts/base.css
-parts/cover.css
-parts/sections.css
-parts/countdown-thanks.css
-parts/animations.css
+brand.css + tokens.css
+parts/base, cover, sections, countdown-thanks, animations
 parts/concept-1-classic.css   # wish / gift / thanks cố định
 parts/gift-polish.css
-parts/block-builder.css       # font classes + shared fixes
-blocks/index.css              # mọi section skin
+parts/block-builder.css
+blocks/<section>/skins.css    # cover…divider (buildable)
+blocks/theme-unifier.css      # luôn cuối
 ```
+
+`blocks/gift|wish|thanks/skins.css` = stub (style trong concept-1-classic) — **không** link trên HTML.
+
+`blocks/index.css` = deprecated, không import.
 
 ## Module skins (sửa theo section)
 
-Mỗi section một file — concept 1–4 nằm chung trong file đó:
-
 | Module | File |
 | --- | --- |
-| cover | `blocks/cover/skins.css` |
-| poster | `blocks/poster/skins.css` |
-| save-date | `blocks/save-date/skins.css` |
-| about | `blocks/about/skins.css` |
-| timeline | `blocks/timeline/skins.css` |
-| gallery | `blocks/gallery/skins.css` |
-| countdown | `blocks/countdown/skins.css` |
-| divider | `blocks/divider/skins.css` |
-| gift / wish / thanks | `blocks/<name>/skins.css` (override; base = concept-1-classic) |
+| cover…divider | `blocks/<name>/skins.css` |
+| gift / wish / thanks | `parts/concept-1-classic.css` (+ gift-polish / sections) |
 | nền / title chung | `blocks/theme-unifier.css` |
-
-Import order: `blocks/index.css`.
 
 ## Class JS gắn
 
 - `body.block-<section>-concept-N`
 - `.section.block-skin-concept-N`
 
-## Đã migrate
+## Tối ưu an toàn (không đổi giao diện)
 
-- `parts/block-concepts.css` → tách vào `blocks/*/skins.css` (xong).
-- `parts/concept-2/3/4-*.css` → đã gỡ (không import).
+- Không load 3 stub skins rỗng (bớt HTTP).
+- `tokens.css` không `@import brand` (tránh brand 2 lần).
+- Gộp selector kề nhau trùng lặp trong divider / gallery / timeline.

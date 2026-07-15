@@ -52,6 +52,9 @@ async function main() {
         throw new Error("Config thiếu weddingId. Hãy thêm weddingId trước khi upload.");
     }
 
+    // Catalog local không thuộc document thiệp (tránh phình doc / trùng collection musicLibrary)
+    delete wedding.musicLibrary;
+
     const serviceAccount = JSON.parse(await fs.readFile(path.resolve(serviceAccountPath), "utf8"));
     const admin = require("firebase-admin");
 
@@ -64,7 +67,11 @@ async function main() {
     const db = admin.firestore();
     const docRef = db.collection("weddings").doc(wedding.weddingId);
 
-    await docRef.set(wedding, { merge });
+    const payload = merge
+        ? { ...wedding, musicLibrary: admin.firestore.FieldValue.delete() }
+        : wedding;
+
+    await docRef.set(payload, { merge });
 
     console.log(`Đã upload config lên Firestore: weddings/${wedding.weddingId}`);
     console.log(merge ? "Chế độ: merge" : "Chế độ: ghi đè document config");

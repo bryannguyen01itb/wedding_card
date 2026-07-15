@@ -1151,6 +1151,8 @@ function fillForm(config) {
     if (config && Object.prototype.hasOwnProperty.call(config, "payment")) {
         currentConfig.payment = { ...(config.payment || {}) };
     }
+    // Catalog nhạc không thuộc doc thiệp
+    delete currentConfig.musicLibrary;
 
     [...form.elements].forEach(field => {
         if (!field.name || field.name === "theme.primaryColorText") return;
@@ -1389,8 +1391,14 @@ async function saveConfig(event) {
     saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lưu';
 
     try {
-        await db.collection("weddings").doc(config.weddingId).set(config, { merge: true });
+        // musicLibrary chỉ thuộc collection global — không nhét vào doc thiệp
+        delete config.musicLibrary;
+        await db.collection("weddings").doc(config.weddingId).set({
+            ...config,
+            musicLibrary: firebase.firestore.FieldValue.delete()
+        }, { merge: true });
         currentConfig = config;
+        delete currentConfig.musicLibrary;
         loadInput.value = config.weddingId;
         updatePreviewLink(config.weddingId, config.payment?.accessToken || "");
         showToast("Đã lưu config lên Firebase.");

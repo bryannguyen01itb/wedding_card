@@ -97,8 +97,9 @@ export let wedding = {
         txnId: ""
     },
 
-    // --- Thư viện nhạc local (folder music/) ---
-    // Thêm file mp3 vào music/ rồi khai báo ở đây. Builder gộp thêm bài từ Firebase musicLibrary (Cloudinary).
+    // --- Catalog nhạc local (folder music/) — chỉ dùng code/builder select ---
+    // KHÔNG ghi field này lên weddings/{id}. Thư viện remote: collection Firestore musicLibrary.
+    // Mỗi thiệp chỉ lưu field music (1 URL bài đang chọn).
     musicLibrary: [
         { title: "Một đời", url: "music/1_doi.mp3", source: "local" },
         { title: "Một nhà", url: "music/1_nha.mp3", source: "local" },
