@@ -11,7 +11,9 @@ import { normalizeToken } from "./core/registry.js";
 
 export function renderContent() {
     bootstrapModules();
-    applyTheme(wedding.theme);
+    applyTheme(wedding.theme, {
+        ceremonyMode: wedding.ceremony?.mode === "joint" ? "joint" : "separate"
+    });
     renderHeader();
 
     getRegisteredSections().forEach(section => {

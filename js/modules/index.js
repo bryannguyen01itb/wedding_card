@@ -105,16 +105,31 @@ export function blocksFromBuilderFields(fields = {}) {
 
 /**
  * Fill builder <select name="block…"> options from the registry.
+ * @param {ParentNode} [root]
+ * @param {{ ceremonyMode?: string }} [context] — filter skin timeline theo mode
  */
-export function populateBuilderBlockSelects(root = document) {
+export function populateBuilderBlockSelects(root = document, context = {}) {
     getBuildableSections().forEach(section => {
         const select = root.querySelector(`select[name="${section.builderField}"]`);
         if (!select) return;
 
         const current = select.value;
-        const skinIds = getSectionSkinIds(section.id);
+        const skinIds = getSectionSkinIds(section.id, context);
         select.textContent = "";
 
+        if (!skinIds.length) {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = section.id === "timeline"
+                ? "Chưa có concept tổ chức chung (sẽ thêm sau)"
+                : "Chưa có concept";
+            select.appendChild(option);
+            select.disabled = true;
+            select.value = "";
+            return;
+        }
+
+        select.disabled = false;
         skinIds.forEach(skinId => {
             const skin = getSkin(skinId);
             const option = document.createElement("option");
@@ -126,7 +141,9 @@ export function populateBuilderBlockSelects(root = document) {
         if (current && skinIds.includes(normalizeSkinId(current, section.defaultSkin))) {
             select.value = normalizeSkinId(current, section.defaultSkin);
         } else {
-            select.value = section.defaultSkin;
+            select.value = skinIds.includes(section.defaultSkin)
+                ? section.defaultSkin
+                : skinIds[0];
         }
     });
 }

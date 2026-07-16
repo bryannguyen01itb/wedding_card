@@ -31,25 +31,46 @@ function removePrefixedClasses(element, prefixes) {
 /**
  * Attach block-skin-* on each section root and block-<section>-<skin> on body.
  */
-export function applyModuleClasses(themeConfig = {}) {
+/**
+ * @param {object} themeConfig
+ * @param {{ ceremonyMode?: string }} [context]
+ */
+export function applyModuleClasses(themeConfig = {}, context = {}) {
     const body = document.body;
     const blocks = themeConfig.blocks || {};
     const fonts = themeConfig.fonts || {};
     const skinClasses = getAllElementSkinClasses();
     const bodyPrefixes = [...collectBodyBlockPrefixes(), ...FONT_CLASS_PREFIXES];
+    const skinContext = {
+        ceremonyMode: context.ceremonyMode || themeConfig.ceremonyMode || "separate"
+    };
 
     removePrefixedClasses(body, bodyPrefixes);
+    body.classList.remove("ceremony-mode-separate", "ceremony-mode-joint");
+    body.classList.add(
+        skinContext.ceremonyMode === "joint" ? "ceremony-mode-joint" : "ceremony-mode-separate"
+    );
 
     getRegisteredSections().forEach(section => {
         if (!section.selector || section.applySkin === false) return;
 
-        const skinId = resolveSectionSkin(section.id, blocks);
+        const skinId = resolveSectionSkin(
+            section.id,
+            blocks,
+            section.id === "timeline" ? skinContext : {}
+        );
         document.querySelectorAll(section.selector).forEach(element => {
             element.classList.remove(...skinClasses);
-            element.classList.add(getElementSkinClass(skinId));
+            if (skinId) {
+                element.classList.add(getElementSkinClass(skinId));
+            }
         });
 
-        body.classList.add(getBodyBlockClass(section.id, skinId));
+        if (skinId) {
+            body.classList.add(getBodyBlockClass(section.id, skinId));
+        } else if (section.id === "timeline" && skinContext.ceremonyMode === "joint") {
+            body.classList.add("block-timeline-joint");
+        }
     });
 
     // Forward-compatible: honour extra block keys not yet in this build's registry.
@@ -83,12 +104,19 @@ export function resolveCoverOpenLabel(themeConfig = {}) {
 
 /**
  * Resolve concept media blob for a section's active skin.
+ * @param {object} themeConfig
+ * @param {string} sectionId
+ * @param {{ ceremonyMode?: string }} [context]
  */
-export function getActiveConceptConfig(themeConfig = {}, sectionId) {
-    const skinId = resolveSectionSkin(sectionId, themeConfig.blocks || {});
+export function getActiveConceptConfig(themeConfig = {}, sectionId, context = {}) {
+    const skinId = resolveSectionSkin(
+        sectionId,
+        themeConfig.blocks || {},
+        sectionId === "timeline" ? context : {}
+    );
     return {
         skinId,
         skin: getSkin(skinId),
-        config: themeConfig?.concepts?.[skinId] || {}
+        config: (skinId && themeConfig?.concepts?.[skinId]) || {}
     };
 }

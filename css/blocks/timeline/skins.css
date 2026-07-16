@@ -1,8 +1,9 @@
 /* ============================================================
-   Section skins — migrated from parts/block-concepts.css
-   + maintained overrides below (if any).
-   Module ownership: js/modules/<section>/
+   Section skins — timeline
+   Module: js/modules/timeline/
+   concept-2/3/4 (separate) + concept-5..7 + joint
    ============================================================ */
+
 /* --- from block-concepts (timeline) --- */
 /* timeline from concept-1 */
 /* timeline from concept-2 */
@@ -28,7 +29,7 @@ body .timeline.block-skin-concept-2 .timeline-card {
     box-shadow: var(--botanical-shadow);
 }
 
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip {
     grid-template-columns: 1fr 2.5rem;
 }
 
@@ -61,130 +62,169 @@ body .timeline.block-skin-concept-2 .timeline-card > img {
     box-shadow: 0 12px 24px rgba(var(--botanical-ink-rgb), .12);
 }
 
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img {
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip > img {
     grid-column: 2;
     grid-row: 1;
 }
 
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip .timeline-content {
     grid-column: 1;
     grid-row: 1;
 }
 
 body .timeline.block-skin-concept-2 .timeline-content {
-    padding: .08rem .06rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: .06rem .04rem .06rem .02rem;
 }
 
+/* Gốc: sự kiện xếp DỌC (bữa cơm → lễ), không 2 cột ngang */
 body .timeline.block-skin-concept-2 .timeline-events {
-    display: grid;
-    gap: .16rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .14rem !important;
 }
 
 body .timeline.block-skin-concept-2 .timeline-event {
     position: relative;
-    padding: .18rem .2rem .18rem .32rem;
-    border-radius: .24rem;
-    background: var(--botanical-mint);
+    flex: none !important;
+    width: 100%;
+    padding: .16rem .18rem .16rem .3rem;
+    border: 0 !important;
+    border-radius: .22rem;
+    background: var(--botanical-mint, #e8f3ea);
 }
 
 body .timeline.block-skin-concept-2 .timeline-event::before {
     content: "";
     position: absolute;
-    left: .16rem;
-    top: .22rem;
-    bottom: .22rem;
+    left: .14rem;
+    top: .2rem;
+    bottom: .2rem;
     width: 2px;
     border-radius: 999px;
-    background: var(--botanical-leaf);
+    background: var(--botanical-leaf, var(--primary-color));
 }
 
 body .timeline.block-skin-concept-2 .timeline-event + .timeline-event {
-    border-left: 0;
+    border-left: 0 !important;
+    border-top: 0 !important;
+    padding-left: .3rem !important;
 }
 
 body .timeline.block-skin-concept-2 .timeline-name {
-    text-align: left;
-    color: var(--botanical-ink);
+    text-align: left !important;
+    color: var(--botanical-ink, #2f2a25);
     font-family: "Lora", Georgia, serif;
-    font-size: .27rem;
+    font-size: .26rem;
     font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: .1rem;
+    line-height: 1.3;
+    margin-bottom: .08rem;
+    letter-spacing: .01rem;
 }
 
 body .timeline.block-skin-concept-2 .timeline-row {
-    gap: .12rem;
-    margin: .12rem 0;
+    gap: .1rem;
+    margin: .08rem 0 0;
 }
 
-body .timeline.block-skin-concept-2 .timeline-event .timeline-row, body .timeline.block-skin-concept-2 .timeline-address {
-    justify-content: flex-start;
-    text-align: left;
+body .timeline.block-skin-concept-2 .timeline-event .timeline-row,
+body .timeline.block-skin-concept-2 .timeline-address {
+    justify-content: flex-start !important;
+    text-align: left !important;
 }
 
 body .timeline.block-skin-concept-2 .timeline-row i {
-    color: var(--botanical-rose);
-    font-size: .27rem;
+    color: var(--botanical-rose, #c4787a);
+    font-size: .26rem;
+    flex-shrink: 0;
 }
 
 body .timeline.block-skin-concept-2 .timeline-row span {
-    /* đậm hơn botanical-muted (nhìn rõ time/location) */
-color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%);
-    font-size: .27rem;
+    color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%);
+    font-size: .24rem;
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.4;
 }
 
 body .timeline.block-skin-concept-2 .timeline-address {
-    margin-top: .18rem;
-    padding-top: .18rem;
-    border-top: 1px dashed rgba(var(--botanical-leaf-rgb), .28);
+    margin-top: .14rem;
+    padding-top: .14rem;
+    border-top: 1px dashed rgba(var(--botanical-leaf-rgb, var(--primary-rgb)), .28);
     color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%);
 }
 
 body .timeline.block-skin-concept-2 .timeline-address span {
     color: inherit;
     font-weight: 600;
+    font-size: .24rem;
 }
 
 body .timeline.block-skin-concept-2 .timeline-map-link {
+    align-self: flex-start;
+    margin-top: .12rem;
     border-radius: 999px;
     color: #fff;
-    background: var(--botanical-leaf);
-    box-shadow: 0 10px 22px rgba(var(--botanical-leaf-rgb), .2);
+    background: var(--botanical-leaf, var(--primary-color));
+    box-shadow: 0 10px 22px rgba(var(--botanical-leaf-rgb, var(--primary-rgb)), .2);
+    font-size: .24rem;
 }
 
 body .timeline.block-skin-concept-2 .timeline-map-link:hover {
-    background: var(--botanical-rose);
+    background: var(--botanical-rose, #c4787a);
 }
 
-body .timeline.block-skin-concept-2 .timeline-card, body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
-    grid-template-columns: 1fr;
-    text-align: center;
+/* Badge trên ảnh — layout ngang ảnh|content (không ép 1 cột) */
+body .timeline.block-skin-concept-2 .timeline-side-badge {
+    top: .22rem;
+    left: .22rem;
+    z-index: 3;
+    color: var(--botanical-ink, #2f2a25);
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid rgba(var(--botanical-leaf-rgb, var(--primary-rgb)), .18);
+    box-shadow: 0 8px 18px rgba(var(--botanical-ink-rgb, 47, 42, 37), .1);
+    font-size: .22rem;
 }
 
-body .timeline.block-skin-concept-2 .timeline-card > img, body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img, body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
-    grid-column: 1;
-    grid-row: auto;
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip .timeline-side-badge {
+    left: auto;
+    right: .22rem;
+}
+
+/* Khóa layout gốc: ảnh | content (chẵn: content | ảnh) — đè base flex events */
+body .timeline.block-skin-concept-2 .timeline-card {
+    display: grid !important;
+    grid-template-columns: 2.45rem minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    text-align: left !important;
+}
+
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip {
+    grid-template-columns: minmax(0, 1fr) 2.45rem !important;
 }
 
 body .timeline.block-skin-concept-2 .timeline-card > img {
-    height: 3rem;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 3.8rem !important;
+    max-height: none !important;
+    border-radius: .28rem !important;
+    object-fit: cover !important;
 }
 
-body .timeline.block-skin-concept-2 .timeline-side-badge {
-    top: .38rem;
-    left: .38rem;
-    color: var(--botanical-ink);
-    background: rgba(var(--botanical-paper-rgb), .9);
-    border: 1px solid rgba(var(--botanical-leaf-rgb), .18);
-    box-shadow: 0 10px 22px rgba(var(--botanical-ink-rgb), .12);
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip > img {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
 }
 
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-side-badge {
-    left: auto;
-    right: .38rem;
+body .timeline.block-skin-concept-2 .timeline-card.is-side-flip .timeline-content {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
 }
+
 /* timeline from concept-3 */
 
 body .timeline.block-skin-concept-3 {
@@ -213,60 +253,77 @@ body .timeline.block-skin-concept-3 .timeline-card > img {
 }
 
 body .timeline.block-skin-concept-3 .timeline-content {
-    padding: .3rem .28rem .38rem;
+    padding: .28rem .26rem .34rem;
 }
 
+/* Gốc concept-3: ảnh full trên, sự kiện xếp DỌC */
 body .timeline.block-skin-concept-3 .timeline-events {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: .14rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .12rem !important;
 }
 
 body .timeline.block-skin-concept-3 .timeline-event {
-    padding: .18rem .22rem;
-    border-radius: .22rem;
-    background: linear-gradient(135deg, rgba(var(--sunset-lemon-rgb), .34), rgba(var(--sunset-sky-rgb), .18));
+    flex: none !important;
+    width: 100%;
+    padding: .16rem .22rem;
+    border: 0 !important;
+    border-radius: .2rem;
+    background: linear-gradient(
+        135deg,
+        rgba(var(--sunset-lemon-rgb, 255, 220, 140), .4),
+        rgba(var(--sunset-sky-rgb, 160, 200, 230), .22)
+    );
 }
 
 body .timeline.block-skin-concept-3 .timeline-event + .timeline-event {
-    border-left: 0;
+    border-left: 0 !important;
+    border-top: 0 !important;
 }
 
 body .timeline.block-skin-concept-3 .timeline-name {
-    color: var(--sunset-ink);
+    color: var(--sunset-ink, #34283d);
     font-family: "Quicksand", Arial, sans-serif;
-    font-size: .27rem;
+    font-size: .26rem;
     font-weight: 800;
     letter-spacing: .02rem;
-    text-align: left;
+    text-align: left !important;
     text-transform: uppercase;
+    margin-bottom: .06rem;
+    line-height: 1.3;
 }
 
-body .timeline.block-skin-concept-3 .timeline-event .timeline-row, body .timeline.block-skin-concept-3 .timeline-address {
-    justify-content: flex-start;
-    text-align: left;
+body .timeline.block-skin-concept-3 .timeline-event .timeline-row,
+body .timeline.block-skin-concept-3 .timeline-address {
+    justify-content: flex-start !important;
+    text-align: left !important;
 }
 
 body .timeline.block-skin-concept-3 .timeline-row i {
-    color: var(--sunset-coral);
-    font-size: .27rem;
+    color: var(--sunset-coral, #e07a6a);
+    font-size: .26rem;
+    flex-shrink: 0;
 }
 
 body .timeline.block-skin-concept-3 .timeline-row span {
-    /* đậm hơn sunset-muted */
-color: color-mix(in srgb, var(--sunset-ink, #34283d) 70%, var(--sunset-muted, #7d7186) 30%);
-    font-size: .27rem;
+    color: color-mix(in srgb, var(--sunset-ink, #34283d) 70%, var(--sunset-muted, #7d7186) 30%);
+    font-size: .24rem;
     font-weight: 600;
+    line-height: 1.4;
 }
 
 body .timeline.block-skin-concept-3 .timeline-address {
-    border-top: 1px dashed rgba(var(--sunset-coral-rgb), .25);
+    margin-top: .16rem;
+    padding-top: .16rem;
+    border-top: 1px dashed rgba(var(--sunset-coral-rgb, var(--primary-rgb)), .25);
     color: color-mix(in srgb, var(--sunset-ink, #34283d) 70%, var(--sunset-muted, #7d7186) 30%);
 }
 
 body .timeline.block-skin-concept-3 .timeline-address span {
     color: inherit;
     font-weight: 600;
+    font-size: .24rem;
 }
 
 body .timeline.block-skin-concept-3 .timeline-map-link {
@@ -408,6 +465,75 @@ body .timeline.block-skin-concept-4 .timeline-name {
 body .timeline.block-skin-concept-4 .timeline-row, body .timeline.block-skin-concept-4 .timeline-address {
     font-size: .27rem;
 }
+
+
+
+/* Concept-2/3: base .timeline-events { display:flex } xếp ngang — ép dọc lại */
+body .timeline.block-skin-concept-2 .timeline-events,
+.timeline.block-skin-concept-2 .timeline-events,
+body .timeline.block-skin-concept-3 .timeline-events,
+.timeline.block-skin-concept-3 .timeline-events {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: .12rem !important;
+}
+body .timeline.block-skin-concept-2 .timeline-event,
+.timeline.block-skin-concept-2 .timeline-event,
+body .timeline.block-skin-concept-3 .timeline-event,
+.timeline.block-skin-concept-3 .timeline-event {
+    flex: none !important;
+    width: 100% !important;
+}
+body .timeline.block-skin-concept-2 .timeline-event + .timeline-event,
+.timeline.block-skin-concept-2 .timeline-event + .timeline-event,
+body .timeline.block-skin-concept-3 .timeline-event + .timeline-event,
+.timeline.block-skin-concept-3 .timeline-event + .timeline-event {
+    border-left: 0 !important;
+}
+
+/* Concept-4 zigzag: events xếp dọc — không flex ngang trong nửa cột */
+.timeline.block-skin-concept-4 .timeline-events,
+body .timeline.block-skin-concept-4 .timeline-events {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .12rem !important;
+}
+.timeline.block-skin-concept-4 .timeline-event + .timeline-event,
+body .timeline.block-skin-concept-4 .timeline-event + .timeline-event {
+    border-left: 0 !important;
+    border-top: 1px solid rgba(var(--primary-rgb), .18) !important;
+    padding-top: .12rem !important;
+}
+.timeline.block-skin-concept-4 .timeline-name,
+body .timeline.block-skin-concept-4 .timeline-name {
+    font-size: .27rem !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere !important;
+    text-align: inherit !important;
+}
+.timeline.block-skin-concept-4 .timeline-side-badge,
+body .timeline.block-skin-concept-4 .timeline-side-badge {
+    /* Không tham gia grid flow gây lệch 2 cột sự kiện */
+    position: absolute !important;
+    pointer-events: none !important;
+}
+.timeline.block-skin-concept-4 .timeline-content,
+body .timeline.block-skin-concept-4 .timeline-content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+.timeline.block-skin-concept-4 .timeline-card > img,
+body .timeline.block-skin-concept-4 .timeline-card > img {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+
 /* --- maintained overrides (were blocks/*/skins.css) --- */
 
 /* Timeline concept-4 layout + primary palette */
@@ -1181,4 +1307,765 @@ body.block-timeline-concept-7 .timeline-line-map, .timeline.block-skin-concept-7
 
 body.block-timeline-concept-7 .timeline-card--line > img, .timeline.block-skin-concept-7 .timeline-card--line > img {
     display: none !important;
+}
+
+/* ============================================================
+   Tổ chức chung (ceremony.mode = joint) — layout mặc định
+   Concept skin joint-* sẽ thêm sau khi có design.
+   ============================================================ */
+
+body.ceremony-mode-joint .timeline #timelineCards.timeline-cards--joint,
+.timeline #timelineCards.timeline-cards--joint {
+    display: grid;
+    gap: .35rem;
+    max-width: 8.8rem;
+    margin: 0 auto;
+}
+
+body.ceremony-mode-joint .timeline-card--joint,
+.timeline .timeline-card--joint {
+    position: relative;
+    padding: .55rem .4rem .42rem;
+    border: 1px solid rgba(var(--primary-rgb), .12);
+    background:
+        radial-gradient(circle at 12% 0%, rgba(var(--primary-rgb), .1), transparent 42%),
+        #fff;
+}
+
+body.ceremony-mode-joint .timeline-card--joint .timeline-side-badge,
+.timeline .timeline-card--joint .timeline-side-badge {
+    position: static;
+    display: inline-flex;
+    margin: 0 auto .28rem;
+    min-width: 1.8rem;
+}
+
+body.ceremony-mode-joint .timeline-card--joint .timeline-content,
+.timeline .timeline-card--joint .timeline-content {
+    padding: .1rem .08rem .05rem;
+}
+
+body.ceremony-mode-joint .timeline-card--joint .timeline-events,
+.timeline .timeline-card--joint .timeline-events {
+    display: flex;
+    align-items: stretch;
+    gap: .2rem;
+}
+
+body.ceremony-mode-joint .timeline-card--joint .timeline-address,
+.timeline .timeline-card--joint .timeline-address {
+    justify-content: center;
+    text-align: center;
+    margin-top: .18rem;
+}
+
+body.ceremony-mode-joint .timeline-card--joint .timeline-map-link,
+.timeline .timeline-card--joint .timeline-map-link {
+    margin: .28rem auto .06rem;
+}
+
+/* ============================================================
+   Joint-1 — Vertical line timeline (tổ chức chung)
+   Reference: icon | dotted rail + dots | time + title
+   Events: bữa tiệc → lễ thành hôn
+   ============================================================ */
+
+body.block-timeline-joint-1 .timeline,
+.timeline.block-skin-joint-1 {
+    position: relative;
+    padding: .35rem .32rem 1rem !important;
+    color: #3a342e;
+    background:
+        radial-gradient(ellipse 48% 36% at 8% 0%, rgba(var(--primary-rgb), .1), transparent 55%),
+        var(--theme-page-bg, #faf8f4) !important;
+    overflow: hidden;
+}
+
+body.block-timeline-joint-1 #timelineCards.timeline-cards--joint-1,
+body.block-timeline-joint-1 #timelineCards.timeline-cards--joint,
+.timeline.block-skin-joint-1 #timelineCards.timeline-cards--joint-1,
+.timeline.block-skin-joint-1 #timelineCards.timeline-cards--joint {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    margin: .18rem auto 0;
+}
+
+body.block-timeline-joint-1 .timeline-card--joint-1,
+.timeline.block-skin-joint-1 .timeline-card--joint-1 {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: .42rem .28rem .48rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+body.block-timeline-joint-1 .timeline-joint1,
+.timeline.block-skin-joint-1 .timeline-joint1 {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    /* Cụm icon|trục|text co theo nội dung → căn giữa khung thiệp */
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+}
+
+/* step: icon | rail | text — cột cố định, không kéo full width (tránh lệch trái) */
+body.block-timeline-joint-1 .timeline-joint1-step,
+.timeline.block-skin-joint-1 .timeline-joint1-step {
+    display: grid;
+    grid-template-columns: 1.25rem .48rem auto;
+    column-gap: .28rem;
+    align-items: stretch;
+    min-height: 1.55rem;
+    width: 100%;
+    justify-content: center;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-icon,
+.timeline.block-skin-joint-1 .timeline-joint1-icon {
+    display: grid;
+    place-items: center;
+    align-self: start;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: color-mix(in srgb, var(--primary-color) 55%, #2c2c2c);
+    font-size: .64rem;
+    line-height: 1;
+    opacity: .92;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-rail,
+.timeline.block-skin-joint-1 .timeline-joint1-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+    min-height: 100%;
+}
+
+/* dotted vertical line through all steps */
+body.block-timeline-joint-1 .timeline-joint1-rail::before,
+.timeline.block-skin-joint-1 .timeline-joint1-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    border-left: 1.5px dotted color-mix(in srgb, var(--primary-color) 45%, #6b6b6b);
+    transform: translateX(-50%);
+}
+
+/* first step: line starts at dot center */
+body.block-timeline-joint-1 .timeline-joint1-step:first-child .timeline-joint1-rail::before,
+.timeline.block-skin-joint-1 .timeline-joint1-step:first-child .timeline-joint1-rail::before {
+    top: .42rem;
+}
+
+/* last event step (before address): line ends at last dot */
+body.block-timeline-joint-1 .timeline-joint1-step:nth-last-child(1 of .timeline-joint1-step) .timeline-joint1-rail::before,
+.timeline.block-skin-joint-1 .timeline-joint1-step:nth-last-child(1 of .timeline-joint1-step) .timeline-joint1-rail::before {
+    bottom: calc(100% - .48rem);
+}
+
+/* if only steps (no address after), still clip last */
+body.block-timeline-joint-1 .timeline-joint1-step:last-child .timeline-joint1-rail::before,
+.timeline.block-skin-joint-1 .timeline-joint1-step:last-child .timeline-joint1-rail::before {
+    bottom: calc(100% - .48rem);
+}
+
+body.block-timeline-joint-1 .timeline-joint1-dot,
+.timeline.block-skin-joint-1 .timeline-joint1-dot {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: .28rem;
+    height: .28rem;
+    margin-top: .34rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary-color) 70%, #1a1a1a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-page-bg, #faf8f4) 88%, #fff);
+    flex: 0 0 auto;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-body,
+.timeline.block-skin-joint-1 .timeline-joint1-body {
+    display: grid;
+    gap: .08rem;
+    padding: .22rem 0 .48rem;
+    min-width: 2.6rem;
+    max-width: 4.6rem;
+    text-align: left;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-time,
+.timeline.block-skin-joint-1 .timeline-joint1-time {
+    color: color-mix(in srgb, var(--primary-color) 35%, #2a2a2a);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .3rem;
+    font-weight: 800;
+    letter-spacing: .04rem;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-title,
+.timeline.block-skin-joint-1 .timeline-joint1-title {
+    color: color-mix(in srgb, var(--primary-color) 28%, #3a3a3a);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .28rem;
+    font-weight: 700;
+    letter-spacing: .08rem;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-address,
+.timeline.block-skin-joint-1 .timeline-joint1-address {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    width: min(100%, 6.4rem);
+    margin: .12rem auto 0;
+    padding: .22rem .2rem 0;
+    border-top: 1px dashed rgba(var(--primary-rgb), .22);
+    color: rgba(var(--primary-rgb), .78);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .27rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-address i,
+.timeline.block-skin-joint-1 .timeline-joint1-address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: var(--primary-color);
+    font-size: .27rem;
+}
+
+body.block-timeline-joint-1 .timeline-joint1-map,
+.timeline.block-skin-joint-1 .timeline-joint1-map,
+body.block-timeline-joint-1 .timeline-card--joint-1 .timeline-map-link,
+.timeline.block-skin-joint-1 .timeline-card--joint-1 .timeline-map-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content;
+    margin: .22rem auto 0 !important;
+    padding: .1rem .26rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(var(--primary-rgb), .3) !important;
+    background: rgba(var(--primary-rgb), .08) !important;
+    color: var(--primary-color) !important;
+    font-size: .27rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+/* ============================================================
+   Joint-2 — Wavy horizontal timeline (tổ chức chung)
+   Reference: wave path + alternating time/title around dots
+   ============================================================ */
+
+body.block-timeline-joint-2 .timeline,
+.timeline.block-skin-joint-2 {
+    position: relative;
+    padding: .4rem .28rem 1rem !important;
+    color: #3a342e;
+    background:
+        radial-gradient(ellipse 55% 40% at 50% 0%, rgba(var(--primary-rgb), .1), transparent 58%),
+        var(--theme-page-bg, #f7f1e8) !important;
+    overflow: hidden;
+}
+
+body.block-timeline-joint-2 #timelineCards.timeline-cards--joint-2,
+body.block-timeline-joint-2 #timelineCards.timeline-cards--joint,
+.timeline.block-skin-joint-2 #timelineCards.timeline-cards--joint-2,
+.timeline.block-skin-joint-2 #timelineCards.timeline-cards--joint {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    margin: .2rem auto 0;
+}
+
+body.block-timeline-joint-2 .timeline-card--joint-2,
+.timeline.block-skin-joint-2 .timeline-card--joint-2 {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: .2rem .1rem .35rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+body.block-timeline-joint-2 .timeline-joint2,
+.timeline.block-skin-joint-2 .timeline-joint2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 9.2rem;
+    margin-inline: auto;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-track,
+.timeline.block-skin-joint-2 .timeline-joint2-track {
+    position: relative;
+    width: 100%;
+    padding: 1.15rem 0 1.15rem;
+}
+
+/* Đường sóng */
+body.block-timeline-joint-2 .timeline-joint2-wave,
+.timeline.block-skin-joint-2 .timeline-joint2-wave {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 50%;
+    width: 92%;
+    height: .9rem;
+    transform: translateY(-50%);
+    color: color-mix(in srgb, var(--primary-color) 42%, #8a7a68);
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-wave path,
+.timeline.block-skin-joint-2 .timeline-joint2-wave path {
+    stroke-dasharray: 0;
+    opacity: .9;
+}
+
+/* Hàng node căn đều trên sóng */
+body.block-timeline-joint-2 .timeline-joint2-nodes,
+.timeline.block-skin-joint-2 .timeline-joint2-nodes {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0;
+    padding: 0 .15rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-node,
+.timeline.block-skin-joint-2 .timeline-joint2-node {
+    display: grid;
+    grid-template-rows: 1fr auto 1fr;
+    align-items: center;
+    justify-items: center;
+    gap: .12rem;
+    min-width: 0;
+    text-align: center;
+    padding: 0 .08rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-dot,
+.timeline.block-skin-joint-2 .timeline-joint2-dot {
+    width: .26rem;
+    height: .26rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary-color) 55%, #2c241c);
+    box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--theme-page-bg, #f7f1e8) 90%, #fff),
+        0 1px 3px rgba(var(--primary-rgb), .2);
+    z-index: 2;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-time,
+.timeline.block-skin-joint-2 .timeline-joint2-time {
+    max-width: 100%;
+    color: color-mix(in srgb, var(--primary-color) 30%, #2a241e);
+    font-family: "Lora", "Cormorant Garamond", Georgia, serif;
+    font-size: .3rem;
+    font-weight: 600;
+    letter-spacing: .03rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-title,
+.timeline.block-skin-joint-2 .timeline-joint2-title {
+    max-width: 100%;
+    color: color-mix(in srgb, var(--primary-color) 35%, #3a322a);
+    font-family: "Lora", "Cormorant Garamond", Georgia, serif;
+    font-size: .26rem;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: .02rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+/* Hàng trên / dưới cân để sóng luôn giữa */
+body.block-timeline-joint-2 .timeline-joint2-node > .timeline-joint2-time:first-child,
+body.block-timeline-joint-2 .timeline-joint2-node > .timeline-joint2-title:first-child,
+.timeline.block-skin-joint-2 .timeline-joint2-node > .timeline-joint2-time:first-child,
+.timeline.block-skin-joint-2 .timeline-joint2-node > .timeline-joint2-title:first-child {
+    align-self: end;
+    padding-bottom: .06rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-node > .timeline-joint2-time:last-child,
+body.block-timeline-joint-2 .timeline-joint2-node > .timeline-joint2-title:last-child,
+.timeline.block-skin-joint-2 .timeline-joint2-node > .timeline-joint2-time:last-child,
+.timeline.block-skin-joint-2 .timeline-joint2-node > .timeline-joint2-title:last-child {
+    align-self: start;
+    padding-top: .06rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-address,
+.timeline.block-skin-joint-2 .timeline-joint2-address {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    width: min(100%, 7.2rem);
+    margin: .28rem auto 0;
+    padding-top: .18rem;
+    border-top: 1px dashed rgba(var(--primary-rgb), .2);
+    color: rgba(var(--primary-rgb), .78);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .27rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-address i,
+.timeline.block-skin-joint-2 .timeline-joint2-address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: var(--primary-color);
+    font-size: .27rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-map,
+.timeline.block-skin-joint-2 .timeline-joint2-map,
+body.block-timeline-joint-2 .timeline-card--joint-2 .timeline-map-link,
+.timeline.block-skin-joint-2 .timeline-card--joint-2 .timeline-map-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content;
+    margin: .2rem auto 0 !important;
+    padding: .1rem .26rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(var(--primary-rgb), .3) !important;
+    background: rgba(var(--primary-rgb), .08) !important;
+    color: var(--primary-color) !important;
+    font-size: .27rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+/* ============================================================
+   Joint footer — địa chỉ + nút Chỉ đường (joint-1 / joint-2)
+   ============================================================ */
+
+body.ceremony-mode-joint .timeline-joint-footer,
+.timeline .timeline-joint-footer,
+body.block-timeline-joint-1 .timeline-joint-footer,
+body.block-timeline-joint-2 .timeline-joint-footer,
+.timeline.block-skin-joint-1 .timeline-joint-footer,
+.timeline.block-skin-joint-2 .timeline-joint-footer {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: .18rem;
+    width: 100%;
+    max-width: 8.4rem;
+    margin: .28rem auto 0;
+    padding: 0 .2rem;
+    box-sizing: border-box;
+}
+
+body.ceremony-mode-joint .timeline-joint-footer__address,
+.timeline .timeline-joint-footer__address,
+body.block-timeline-joint-1 .timeline-joint1-address,
+body.block-timeline-joint-2 .timeline-joint2-address,
+.timeline.block-skin-joint-1 .timeline-joint1-address,
+.timeline.block-skin-joint-2 .timeline-joint2-address {
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: center;
+    gap: .1rem;
+    width: 100%;
+    margin: 0;
+    padding: .16rem .1rem 0;
+    border-top: 1px dashed rgba(var(--primary-rgb), .22);
+    color: rgba(var(--primary-rgb), .8);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .27rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+}
+
+body.ceremony-mode-joint .timeline-joint-footer__address i,
+.timeline .timeline-joint-footer__address i {
+    flex: 0 0 auto;
+    margin-top: .02rem;
+    color: var(--primary-color);
+    font-size: .27rem;
+}
+
+/* Nút Chỉ đường — luôn hiện rõ, căn giữa */
+body.ceremony-mode-joint .timeline-joint-footer__map,
+body.ceremony-mode-joint .timeline-joint-footer .timeline-map-link,
+body.block-timeline-joint-1 .timeline-joint-footer .timeline-map-link,
+body.block-timeline-joint-2 .timeline-joint-footer .timeline-map-link,
+body.block-timeline-joint-1 .timeline-joint1-map,
+body.block-timeline-joint-2 .timeline-joint2-map,
+.timeline.block-skin-joint-1 .timeline-joint-footer .timeline-map-link,
+.timeline.block-skin-joint-2 .timeline-joint-footer .timeline-map-link,
+.timeline.block-skin-joint-1 .timeline-joint1-map,
+.timeline.block-skin-joint-2 .timeline-joint2-map {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    width: fit-content !important;
+    max-width: 100%;
+    margin: .06rem auto 0 !important;
+    padding: .12rem .32rem !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(var(--primary-rgb), .28) !important;
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    font-size: .27rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    box-shadow: 0 8px 18px rgba(var(--primary-rgb), .28) !important;
+}
+
+body.ceremony-mode-joint .timeline-joint-footer .timeline-map-link:hover,
+body.block-timeline-joint-1 .timeline-joint-footer .timeline-map-link:hover,
+body.block-timeline-joint-2 .timeline-joint-footer .timeline-map-link:hover {
+    background: var(--primary-hover) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+/* ============================================================
+   Joint-3 — Alternating left/right vertical timeline + icons
+   Reference: center rail, events zig-zag with line-art icons
+   ============================================================ */
+
+body.block-timeline-joint-3 .timeline,
+.timeline.block-skin-joint-3 {
+    position: relative;
+    padding: .4rem .24rem 1rem !important;
+    color: #3a342e;
+    background:
+        radial-gradient(ellipse 50% 40% at 50% 0%, rgba(var(--primary-rgb), .1), transparent 55%),
+        var(--theme-page-bg, #eef2f4) !important;
+    overflow: hidden;
+}
+
+body.block-timeline-joint-3 #timelineCards.timeline-cards--joint-3,
+body.block-timeline-joint-3 #timelineCards.timeline-cards--joint,
+.timeline.block-skin-joint-3 #timelineCards.timeline-cards--joint-3,
+.timeline.block-skin-joint-3 #timelineCards.timeline-cards--joint {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    margin: .16rem auto 0;
+}
+
+body.block-timeline-joint-3 .timeline-card--joint-3,
+.timeline.block-skin-joint-3 .timeline-card--joint-3 {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: .2rem .08rem .3rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+body.block-timeline-joint-3 .timeline-joint3,
+.timeline.block-skin-joint-3 .timeline-joint3 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 8.8rem);
+    margin-inline: auto;
+}
+
+/* step: left pane | center rail | right pane */
+body.block-timeline-joint-3 .timeline-joint3-step,
+.timeline.block-skin-joint-3 .timeline-joint3-step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) .36rem minmax(0, 1fr);
+    column-gap: .16rem;
+    align-items: stretch;
+    min-height: 1.7rem;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-pane,
+.timeline.block-skin-joint-3 .timeline-joint3-pane {
+    display: flex;
+    align-items: center;
+    gap: .14rem;
+    min-width: 0;
+    padding: .18rem 0 .28rem;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-pane--left,
+.timeline.block-skin-joint-3 .timeline-joint3-pane--left {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-pane--right,
+.timeline.block-skin-joint-3 .timeline-joint3-pane--right {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-text,
+.timeline.block-skin-joint-3 .timeline-joint3-text {
+    display: grid;
+    gap: .06rem;
+    min-width: 0;
+    max-width: 2.9rem;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-time,
+.timeline.block-skin-joint-3 .timeline-joint3-time {
+    color: color-mix(in srgb, var(--primary-color) 40%, #2c2c2c);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .28rem;
+    font-weight: 800;
+    letter-spacing: .02rem;
+    line-height: 1.2;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-title,
+.timeline.block-skin-joint-3 .timeline-joint3-title {
+    color: color-mix(in srgb, var(--primary-color) 28%, #3a3a3a);
+    font-family: "Quicksand", "Nunito Sans", sans-serif;
+    font-size: .26rem;
+    font-weight: 600;
+    letter-spacing: .01rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-icon,
+.timeline.block-skin-joint-3 .timeline-joint3-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: .72rem;
+    height: .72rem;
+    color: color-mix(in srgb, var(--primary-color) 50%, #2a2a2a);
+    font-size: .42rem;
+    line-height: 1;
+    opacity: .92;
+}
+
+/* Center rail + dots */
+body.block-timeline-joint-3 .timeline-joint3-rail,
+.timeline.block-skin-joint-3 .timeline-joint3-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-rail::before,
+.timeline.block-skin-joint-3 .timeline-joint3-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    border-left: 1.5px solid color-mix(in srgb, var(--primary-color) 40%, #7a7a7a);
+    transform: translateX(-50%);
+    opacity: .75;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-step:first-child .timeline-joint3-rail::before,
+.timeline.block-skin-joint-3 .timeline-joint3-step:first-child .timeline-joint3-rail::before {
+    top: .42rem;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-step:last-child .timeline-joint3-rail::before,
+.timeline.block-skin-joint-3 .timeline-joint3-step:last-child .timeline-joint3-rail::before {
+    bottom: calc(100% - .5rem);
+}
+
+body.block-timeline-joint-3 .timeline-joint3-dot,
+.timeline.block-skin-joint-3 .timeline-joint3-dot {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: .22rem;
+    height: .22rem;
+    margin-top: .38rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary-color) 65%, #1a1a1a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-page-bg, #eef2f4) 88%, #fff);
+    flex: 0 0 auto;
+}
+
+/* Footer map cho joint-3 */
+body.block-timeline-joint-3 .timeline-joint3-footer,
+.timeline.block-skin-joint-3 .timeline-joint3-footer {
+    max-width: 8.4rem;
+}
+
+body.block-timeline-joint-3 .timeline-joint3-footer .timeline-map-link,
+body.block-timeline-joint-3 .timeline-joint3-map,
+.timeline.block-skin-joint-3 .timeline-joint3-footer .timeline-map-link,
+.timeline.block-skin-joint-3 .timeline-joint3-map {
+    display: inline-flex !important;
+}
+
+/* Joint-2: nhiều mốc → chữ nhỏ hơn */
+body.block-timeline-joint-2 .timeline-joint2-nodes--dense .timeline-joint2-time,
+.timeline.block-skin-joint-2 .timeline-joint2-nodes--dense .timeline-joint2-time {
+    font-size: .24rem;
+}
+
+body.block-timeline-joint-2 .timeline-joint2-nodes--dense .timeline-joint2-title,
+.timeline.block-skin-joint-2 .timeline-joint2-nodes--dense .timeline-joint2-title {
+    font-size: .22rem;
 }

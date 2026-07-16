@@ -10,31 +10,94 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
-    <link rel="stylesheet" href="builder.css?v=brand-12c4b8">
+    <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-3">
+    <link rel="stylesheet" href="builder.css?v=push1">
 </head>
 <body data-builder-tab="edit">
-    <!-- Fixed chrome: mobile tabs stay outside scroll containers -->
-    <nav class="builder-mobile-tabs" aria-label="Chuyển form và preview">
-        <button type="button" class="is-active" data-builder-tab="edit"><i class="bi bi-pencil-square"></i> Chỉnh sửa</button>
-        <button type="button" data-builder-tab="preview"><i class="bi bi-phone"></i> Xem preview</button>
-    </nav>
+    <!-- Mobile: 1 thanh gộp (menu bước + tên + preview) — không còn 2 tab riêng -->
+    <header class="builder-mobile-chrome" id="builderMobileStepbar" aria-label="Thanh điều hướng mobile">
+        <button type="button" class="builder-sidebar-toggle" id="builderSidebarToggle" aria-label="Mở danh sách bước" aria-expanded="false" aria-controls="builderSidebar">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="builder-mobile-back-edit" data-builder-tab="edit" aria-label="Quay lại chỉnh sửa">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span>Sửa</span>
+        </button>
+        <div class="builder-mobile-chrome__center">
+            <strong class="builder-mobile-stepbar__title" id="builderMobileStepTitle">Thông tin chính</strong>
+            <span class="builder-mobile-stepbar__preview-label">Xem preview</span>
+        </div>
+        <span class="builder-mobile-stepbar__badge" id="builderMobileStepCount">1/7</span>
+        <button type="button" class="builder-mobile-from-start" id="previewFromStartBtnMobile" aria-label="Xem từ đầu thiệp" title="Xem từ đầu thiệp">
+            <i class="bi bi-skip-start-circle" aria-hidden="true"></i>
+            <span>Xem từ đầu</span>
+        </button>
+        <button type="button" class="builder-mobile-preview-btn" data-builder-tab="preview" aria-label="Xem preview thiệp">
+            <i class="bi bi-phone" aria-hidden="true"></i>
+            <span>Xem</span>
+        </button>
+    </header>
+    <div class="builder-sidebar-backdrop" id="builderSidebarBackdrop" hidden></div>
 
     <main class="builder-shell">
+        <aside class="builder-sidebar" id="builderSidebar" aria-label="Menu các bước thiết kế">
+            <div class="builder-sidebar__brand">
+                <span class="builder-sidebar__mark" aria-hidden="true"><i class="bi bi-heart-fill"></i></span>
+                <div class="builder-sidebar__brand-text">
+                    <strong>BRYAN</strong>
+                    <span>INVITE</span>
+                </div>
+                <button type="button" class="builder-sidebar__close" id="builderSidebarClose" aria-label="Đóng menu bước">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+            <nav class="builder-step-nav" id="builderStepNav" aria-label="Các bước thiết kế">
+                <button type="button" class="builder-step-nav__item is-active" data-goto-step="1" aria-current="step">
+                    <i class="bi bi-sliders" aria-hidden="true"></i>
+                    <span class="step-label">Thông tin chính</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="2" aria-current="false">
+                    <i class="bi bi-people-fill" aria-hidden="true"></i>
+                    <span class="step-label">Cô dâu &amp; chú rể</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="3" aria-current="false">
+                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                    <span class="step-label">Lịch &amp; địa điểm</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="4" aria-current="false">
+                    <i class="bi bi-palette-fill" aria-hidden="true"></i>
+                    <span class="step-label">Giao diện &amp; phông</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="5" aria-current="false">
+                    <i class="bi bi-fonts" aria-hidden="true"></i>
+                    <span class="step-label">Tiêu đề &amp; mô tả</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="6" aria-current="false">
+                    <i class="bi bi-images" aria-hidden="true"></i>
+                    <span class="step-label">Ảnh thiệp</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="7" aria-current="false">
+                    <i class="bi bi-qr-code" aria-hidden="true"></i>
+                    <span class="step-label">QR mừng cưới</span>
+                </button>
+                <button type="button" class="builder-step-nav__item" data-goto-step="8" aria-current="false" id="builderLinksNavBtn">
+                    <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                    <span class="step-label">Link thiệp</span>
+                </button>
+            </nav>
+        </aside>
         <section class="builder-panel" data-builder-panel="edit">
             <form id="builderForm" class="builder-form">
                 <div class="builder-panel__scroll">
-                <div class="builder-heading">
-                    <p>Wedding Builder</p>
-                    <h1>Tự thiết kế thiệp cưới</h1>
-                    <span>Nhập thông tin theo từng bước. Trên điện thoại: bấm <strong>Xem preview</strong> để nhảy tới khung điện thoại.</span>
-                </div>
-                <details class="card builder-step" open>
-                    <summary><span class="step-index">1</span> Thông tin chính</summary>
-                    <div class="card-body">
+                <section class="card builder-step is-active" data-step="1" id="builderStep1">
+                    <header class="builder-step__header">
+                        <span class="step-index">1</span>
+                        <h2 class="builder-step__title">Thông tin chính</h2>
+                    </header>
+<div class="card-body">
                     <div class="grid two">
                         <label>Nickname chú rể<input name="groomNickname" value="Phạm Hùng" required></label>
                         <label>Nickname cô dâu<input name="brideNickname" value="Thanh Hằng" required></label>
-                        <label>Ngày tổ chức<input name="date" type="date" value="2026-09-12" required></label>
                         <label>Màu sắc thiệp<input name="primaryColor" type="color" id="primaryColorInput" value="#12c4b8"></label>
                         <label>Nhạc nền (Liên hệ admin thêm bài yêu thích)<select name="music" id="musicSelect"></select></label>
                         <!-- weddingId nội bộ — không hiện cho khách -->
@@ -71,106 +134,126 @@
                         <p class="hint">Mỗi dòng một tên. Sau khi mở khóa: mỗi tên một link thiệp riêng.</p>
                     </div>
                     </div>
-                </details>
+                </section>
 
-                <details class="card builder-step">
-                    <summary><span class="step-index">2</span> Cô dâu & chú rể</summary>
-                    <div class="card-body">
+                <section class="card builder-step" data-step="2" id="builderStep2" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">2</span>
+                        <h2 class="builder-step__title">Cô dâu & chú rể</h2>
+                    </header>
+<div class="card-body">
                     <div class="split-builder">
                         <div class="mini-card">
                             <h3>Chú rể</h3>
                             <label>Họ tên đầy đủ<input name="groomFullName" value="NGUYỄN VĂN A"></label>
                             <label>Con ông<input name="groomFather" value="Nguyễn Văn C"></label>
                             <label>Và bà<input name="groomMother" value="Trần Thị D"></label>
-                            <label>Địa chỉ nhà trai<textarea name="groomAddress" rows="2">Nhà trai - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
-                            <label>Tỉnh/TP nhà trai (hiện trên poster)<input name="groomLocation" value="Hải Phòng" placeholder="vd: Hải Phòng — để trống lấy từ địa chỉ"></label>
+                            <label>Tỉnh/TP nhà trai (hiện trên poster)<input name="groomLocation" value="Hải Phòng" placeholder="vd: Hải Phòng — để trống lấy từ địa chỉ tổ chức"></label>
                         </div>
                         <div class="mini-card">
                             <h3>Cô dâu</h3>
                             <label>Họ tên đầy đủ<input name="brideFullName" value="TRẦN THỊ B"></label>
                             <label>Con ông<input name="brideFather" value="Trần Văn E"></label>
                             <label>Và bà<input name="brideMother" value="Nguyễn Thị F"></label>
-                            <label>Địa chỉ nhà gái<textarea name="brideAddress" rows="2">Nhà gái - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
-                            <label>Tỉnh/TP nhà gái (hiện trên poster)<input name="brideLocation" value="Hà Nội" placeholder="vd: Hà Nội — để trống lấy từ địa chỉ"></label>
+                            <label>Tỉnh/TP nhà gái (hiện trên poster)<input name="brideLocation" value="Hà Nội" placeholder="vd: Hà Nội — để trống lấy từ địa chỉ tổ chức"></label>
                         </div>
                     </div>
+                    <p class="hint">Địa chỉ tổ chức chi tiết nhập ở bước <strong>Lịch tổ chức</strong>.</p>
                     </div>
-                </details>
+                </section>
 
-                <details class="card builder-step">
-                    <summary><span class="step-index">3</span> Lịch tổ chức</summary>
-                    <div class="card-body">
-                    <p class="hint">Tự đặt tên lễ và bữa cơm (vd: Lễ Vu Quy, Lễ Thành Hôn, Bữa cơm thân mật…). Giờ và ngày vẫn chỉnh bên dưới.</p>
-                    <div class="split-builder">
-                        <div class="mini-card">
-                            <h3>Nhà gái</h3>
-                            <label>Tên lễ (vd: Lễ Vu Quy)<input name="brideCeremonyTitle" value="LỄ VU QUY" placeholder="LỄ VU QUY"></label>
-                            <label>Giờ lễ<input name="brideCeremonyTime" type="time" value="10:00"></label>
-                            <label>Tên bữa cơm<input name="brideMealTitle" value="BỮA CƠM THÂN MẬT" placeholder="BỮA CƠM THÂN MẬT"></label>
-                            <div class="grid two compact-grid">
-                                <label>Ngày bữa cơm<input name="brideMealDate" type="date" value="2026-09-11"></label>
-                                <label>Giờ bữa cơm<input name="brideMealTime" type="time" value="17:00"></label>
+                <section class="card builder-step" data-step="3" id="builderStep3" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">3</span>
+                        <h2 class="builder-step__title">Lịch và địa điểm tổ chức</h2>
+                    </header>
+<div class="card-body">
+                    <p class="hint">Chọn hình thức tổ chức. Mỗi lễ / bữa tiệc có <strong>ngày + giờ</strong>; địa chỉ và Maps nằm cùng chỗ cho thống nhất.</p>
+
+                    <div class="ceremony-main-date">
+                        <div class="ceremony-main-date__text">
+                            <strong>Ngày tổ chức chính</strong>
+                            <span>Hiển thị trên poster, save the date và đếm ngược</span>
+                        </div>
+                        <label class="ceremony-main-date__field">
+                            <span class="visually-hidden">Ngày tổ chức chính</span>
+                            <input name="date" type="date" value="2026-09-12" required>
+                        </label>
+                    </div>
+
+                    <div class="ceremony-mode" role="radiogroup" aria-label="Hình thức tổ chức">
+                        <label class="ceremony-mode__card">
+                            <input type="radio" name="ceremonyMode" value="separate" checked>
+                            <span class="ceremony-mode__body">
+                                <strong>Tổ chức riêng</strong>
+                                <span>Tách lịch nhà trai &amp; nhà gái</span>
+                            </span>
+                        </label>
+                        <label class="ceremony-mode__card">
+                            <input type="radio" name="ceremonyMode" value="joint">
+                            <span class="ceremony-mode__body">
+                                <strong>Tổ chức chung</strong>
+                                <span>1 lịch</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Tổ chức riêng: N sự kiện / nhà + địa chỉ + maps -->
+                    <div id="ceremonySeparatePanel" class="ceremony-mode-panel">
+                        <p class="hint joint-events-hint">Mỗi nhà mặc định 2 sự kiện. Thêm / xóa / sắp xếp — concept timeline riêng hiển thị đúng thứ tự.</p>
+                        <div class="split-builder">
+                            <div class="mini-card">
+                                <h3>Nhà gái</h3>
+                                <div id="brideEventsList" class="joint-events" data-ceremony-events-role="bride" aria-label="Sự kiện nhà gái"></div>
+                                <button type="button" class="joint-events-add" id="addBrideEventBtn" data-add-ceremony-events="bride">
+                                    <i class="bi bi-plus-lg"></i> Thêm sự kiện nhà gái
+                                </button>
+                                <label>Địa chỉ tổ chức<textarea name="brideAddress" rows="2" placeholder="Nhà gái / địa điểm tổ chức…">Nhà gái - Thôn ABC, Xã DEF, Hà Nội</textarea></label>
+                                <label>Link Maps<input name="brideMapUrl" placeholder="Dán link Maps hoặc bấm nút bên dưới"></label>
+                                <div class="map-actions">
+                                    <button type="button" class="map-button" data-map-picker="bride"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
+                                </div>
+                            </div>
+                            <div class="mini-card">
+                                <h3>Nhà trai</h3>
+                                <div id="groomEventsList" class="joint-events" data-ceremony-events-role="groom" aria-label="Sự kiện nhà trai"></div>
+                                <button type="button" class="joint-events-add" id="addGroomEventBtn" data-add-ceremony-events="groom">
+                                    <i class="bi bi-plus-lg"></i> Thêm sự kiện nhà trai
+                                </button>
+                                <label>Địa chỉ tổ chức<textarea name="groomAddress" rows="2" placeholder="Nhà trai / địa điểm tổ chức…">Nhà trai - Thôn ABC, Xã DEF, Hải Phòng</textarea></label>
+                                <label>Link Maps<input name="groomMapUrl" placeholder="Dán link Maps hoặc bấm nút bên dưới"></label>
+                                <div class="map-actions">
+                                    <button type="button" class="map-button" data-map-picker="groom"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Tổ chức chung: N sự kiện + 1 maps -->
+                    <div id="ceremonyJointPanel" class="ceremony-mode-panel" hidden>
                         <div class="mini-card">
-                            <h3>Nhà trai</h3>
-                            <label>Tên lễ (vd: Lễ Thành Hôn)<input name="groomCeremonyTitle" value="LỄ THÀNH HÔN" placeholder="LỄ THÀNH HÔN"></label>
-                            <label>Giờ lễ<input name="groomCeremonyTime" type="time" value="17:00"></label>
-                            <label>Tên bữa cơm<input name="groomMealTitle" value="BỮA CƠM THÂN MẬT" placeholder="BỮA CƠM THÂN MẬT"></label>
-                            <div class="grid two compact-grid">
-                                <label>Ngày bữa cơm<input name="groomMealDate" type="date" value="2026-09-12"></label>
-                                <label>Giờ bữa cơm<input name="groomMealTime" type="time" value="16:00"></label>
+                            <h3>Lịch &amp; địa điểm chung</h3>
+                            <p class="hint joint-events-hint">Mặc định 2 sự kiện. Thêm / xóa / sắp xếp — concept timeline hiển thị đúng thứ tự.</p>
+                            <div id="jointEventsList" class="joint-events" data-ceremony-events-role="joint" aria-label="Danh sách sự kiện tổ chức chung"></div>
+                            <button type="button" class="joint-events-add" id="addJointEventBtn" data-add-ceremony-events="joint">
+                                <i class="bi bi-plus-lg"></i> Thêm sự kiện
+                            </button>
+                            <label>Địa chỉ tổ chức<textarea name="jointAddress" rows="2" placeholder="Nhà hàng / Trung tâm tiệc cưới…"></textarea></label>
+                            <label>Link Maps<input name="jointMapUrl" placeholder="Dán link Maps hoặc bấm nút bên dưới"></label>
+                            <div class="map-actions">
+                                <button type="button" class="map-button" data-map-picker="joint"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
                             </div>
                         </div>
                     </div>
                     </div>
-                </details>
+                </section>
 
-                <details class="card builder-step">
-                    <summary><span class="step-index">4</span> Tiêu đề & mô tả từng phần</summary>
-                    <div class="card-body">
-                    <p class="hint">Title = tiêu đề section. Subtitle = dòng mô tả nhỏ bên dưới (để trống thì ẩn).</p>
-                    <div class="title-subtitle-grid">
-                        <div class="field-pair">
-                            <label>Save the date — title<input name="titleSaveDate" value="SAVE THE DATE"></label>
-                            <label>Subtitle<textarea name="subtitleSaveDate" rows="2" placeholder="Tuỳ chọn"></textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Đôi nét — title<input name="titleAbout" value="ĐÔI NÉT VỀ CHÚNG TÔI"></label>
-                            <label>Subtitle<textarea name="subtitleAbout" rows="2">Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Lịch trình — title<input name="titleTimeline" value="LỊCH TRÌNH"></label>
-                            <label>Subtitle<textarea name="subtitleTimeline" rows="2">Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Album ảnh — title<input name="titleGallery" value="ALBUM ẢNH CƯỚI"></label>
-                            <label>Subtitle<textarea name="subtitleGallery" rows="2">Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Lời chúc — title<input name="titleWish" value="NHẮN GỬI YÊU THƯƠNG"></label>
-                            <label>Subtitle<textarea name="subtitleWish" rows="2">Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Mừng cưới — title<input name="titleGift" value="HỘP MỪNG CƯỚI"></label>
-                            <label>Subtitle<textarea name="subtitleGift" rows="2">Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Đếm ngược — title<input name="titleCountdown" value="ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI"></label>
-                            <label>Subtitle<textarea name="subtitleCountdown" rows="2">Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà.</textarea></label>
-                        </div>
-                        <div class="field-pair">
-                            <label>Cảm ơn — title<input name="titleThanks" value="XIN CHÂN THÀNH CẢM ƠN"></label>
-                            <label>Subtitle<textarea name="subtitleThanks" rows="3">Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi.</textarea></label>
-                        </div>
-                    </div>
-                    </div>
-                </details>
-
-                
-<details class="card builder-step">
-                    <summary><span class="step-index">5</span> Giao diện & phông chữ</summary>
-                    <div class="card-body">
+                <section class="card builder-step" data-step="4" id="builderStep4" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">4</span>
+                        <h2 class="builder-step__title">Giao diện & phông chữ</h2>
+                    </header>
+<div class="card-body">
                     <h3 class="card-subheading">Chọn concept từng phần</h3>
                     <div class="choice-grid">
                         <!-- Options filled from js/modules registry (populateBuilderBlockSelects) -->
@@ -215,104 +298,310 @@
                         </select></label>
                     </div>
                     </div>
-                </details>
+                </section>
+
+                <section class="card builder-step" data-step="5" id="builderStep5" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">5</span>
+                        <h2 class="builder-step__title">Tiêu đề & mô tả từng phần</h2>
+                    </header>
+<div class="card-body">
+                    <p class="hint">Title = tiêu đề section. Subtitle = dòng mô tả nhỏ bên dưới (để trống thì ẩn).</p>
+                    <div class="title-subtitle-grid">
+                        <div class="field-pair">
+                            <label>Save the date — title<input name="titleSaveDate" value="SAVE THE DATE"></label>
+                            <label>Subtitle<textarea name="subtitleSaveDate" rows="2" placeholder="Tuỳ chọn"></textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Đôi nét — title<input name="titleAbout" value="ĐÔI NÉT VỀ CHÚNG TÔI"></label>
+                            <label>Subtitle<textarea name="subtitleAbout" rows="2">Câu chuyện của chúng tôi bắt đầu bằng những điều giản dị và được viết tiếp bằng yêu thương.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Lịch trình — title<input name="titleTimeline" value="LỊCH TRÌNH"></label>
+                            <label>Subtitle<textarea name="subtitleTimeline" rows="2">Rất mong được đón tiếp bạn trong những khoảnh khắc quan trọng của ngày vui.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Album ảnh — title<input name="titleGallery" value="ALBUM ẢNH CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleGallery" rows="2">Hãy để tình yêu diễn biến thật tự nhiên, đã là duyên thì cũng chẳng sợ lạc đường.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Lời chúc — title<input name="titleWish" value="NHẮN GỬI YÊU THƯƠNG"></label>
+                            <label>Subtitle<textarea name="subtitleWish" rows="2">Cảm ơn bạn vì đã gửi những lời chúc tốt đẹp đến cô dâu và chú rể.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Mừng cưới — title<input name="titleGift" value="HỘP MỪNG CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleGift" rows="2">Sự hiện diện của bạn là niềm vui lớn nhất đối với chúng tôi.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Đếm ngược — title<input name="titleCountdown" value="ĐẾM NGƯỢC ĐẾN NGÀY CƯỚI"></label>
+                            <label>Subtitle<textarea name="subtitleCountdown" rows="2">Cùng đếm ngược đến ngày chúng tôi chính thức về chung một nhà.</textarea></label>
+                        </div>
+                        <div class="field-pair">
+                            <label>Cảm ơn — title<input name="titleThanks" value="XIN CHÂN THÀNH CẢM ƠN"></label>
+                            <label>Subtitle<textarea name="subtitleThanks" rows="3">Cảm ơn bạn đã dành thời gian và tình cảm cho ngày vui của chúng tôi.</textarea></label>
+                        </div>
+                    </div>
+                    </div>
+                </section>
 
                 
-<details class="card media-card gallery-media-card builder-step">
-                    <summary><span class="step-index">6</span> Ảnh thiệp</summary>
-                    <div class="card-body">
-                    <p class="hint">Bấm <strong>Chọn ảnh</strong> → chọn file là xong (tự hiện thumb + preview). Chỉ upload Cloudinary khi bấm <strong>Lưu Firebase</strong>.</p>
+<section class="card media-card gallery-media-card builder-step" data-step="6" id="builderStep6" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">6</span>
+                        <h2 class="builder-step__title">Ảnh thiệp</h2>
+                    </header>
+<div class="card-body">
+                    <p class="hint">Bấm khu vực ảnh để xem trên preview · <strong>Upload</strong> / <strong>Xóa</strong> · Ảnh lên Cloudinary khi <strong>Lưu thiệp</strong>.</p>
 
                     <h3 class="card-subheading">Ảnh chính</h3>
-                    <p class="hint media-concept-hint" id="mediaConceptHint">Ô upload phụ thuộc concept “Đôi nét về chúng tôi”: concept 1/4 → ảnh đôi; concept 2/3 → avatar chú rể &amp; cô dâu.</p>
                     <div class="media-grid">
                         <div class="media-item" data-media-field="coverPosterImage">
-                            <div class="media-label">Ảnh đầu thiệp / poster<input type="hidden" name="coverPosterImage"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="coverPosterImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="coverPosterImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="coverPosterImage" hidden><img alt="Poster" data-media-thumb="coverPosterImage"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="coverPosterImage">
+                            <input type="file" accept="image/*" data-upload-target="coverPosterImage" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="coverPosterImage" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="coverPosterImage" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh đầu thiệp / poster</strong>
+                                        <em class="media-chip__hint" data-media-hint="coverPosterImage">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="coverPosterImage">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="coverPosterImage" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="previewImage">
-                            <div class="media-label">Ảnh preview khi gửi link<input type="hidden" name="previewImage"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="previewImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="previewImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="previewImage" hidden><img alt="Preview" data-media-thumb="previewImage"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="previewImage">
+                            <input type="file" accept="image/*" data-upload-target="previewImage" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="previewImage" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="previewImage" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh preview khi gửi link</strong>
+                                        <em class="media-chip__hint" data-media-hint="previewImage">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="previewImage">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="previewImage" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="aboutImage">
-                            <div class="media-label">Ảnh đôi (concept 1 hoặc 4 — Đôi nét về chúng tôi)<input type="hidden" name="aboutImage"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="aboutImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="aboutImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="aboutImage" hidden><img alt="About" data-media-thumb="aboutImage"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="aboutImage">
+                            <input type="file" accept="image/*" data-upload-target="aboutImage" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="aboutImage" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="aboutImage" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh đôi (concept 1/4)</strong>
+                                        <em class="media-chip__hint" data-media-hint="aboutImage">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="aboutImage">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="aboutImage" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="timelineImage">
-                            <div class="media-label">Ảnh lịch trình<input type="hidden" name="timelineImage"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="timelineImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="timelineImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="timelineImage" hidden><img alt="Timeline" data-media-thumb="timelineImage"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="timelineImage">
+                            <input type="file" accept="image/*" data-upload-target="timelineImage" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="timelineImage" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="timelineImage" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh lịch trình</strong>
+                                        <em class="media-chip__hint" data-media-hint="timelineImage">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="timelineImage">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="timelineImage" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="countdownImage">
-                            <div class="media-label">Ảnh đếm ngược<input type="hidden" name="countdownImage"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="countdownImage" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="countdownImage"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="countdownImage" hidden><img alt="Countdown" data-media-thumb="countdownImage"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="countdownImage">
+                            <input type="file" accept="image/*" data-upload-target="countdownImage" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="countdownImage" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="countdownImage" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh đếm ngược</strong>
+                                        <em class="media-chip__hint" data-media-hint="countdownImage">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="countdownImage">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="countdownImage" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="groomAvatar">
-                            <div class="media-label">Ảnh chú rể (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="groomAvatar"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="groomAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="groomAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="groomAvatar" hidden><img alt="Groom" data-media-thumb="groomAvatar"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="groomAvatar">
+                            <input type="file" accept="image/*" data-upload-target="groomAvatar" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="groomAvatar" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="groomAvatar" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh chú rể (concept 2/3)</strong>
+                                        <em class="media-chip__hint" data-media-hint="groomAvatar">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="groomAvatar">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="groomAvatar" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="media-item" data-media-field="brideAvatar">
-                            <div class="media-label">Ảnh cô dâu (concept 2 hoặc 3 — Đôi nét về chúng tôi)<input type="hidden" name="brideAvatar"></div>
-                            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="brideAvatar" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="brideAvatar"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-                            <div class="media-ready" data-media-ready="brideAvatar" hidden><img alt="Bride" data-media-thumb="brideAvatar"><strong>Đã có ảnh</strong></div>
+                            <input type="hidden" name="brideAvatar">
+                            <input type="file" accept="image/*" data-upload-target="brideAvatar" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="brideAvatar" title="Xem khu vực này trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-image media-chip__placeholder"></i>
+                                        <img alt="" data-media-thumb="brideAvatar" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">Ảnh cô dâu (concept 2/3)</strong>
+                                        <em class="media-chip__hint" data-media-hint="brideAvatar">Chưa có ảnh</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="brideAvatar">
+                                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="brideAvatar" disabled aria-label="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <h3 class="card-subheading">Album 7 ảnh</h3>
-                    <p class="hint">Bấm Chọn ảnh → chọn file là xong. Ảnh đã lưu hiện thumbnail.</p>
+                    <p class="hint">Bấm ô album để xem gallery trên preview · Upload / Xóa từng ảnh.</p>
                     <div id="builderGalleryFields" class="builder-gallery-fields"></div>
                     </div>
-                </details>
+                </section>
 
                 
-<details class="card builder-step">
-                    <summary><span class="step-index">7</span> QR mừng cưới</summary>
-                    <div class="card-body">
-                    <p class="hint">Chọn ảnh QR → chỉnh trong popup → bấm <strong>Áp dụng QR</strong>.</p>
+<section class="card builder-step" data-step="7" id="builderStep7" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">7</span>
+                        <h2 class="builder-step__title">QR mừng cưới</h2>
+                    </header>
+<div class="card-body">
+                    <p class="hint">Bấm khu vực QR để xem trên thiệp · <strong>Upload</strong> (cắt) / xem thumb · Ảnh lên cloud khi <strong>Lưu thiệp</strong>.</p>
                     <div class="qr-stack">
-                        <div class="qr-upload" data-qr-box="giftGroomQr">
-                            <div class="media-label">QR chú rể<input type="hidden" name="giftGroomQr"></div>
-                            <div class="upload-row">
-                                <input type="file" accept="image/*" data-qr-input="giftGroomQr" tabindex="-1" aria-hidden="true">
-                                <button type="button" data-upload-button="giftGroomQr"><i class="bi bi-crop"></i> Chọn &amp; cắt QR</button>
-                            </div>
-                            <div class="qr-ready" data-qr-ready="giftGroomQr" hidden>
-                                <img alt="QR chú rể đã cắt" data-qr-thumb="giftGroomQr">
-                                <div>
-                                    <strong>Đã cắt QR chú rể</strong>
+                        <div class="qr-upload media-item" data-qr-box="giftGroomQr" data-media-field="giftGroomQr">
+                            <input type="hidden" name="giftGroomQr">
+                            <input type="file" accept="image/*" data-qr-input="giftGroomQr" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="giftGroomQr" title="Xem phần mừng cưới trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-qr-code media-chip__placeholder"></i>
+                                        <img alt="QR chú rể" data-qr-thumb="giftGroomQr" data-media-thumb="giftGroomQr" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">QR chú rể</strong>
+                                        <em class="media-chip__hint" data-media-hint="giftGroomQr" data-qr-ready-label="giftGroomQr">Chưa có QR</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="giftGroomQr">
+                                        <i class="bi bi-crop" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="giftGroomQr" disabled aria-label="Xóa QR">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="grid two compact-grid">
+                            <div class="qr-ready" data-qr-ready="giftGroomQr" hidden></div>
+                            <div class="grid two compact-grid" style="margin-top:10px">
                                 <label>Ngân hàng chú rể<input name="giftGroomBank" placeholder="vd: Vietcombank"></label>
                                 <label>Số tài khoản chú rể<input name="giftGroomAccountNumber" placeholder="vd: 0123456789"></label>
                             </div>
                             <label>Tên tài khoản chú rể<input name="giftGroomAccountName" placeholder="vd: NGUYỄN VĂN A"></label>
                         </div>
 
-                        <div class="qr-upload" data-qr-box="giftBrideQr">
-                            <div class="media-label">QR cô dâu<input type="hidden" name="giftBrideQr"></div>
-                            <div class="upload-row">
-                                <input type="file" accept="image/*" data-qr-input="giftBrideQr" tabindex="-1" aria-hidden="true">
-                                <button type="button" data-upload-button="giftBrideQr"><i class="bi bi-crop"></i> Chọn &amp; cắt QR</button>
-                            </div>
-                            <div class="qr-ready" data-qr-ready="giftBrideQr" hidden>
-                                <img alt="QR cô dâu đã cắt" data-qr-thumb="giftBrideQr">
-                                <div>
-                                    <strong>Đã cắt QR cô dâu</strong>
+                        <div class="qr-upload media-item" data-qr-box="giftBrideQr" data-media-field="giftBrideQr">
+                            <input type="hidden" name="giftBrideQr">
+                            <input type="file" accept="image/*" data-qr-input="giftBrideQr" tabindex="-1" aria-hidden="true">
+                            <div class="media-chip">
+                                <button type="button" class="media-chip__body" data-media-focus="giftBrideQr" title="Xem phần mừng cưới trên thiệp">
+                                    <span class="media-chip__thumb" aria-hidden="true">
+                                        <i class="bi bi-qr-code media-chip__placeholder"></i>
+                                        <img alt="QR cô dâu" data-qr-thumb="giftBrideQr" data-media-thumb="giftBrideQr" hidden>
+                                    </span>
+                                    <span class="media-chip__text">
+                                        <strong class="media-chip__title">QR cô dâu</strong>
+                                        <em class="media-chip__hint" data-media-hint="giftBrideQr" data-qr-ready-label="giftBrideQr">Chưa có QR</em>
+                                    </span>
+                                </button>
+                                <div class="media-chip__actions">
+                                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="giftBrideQr">
+                                        <i class="bi bi-crop" aria-hidden="true"></i><span>Upload</span>
+                                    </button>
+                                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="giftBrideQr" disabled aria-label="Xóa QR">
+                                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="grid two compact-grid">
+                            <div class="qr-ready" data-qr-ready="giftBrideQr" hidden></div>
+                            <div class="grid two compact-grid" style="margin-top:10px">
                                 <label>Ngân hàng cô dâu<input name="giftBrideBank" placeholder="vd: Techcombank"></label>
                                 <label>Số tài khoản cô dâu<input name="giftBrideAccountNumber" placeholder="vd: 9876543210"></label>
                             </div>
@@ -320,39 +609,30 @@
                         </div>
                     </div>
                     </div>
-                </details>
+                </section>
 
-                
-<details class="card builder-step">
-                    <summary><span class="step-index">8</span> Maps chỉ đường</summary>
-                    <div class="card-body">
-                    <p class="hint">Dán link chia sẻ Google Maps hoặc chọn trực tiếp điểm trên bản đồ.</p>
-                    <div class="split-builder">
-                        <div class="mini-card">
-                            <h3>Nhà gái</h3>
-                            <label>Link Maps nhà gái<input name="brideMapUrl" placeholder="Dán link chia sẻ Maps hoặc bấm nút bên dưới"></label>
-                            <div class="map-actions">
-                                <button type="button" class="map-button" data-map-picker="bride"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
-                            </div>
-                        </div>
-                        <div class="mini-card">
-                            <h3>Nhà trai</h3>
-                            <label>Link Maps nhà trai<input name="groomMapUrl" placeholder="Dán link chia sẻ Maps hoặc bấm nút bên dưới"></label>
-                            <div class="map-actions">
-                                <button type="button" class="map-button" data-map-picker="groom"><i class="bi bi-geo-alt-fill"></i> Chọn điểm trên bản đồ</button>
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                </details>
 
                 <p id="status" class="status"></p>
-                <div id="resultLinks" class="result-links" hidden>
-                    <p>Đã lưu thành công. Gửi link thiệp theo từng khách (hoặc link chung) và link sửa thiệp.</p>
-                    <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link thiệp chung (Quý khách)</a>
-                    <div id="guestLinksList" class="guest-links" hidden></div>
-                    <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sửa thiệp</a>
-                </div>
+
+                <!-- Tab riêng: link sau khi lưu — không dính mọi bước form -->
+                <section class="card builder-step" data-step="8" id="builderStep8" hidden>
+                    <header class="builder-step__header">
+                        <span class="step-index">8</span>
+                        <h2 class="builder-step__title">Link thiệp</h2>
+                    </header>
+                    <div class="card-body">
+                        <p class="hint" id="linksStepEmptyHint">Lưu thiệp (và mở khóa nếu cần) để lấy link gửi khách và link sửa.</p>
+                        <div id="resultLinks" class="result-links" hidden>
+                            <p>Đã lưu thành công. Gửi link thiệp theo từng khách (hoặc link chung) và link sửa thiệp.</p>
+                            <a id="invitationLink" href="#" target="_blank" rel="noopener noreferrer">Link thiệp chung (Quý khách)</a>
+                            <div id="guestLinksList" class="guest-links" hidden></div>
+                            <div class="result-links__edit">
+                                <p class="result-links__edit-label">Link sửa thiệp</p>
+                                <a id="editLink" href="#" target="_blank" rel="noopener noreferrer">Link sửa thiệp</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 </div><!-- /.builder-panel__scroll -->
             </form>
         </section>
@@ -360,18 +640,31 @@
         <section class="preview-panel" id="previewPanel" data-builder-panel="preview">
             <div class="preview-panel__head">
                 <h2>Xem trước trên điện thoại</h2>
-                <p>Kéo/thao tác trong khung để kiểm tra thiệp.</p>
+                <button type="button" class="preview-from-start" id="previewFromStartBtn">
+                    <i class="bi bi-skip-start-circle"></i> Xem từ đầu thiệp
+                </button>
             </div>
             <div class="phone-frame">
-                <iframe id="previewFrame" title="Preview thiep"></iframe>
+                <iframe id="previewFrame" title="Preview thiep" allow="clipboard-write"></iframe>
             </div>
         </section>
     </main>
 
     <!-- Outside scroll containers so fixed positioning always sticks to viewport -->
-    <div class="actions builder-actions">
-        <button type="button" id="previewBtn" form="builderForm"><i class="bi bi-eye-fill"></i> Xem preview</button>
-        <button id="saveBtn" type="submit" form="builderForm"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button>
+    <div class="actions builder-actions" id="builderActions">
+        <div class="builder-actions__nav">
+            <button type="button" class="builder-actions__prev" id="stepPrevBtn" disabled form="builderForm">
+                <i class="bi bi-arrow-left"></i><span>Quay lại</span>
+            </button>
+            <span class="builder-actions__meta" id="stepFooterMeta">1 / 7</span>
+            <button type="button" class="builder-actions__next" id="stepNextBtn" form="builderForm">
+                <span>Tiếp theo</span><i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+        <div class="builder-actions__main">
+            <button type="button" id="previewBtn" form="builderForm"><i class="bi bi-eye-fill"></i><span>Xem preview</span></button>
+            <button id="saveBtn" type="submit" form="builderForm"><i class="bi bi-cloud-upload-fill"></i><span>Lưu thiệp</span></button>
+        </div>
     </div>
 
 
@@ -479,6 +772,40 @@
         </section>
     </div>
 
+    <!-- Custom date/time pickers (native popup không style được màu brand) -->
+    <div id="builderDatePopover" class="b-picker b-picker--date" hidden role="dialog" aria-label="Chọn ngày">
+        <div class="b-picker__head">
+            <button type="button" class="b-picker__nav" data-date-nav="-1" aria-label="Tháng trước"><i class="bi bi-chevron-left"></i></button>
+            <strong id="builderDateMonthLabel" class="b-picker__month">—</strong>
+            <button type="button" class="b-picker__nav" data-date-nav="1" aria-label="Tháng sau"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="b-picker__weekdays" aria-hidden="true">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
+        <div id="builderDateGrid" class="b-picker__grid"></div>
+        <div class="b-picker__foot">
+            <button type="button" class="b-picker__link" data-date-clear>Xóa</button>
+            <button type="button" class="b-picker__link b-picker__link--primary" data-date-today>Hôm nay</button>
+        </div>
+    </div>
+
+    <div id="builderTimePopover" class="b-picker b-picker--time" hidden role="dialog" aria-label="Chọn giờ">
+        <div class="b-picker__time-cols">
+            <div class="b-picker__time-col">
+                <span class="b-picker__time-label">Giờ</span>
+                <ul id="builderTimeHours" class="b-picker__time-list"></ul>
+            </div>
+            <div class="b-picker__time-col">
+                <span class="b-picker__time-label">Phút</span>
+                <ul id="builderTimeMinutes" class="b-picker__time-list"></ul>
+            </div>
+        </div>
+        <div class="b-picker__foot">
+            <button type="button" class="b-picker__link" data-time-cancel>Đóng</button>
+            <button type="button" class="b-picker__link b-picker__link--primary" data-time-apply>Chọn</button>
+        </div>
+    </div>
+
     <div id="mapPickerModal" class="map-picker-modal" hidden>
         <div class="map-picker-modal__backdrop" data-close-map-picker></div>
         <section class="map-picker-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle">
@@ -511,6 +838,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script type="module" src="builder.js"></script>
+    <script type="module" src="builder.js?v=mobile-no-autofocus-schedule-titles-1"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ js/modules/
 
 1. Folder `js/modules/<name>/{module.js,render.js}`
 2. Thêm vào `SECTION_MODULES` trong `index.js`
-3. `css/blocks/<name>/skins.css` + import `css/blocks/index.css`
+3. `css/blocks/<name>/skins.css` + link trong `index.html` (cùng `?v=`)
 4. Markup `index.html` + field builder nếu `buildable: true`
 
 ## Local image fallback

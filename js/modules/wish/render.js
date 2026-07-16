@@ -52,7 +52,14 @@ export function renderWishForm() {
 
     setText("wishAttendanceLabel", wish.attendanceLabel);
     setText("wishBtn", wish.submit);
-    setText("loadMoreBtn", wish.loadMore);
+    // Nút "Xem thêm" chỉ hiện khi wish.js thấy > WISH_LIMIT lời chúc
+    const loadMoreBtn = $("loadMoreBtn");
+    if (loadMoreBtn) {
+        loadMoreBtn.textContent = wish.loadMore || "Xem thêm";
+        loadMoreBtn.hidden = true;
+        loadMoreBtn.style.display = "none";
+        loadMoreBtn.setAttribute("aria-hidden", "true");
+    }
 
     renderRadioGroup("wishSideGroup", "side", wish.sides);
     renderRadioGroup("wishAttendanceGroup", "attendance", wish.attendance);

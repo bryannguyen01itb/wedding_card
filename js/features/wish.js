@@ -195,16 +195,24 @@ function createWishCard(data) {
 }
 
 function updateLoadMore() {
-    if (allWishes.length <= WISH_LIMIT) {
-        form.loadMore.style.display = "none";
+    const btn = form.loadMore;
+    if (!btn) return;
+
+    // Không có lời chúc / không vượt limit → ẩn hẳn nút "Xem thêm"
+    if (!allWishes.length || allWishes.length <= WISH_LIMIT) {
+        btn.hidden = true;
+        btn.style.display = "none";
+        btn.setAttribute("aria-hidden", "true");
         return;
     }
 
-    form.loadMore.style.display = "block";
-    form.loadMore.textContent = expanded
+    btn.hidden = false;
+    btn.style.display = "";
+    btn.removeAttribute("aria-hidden");
+    btn.textContent = expanded
         ? wishConfig.collapse
         : `${wishConfig.loadMore} (${allWishes.length})`;
-    form.loadMore.classList.toggle("collapse", expanded);
+    btn.classList.toggle("collapse", expanded);
 }
 
 function render() {
@@ -214,16 +222,52 @@ function render() {
     updateLoadMore();
 }
 
+function isBuilderPreview() {
+    try {
+        return new URLSearchParams(window.location.search).get("preview") === "builder";
+    } catch (_) {
+        return false;
+    }
+}
+
 function loadWishes() {
-    getWishesCollection()
-        .orderBy("createdAt", "desc")
-        .onSnapshot(snapshot => {
-            allWishes = snapshot.docs.map(doc => doc.data());
-            render();
-        });
+    // Preview builder: tuyệt đối không onSnapshot
+    if (isBuilderPreview()) {
+        allWishes = [];
+        render();
+        return;
+    }
+
+    try {
+        getWishesCollection()
+            .orderBy("createdAt", "desc")
+            .onSnapshot(snapshot => {
+                allWishes = snapshot.docs.map(doc => doc.data());
+                render();
+            }, err => {
+                console.warn("[wish] Firestore listen failed (offline?):", err?.code || err);
+                allWishes = [];
+                render();
+            });
+    } catch (err) {
+        console.warn("[wish] loadWishes skipped:", err);
+        allWishes = [];
+        render();
+    }
 }
 
 export function initWish() {
+    // Preview builder: app.js thường không gọi; chặn kép nếu vẫn gọi
+    if (isBuilderPreview()) {
+        allWishes = [];
+        try {
+            render();
+        } catch (_) {
+            /* DOM chưa sẵn */
+        }
+        return;
+    }
+
     bindInputLimits();
     form.button?.addEventListener("click", sendWish);
     form.loadMore?.addEventListener("click", () => {

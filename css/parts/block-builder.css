@@ -88,13 +88,7 @@ body.font-nickname-pacifico { --font-nickname: "Pacifico", cursive; }
 body.font-nickname-lobster { --font-nickname: "Lobster", cursive; }
 body.font-nickname-lora { --font-nickname: "Lora", Georgia, serif; }
 
-/*
- * Historical builder option classes such as block-cover-soft/editorial/sunset were removed.
- * The live builder now writes theme.blocks values as concept-1..concept-4 only.
- * Keep block-specific layout in css/blocks/<section>/skins.css.
- */
-
-/* Final block fixes: keep selected section skins from inheriting awkward base concept spacing. */
+/* Spacing glue when mixing section skins — layout chi tiết ở blocks/*/skins.css */
 .about.block-skin-concept-2,
 .about.block-skin-concept-3,
 .about.block-skin-concept-4,
@@ -110,7 +104,6 @@ body.font-nickname-lora { --font-nickname: "Lora", Georgia, serif; }
 .timeline.block-skin-concept-4 h2 {
     line-height: 1.16 !important;
 }
-
 
 .about.block-skin-concept-2 .person,
 .about.block-skin-concept-3 .person {
@@ -139,128 +132,7 @@ body.font-nickname-lora { --font-nickname: "Lora", Georgia, serif; }
     pointer-events: none;
 }
 
-
-/* Manual stable skins for block concept 2/3. These intentionally override generated aliases. */
-body .cover.block-skin-concept-2,
-body .cover.block-skin-concept-3 {
-    position: relative !important;
-    justify-content: space-between !important;
-    min-height: 100vh !important;
-    padding: .62rem .36rem .55rem !important;
-    color: #fff !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.74)), var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat !important;
-}
-
-body .cover.block-skin-concept-2::before,
-body .cover.block-skin-concept-3::before {
-    content: "" !important;
-    position: absolute !important;
-    inset: 0 !important;
-    pointer-events: none !important;
-}
-
-body .cover.block-skin-concept-2::before {
-    background: linear-gradient(180deg, rgba(var(--botanical-leaf-rgb), .08), rgba(255,255,255,.62) 48%, rgba(var(--botanical-cream-rgb), .86)) !important;
-}
-
-body .cover.block-skin-concept-3::before {
-    background: radial-gradient(circle at 18% 12%, rgba(var(--sunset-lemon-rgb), .42), transparent 34%), linear-gradient(180deg, rgba(var(--sunset-coral-rgb), .16), rgba(255,255,255,.62) 55%, rgba(var(--sunset-cream-rgb), .92)) !important;
-}
-
-body .cover.block-skin-concept-2 > *,
-body .cover.block-skin-concept-3 > * {
-    position: relative !important;
-    z-index: 1 !important;
-}
-
-body .cover.block-skin-concept-2 .cover__headline,
-body .cover.block-skin-concept-3 .cover__headline {
-    margin-top: .28rem !important;
-    color: rgba(55, 48, 38, .78) !important;
-    font-family: "Lora", Georgia, serif !important;
-    font-size: .28rem !important;
-    font-weight: 700 !important;
-    letter-spacing: .14rem !important;
-    text-align: center !important;
-}
-
-body .cover.block-skin-concept-2 .card,
-body .cover.block-skin-concept-3 .card {
-    position: relative !important;
-    width: min(6.2rem, 78vw) !important;
-    aspect-ratio: 2 / 3 !important;
-    border: 0 !important;
-    border-radius: .4rem !important;
-    overflow: hidden !important;
-    background: var(--concept-cover-image, url("../../img/anh_1.jpg")) center/cover no-repeat !important;
-    box-shadow: 0 .42rem 1.2rem rgba(45, 36, 28, .18) !important;
-}
-
-body .cover.block-skin-concept-2 .card::before,
-body .cover.block-skin-concept-3 .card::before {
-    content: "" !important;
-    position: absolute !important;
-    inset: 0 !important;
-    background: linear-gradient(180deg, transparent 28%, rgba(0,0,0,.2)) !important;
-}
-
-body .cover.block-skin-concept-2 .card::after,
-body .cover.block-skin-concept-3 .card::after {
-    content: var(--concept-cover-label, "Mở thiệp") !important;
-    position: absolute !important;
-    left: 50% !important;
-    bottom: .34rem !important;
-    transform: translateX(-50%) !important;
-    z-index: 2 !important;
-    white-space: nowrap !important;
-    border-radius: 999px !important;
-    padding: .12rem .28rem !important;
-    color: #fff !important;
-    font: 800 .22rem/1 "Quicksand", sans-serif !important;
-    background: rgba(0,0,0,.34) !important;
-    backdrop-filter: blur(8px) !important;
-}
-
-body .cover.block-skin-concept-2 .card__close,
-body .cover.block-skin-concept-2 .card__open,
-body .cover.block-skin-concept-3 .card__close,
-body .cover.block-skin-concept-3 .card__open {
-    display: none !important;
-}
-
-body .cover.block-skin-concept-2 .cover__footer,
-body .cover.block-skin-concept-3 .cover__footer {
-    width: min(100%, 7rem) !important;
-    color: #fff !important;
-    text-shadow: 0 .08rem .28rem rgba(0,0,0,.34) !important;
-}
-
-body .cover.block-skin-concept-2 .cover__footer .man_name,
-body .cover.block-skin-concept-2 .cover__footer .women_name,
-body .cover.block-skin-concept-3 .cover__footer .man_name,
-body .cover.block-skin-concept-3 .cover__footer .women_name {
-    color: #fff !important;
-    font-size: .72rem !important;
-}
-
-body .cover.block-skin-concept-2 .cover__footer .heartbeat {
-    color: var(--botanical-rose) !important;
-}
-
-body .cover.block-skin-concept-3 .cover__footer .heartbeat {
-    color: var(--sunset-lavender) !important;
-}
-
-body .cover.block-skin-concept-2 .cover__date,
-body .cover.block-skin-concept-3 .cover__date {
-    margin-top: .16rem !important;
-    color: rgba(255,255,255,.92) !important;
-    font-size: .28rem !important;
-    font-weight: 800 !important;
-    letter-spacing: .12rem !important;
-    text-shadow: 0 .08rem .24rem rgba(0,0,0,.32) !important;
-}
-
+/* Mixed-block isolation (about / timeline / cover / countdown) */
 body .about.block-skin-concept-2,
 body .about.block-skin-concept-3 {
     clear: both !important;
@@ -396,81 +268,7 @@ body .about.block-skin-concept-3 .parent {
     line-height: 1.55 !important;
 }
 
-body .timeline.block-skin-concept-2 {
-    padding: .72rem .28rem .38rem !important;
-    color: var(--botanical-ink) !important;
-    background: var(--botanical-paper) !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-card {
-    position: relative !important;
-    display: grid !important;
-    grid-template-columns: 2.5rem 1fr !important;
-    gap: .22rem !important;
-    width: 100% !important;
-    min-height: 4.05rem !important;
-    margin-bottom: .42rem !important;
-    padding: .22rem !important;
-    border-radius: .42rem !important;
-    overflow: visible !important;
-    background: #fff !important;
-    box-shadow: var(--botanical-shadow) !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) {
-    grid-template-columns: 1fr 2.5rem !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-card > img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 3.65rem !important;
-    border-radius: .3rem !important;
-    object-fit: cover !important;
-    box-shadow: 0 12px 24px rgba(var(--botanical-ink-rgb), .12) !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) > img {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-card:nth-child(even) .timeline-content {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-event {
-    position: relative !important;
-    padding: .18rem .2rem .18rem .32rem !important;
-    border: 0 !important;
-    border-radius: .24rem !important;
-    background: var(--botanical-mint) !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-name {
-    color: var(--botanical-ink) !important;
-    font: 700 .3rem/1.25 "Lora", Georgia, serif !important;
-    text-align: left !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-row,
-body .timeline.block-skin-concept-2 .timeline-address {
-    justify-content: flex-start !important;
-    text-align: left !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-row i {
-    color: var(--botanical-rose) !important;
-}
-
-body .timeline.block-skin-concept-2 .timeline-row span,
-body .timeline.block-skin-concept-2 .timeline-address {
-    color: color-mix(in srgb, var(--botanical-ink, #2f2a25) 72%, var(--botanical-muted, #6f7b75) 28%) !important;
-    font-size: .3rem !important;
-    font-weight: 600 !important;
-}
+/* Timeline concept-2 layout: skins.css (ảnh | events dọc) — không override 1 cột ở đây */
 
 /* Hard isolation layer: stop concept 1 pieces leaking into concept 2/3 block skins. */
 body .about.block-skin-concept-2 .about-portrait,

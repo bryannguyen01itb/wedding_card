@@ -57,8 +57,18 @@ const refreshPaymentListBtn = document.getElementById("refreshPaymentListBtn");
 const deleteOldWeddingsBtn = document.getElementById("deleteOldWeddingsBtn");
 
 const WEDDING_STALE_DAYS = 30;
-/** Cache list thiệp để bulk delete */
+/** TTL cache list thiệp — tránh get full collection mỗi lần đổi tab */
+const WEDDING_LIST_TTL_MS = 60_000;
+
+/**
+ * Cache list thiệp (slim) + in-flight.
+ * Lưu ý Firestore: client vẫn đọc full doc (không field-mask) → 1 doc = 1 read đủ field.
+ * Slim chỉ giảm RAM / render; không giảm Cloudinary (admin list không <img> CDN).
+ */
 let cachedWeddingList = [];
+let weddingListMeta = { at: 0, inflight: null };
+let paymentSettingsLoaded = false;
+let musicLibraryLoaded = false;
 
 let currentConfig = createEmptyAdminConfig();
 let hasLoadedInitialConfig = false;
@@ -387,10 +397,12 @@ function fillPaymentSettings(data = {}) {
     paymentMessage.value = data.message || "Vui lòng chuyển khoản đúng số tiền với nội dung là MÃ GIAO DỊCH. Hệ thống sẽ tự mở khóa thiệp sau khi nhận được (SePay). Nếu quá lâu chưa mở, hãy liên hệ admin.";
 }
 
-async function loadPaymentSettingsAdmin() {
+async function loadPaymentSettingsAdmin({ force = false } = {}) {
+    if (paymentSettingsLoaded && !force) return;
     try {
         const doc = await db.collection("settings").doc("payment").get();
         fillPaymentSettings(doc.exists ? doc.data() : {});
+        paymentSettingsLoaded = true;
     } catch (error) {
         console.error(error);
         showToast("Không tải được cấu hình thanh toán.", "error");
@@ -762,7 +774,7 @@ async function confirmPlanChangeFromModal() {
         }
 
         closePlanChangeModal();
-        await loadPaymentList();
+        await loadPaymentList({ force: true });
         showToast(
             `Đã đổi ${id} → ${toLabel}`
             + (updatePrice ? ` · giá ${formatMoney(amount)}` : " · giữ giá cũ")
@@ -930,7 +942,7 @@ async function deleteStaleWeddings() {
         else failed += 1;
     }
 
-    await loadPaymentList();
+    await loadPaymentList({ force: true });
     showToast(
         failed
             ? `Đã xóa ${done} thiệp, lỗi ${failed}.`
@@ -943,39 +955,92 @@ async function deleteStaleWeddings() {
     }
 }
 
-async function loadPaymentList() {
-    if (!paymentList) return;
+/**
+ * Chỉ giữ field cần cho list / stale / đổi gói / xóa.
+ * Không giữ gallery, theme.concepts, guests full text dài (chỉ length) — nhẹ RAM.
+ * Firestore vẫn bill full document read (SDK web không select field).
+ */
+function slimWeddingForList(doc) {
+    const data = doc.data() || {};
+    const payment = data.payment || {};
+    const guests = Array.isArray(data.guests) ? data.guests : [];
+    return {
+        id: doc.id,
+        weddingId: data.weddingId || doc.id,
+        createdAt: data.createdAt || null,
+        updatedAt: data.updatedAt || null,
+        plan: data.plan === "multi" ? "multi" : "single",
+        // plan-change warning cần count, không cần full mảng tên
+        guests,
+        groom: { nickname: data.groom?.nickname || "" },
+        bride: { nickname: data.bride?.nickname || "" },
+        payment: {
+            status: payment.status || "",
+            unlocked: payment.unlocked === true,
+            plan: payment.plan === "multi" || payment.plan === "single" ? payment.plan : "",
+            amount: payment.amount,
+            currency: payment.currency || "",
+            orderCode: payment.orderCode || "",
+            accessToken: payment.accessToken || "",
+            provider: payment.provider || ""
+        }
+    };
+}
+
+function sortWeddingListItems(items) {
+    return [...items].sort((a, b) => {
+        const aStale = isWeddingStale(a) ? 0 : 1;
+        const bStale = isWeddingStale(b) ? 0 : 1;
+        if (aStale !== bStale) return aStale - bStale;
+        const aAge = getWeddingAgeDays(a) ?? -1;
+        const bAge = getWeddingAgeDays(b) ?? -1;
+        if (aAge !== bAge) return bAge - aAge;
+        const aPaid = a.payment?.unlocked === true || a.payment?.status === "paid";
+        const bPaid = b.payment?.unlocked === true || b.payment?.status === "paid";
+        if (aPaid !== bPaid) return aPaid ? 1 : -1;
+        return String(a.weddingId || a.id).localeCompare(String(b.weddingId || b.id));
+    });
+}
+
+/**
+ * @param {{ force?: boolean }} [options]
+ * force=true: sau xóa/unlock/đổi gói / nút Tải lại
+ */
+async function loadPaymentList({ force = false } = {}) {
+    if (!paymentList) return [];
+
+    const fresh = !force
+        && cachedWeddingList.length
+        && (Date.now() - weddingListMeta.at) < WEDDING_LIST_TTL_MS;
+
+    if (fresh) {
+        renderPaymentList(cachedWeddingList);
+        return cachedWeddingList;
+    }
+
+    if (weddingListMeta.inflight) {
+        return weddingListMeta.inflight;
+    }
+
     paymentList.innerHTML = '<p class="empty-state">Đang tải danh sách thiệp...</p>';
 
-    try {
-        const snapshot = await db.collection("weddings").limit(200).get();
-        const items = snapshot.docs
-            .map(doc => {
-                const data = doc.data() || {};
-                return {
-                    id: doc.id,
-                    ...data,
-                    weddingId: data.weddingId || doc.id
-                };
-            })
-            .sort((a, b) => {
-                // Cũ nhất / stale lên trước để dễ dọn
-                const aStale = isWeddingStale(a) ? 0 : 1;
-                const bStale = isWeddingStale(b) ? 0 : 1;
-                if (aStale !== bStale) return aStale - bStale;
-                const aAge = getWeddingAgeDays(a) ?? -1;
-                const bAge = getWeddingAgeDays(b) ?? -1;
-                if (aAge !== bAge) return bAge - aAge;
-                const aPaid = a.payment?.unlocked === true || a.payment?.status === "paid";
-                const bPaid = b.payment?.unlocked === true || b.payment?.status === "paid";
-                if (aPaid !== bPaid) return aPaid ? 1 : -1;
-                return String(a.weddingId || a.id).localeCompare(String(b.weddingId || b.id));
-            });
-        renderPaymentList(items);
-    } catch (error) {
-        console.error(error);
-        paymentList.innerHTML = '<p class="empty-state error">Không tải được danh sách payment. Kiểm tra Firestore Rules.</p>';
-    }
+    weddingListMeta.inflight = (async () => {
+        try {
+            // limit 200 — admin list; không onSnapshot (tránh stream liên tục)
+            const snapshot = await db.collection("weddings").limit(200).get();
+            const items = sortWeddingListItems(snapshot.docs.map(slimWeddingForList));
+            weddingListMeta = { at: Date.now(), inflight: null };
+            renderPaymentList(items);
+            return items;
+        } catch (error) {
+            console.error(error);
+            weddingListMeta.inflight = null;
+            paymentList.innerHTML = '<p class="empty-state error">Không tải được danh sách payment. Kiểm tra Firestore Rules.</p>';
+            return [];
+        }
+    })();
+
+    return weddingListMeta.inflight;
 }
 
 async function updateWeddingPaymentById(weddingId, status) {
@@ -1070,7 +1135,7 @@ async function updateWeddingPaymentById(weddingId, status) {
             currentConfig = mergeConfig(currentConfig, payload);
             updatePreviewLink(weddingId, unlocked ? accessToken : "");
         }
-        await loadPaymentList();
+        await loadPaymentList({ force: true });
         showToast(unlocked ? `Đã mở khóa ${weddingId}.` : `Đã khóa ${weddingId}.`);
     } catch (error) {
         console.error(error);
@@ -1096,7 +1161,7 @@ async function handlePaymentListClick(event) {
         const ok = await deleteWeddingById(id, { confirm: true });
         if (ok) {
             showWeddingListMode();
-            await loadPaymentList();
+            await loadPaymentList({ force: true });
         } else deleteBtn.disabled = false;
         return;
     }
@@ -1247,7 +1312,7 @@ function renderMusicList(items) {
             </div>
             <div class="music-item__actions">
                 <button type="button" class="ghost small" data-action="edit" data-id="${item.id}"><i class="bi bi-pencil-square"></i> Sửa</button>
-                <button type="button" class="ghost small" data-action="toggle" data-id="${item.id}">${item.active === false ? '<i class="bi bi-eye-fill"></i> Hiện' : '<i class="bi bi-eye-slash-fill"></i> Ẩn'}</button>
+                <button type="button" class="ghost small ${item.active === false ? "is-hidden-state" : "is-visible-state"}" data-action="toggle" data-id="${item.id}" title="${item.active === false ? "Đang ẩn — bấm để hiện" : "Đang hiện — bấm để ẩn"}">${item.active === false ? '<i class="bi bi-eye-slash-fill"></i> Đang ẩn' : '<i class="bi bi-eye-fill"></i> Đang hiện'}</button>
                 <button type="button" class="ghost small danger" data-action="delete" data-id="${item.id}"><i class="bi bi-trash3-fill"></i> Xóa</button>
             </div>
         `;
@@ -1255,14 +1320,22 @@ function renderMusicList(items) {
     });
 }
 
-async function loadMusicLibraryAdmin() {
+async function loadMusicLibraryAdmin({ force = false } = {}) {
+    if (musicLibraryLoaded && !force && musicList?.children?.length) return;
+    if (musicList) {
+        musicList.innerHTML = '<p class="empty-state">Đang tải thư viện nhạc...</p>';
+    }
     try {
+        // Chỉ metadata + URL text — không <audio>/<img> → không tốn Cloudinary bandwidth khi mở tab
         const snapshot = await db.collection("musicLibrary").orderBy("title").get();
         const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderMusicList(items);
+        musicLibraryLoaded = true;
     } catch (error) {
         console.error(error);
-        musicList.innerHTML = '<p class="empty-state error">Không tải được thư viện nhạc. Kiểm tra Firestore Rules.</p>';
+        if (musicList) {
+            musicList.innerHTML = '<p class="empty-state error">Không tải được thư viện nhạc. Kiểm tra Firestore Rules.</p>';
+        }
     }
 }
 
@@ -1295,7 +1368,7 @@ async function saveMusicItem(event) {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         resetMusicForm();
-        await loadMusicLibraryAdmin();
+        await loadMusicLibraryAdmin({ force: true });
         showToast("Đã lưu bài nhạc vào thư viện chung.");
     } catch (error) {
         console.error(error);
@@ -1331,7 +1404,7 @@ async function handleMusicListClick(event) {
             const doc = await ref.get();
             if (!doc.exists) return;
             await ref.set({ active: doc.data().active === false }, { merge: true });
-            await loadMusicLibraryAdmin();
+            await loadMusicLibraryAdmin({ force: true });
             showToast("Đã cập nhật trạng thái bài nhạc.");
             return;
         }
@@ -1340,7 +1413,7 @@ async function handleMusicListClick(event) {
             if (!window.confirm("Xóa bài nhạc này khỏi thư viện builder?")) return;
             await ref.delete();
             if (musicDocId.value === id) resetMusicForm();
-            await loadMusicLibraryAdmin();
+            await loadMusicLibraryAdmin({ force: true });
             showToast("Đã xóa bài nhạc.");
         }
     } catch (error) {
@@ -1427,6 +1500,30 @@ function canUseAdmin(user) {
     return isAllowedAdminEmail(user?.email);
 }
 
+const ADMIN_VIEW_TITLES = {
+    weddings: "Danh sách thiệp",
+    payment: "Thanh toán",
+    music: "Thư viện nhạc"
+};
+
+function isMobileAdminLayout() {
+    return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function setAdminNavOpen(open) {
+    const on = !!open && isMobileAdminLayout() && document.body.classList.contains("admin-logged-in");
+    document.body.classList.toggle("admin-nav-open", on);
+    const toggle = document.getElementById("adminNavToggle");
+    const backdrop = document.getElementById("adminNavBackdrop");
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", on ? "true" : "false");
+        toggle.setAttribute("aria-label", on ? "Đóng menu" : "Mở menu");
+        const icon = toggle.querySelector("i");
+        if (icon) icon.className = on ? "bi bi-x-lg" : "bi bi-list";
+    }
+    if (backdrop) backdrop.hidden = !on;
+}
+
 function setAdminView(viewId, { keepEditor = false } = {}) {
     let next = String(viewId || "weddings").trim();
     // Tương thích hash cũ
@@ -1440,9 +1537,19 @@ function setAdminView(viewId, { keepEditor = false } = {}) {
         button.classList.toggle("is-active", button.dataset.adminNav === next);
     });
 
+    const mobileTitle = document.getElementById("adminMobileTitle");
+    if (mobileTitle) mobileTitle.textContent = ADMIN_VIEW_TITLES[next] || "Admin";
+
+    setAdminNavOpen(false);
+
     if (next === "weddings") {
         if (!keepEditor) showWeddingListMode();
-        loadPaymentList();
+        // Cache 60s — không get collection mỗi lần bấm menu
+        void loadPaymentList({ force: false });
+    } else if (next === "music") {
+        void loadMusicLibraryAdmin({ force: false });
+    } else if (next === "payment") {
+        void loadPaymentSettingsAdmin({ force: false });
     }
 
     if (window.location.hash !== `#${next}`) {
@@ -1451,11 +1558,18 @@ function setAdminView(viewId, { keepEditor = false } = {}) {
 }
 
 function showLoggedOut() {
+    setAdminNavOpen(false);
+    document.body.classList.remove("admin-logged-in");
     if (loginPanel) loginPanel.classList.remove("is-hidden");
     if (adminApp) {
         adminApp.classList.add("is-hidden");
         adminApp.hidden = true;
     }
+    // Reset cache khi đăng xuất — lần login sau fetch lại
+    cachedWeddingList = [];
+    weddingListMeta = { at: 0, inflight: null };
+    paymentSettingsLoaded = false;
+    musicLibraryLoaded = false;
 }
 
 async function showLoggedIn(user) {
@@ -1465,6 +1579,7 @@ async function showLoggedIn(user) {
         return;
     }
 
+    document.body.classList.add("admin-logged-in");
     if (loginPanel) loginPanel.classList.add("is-hidden");
     if (adminApp) {
         adminApp.classList.remove("is-hidden");
@@ -1473,15 +1588,18 @@ async function showLoggedIn(user) {
     }
     if (accountEmail) accountEmail.textContent = user.email || "";
 
-    const hashView = (window.location.hash || "").replace("#", "").trim();
-    setAdminView(hashView || "weddings");
-
+    // settings/payment nhỏ — cần sớm cho nút Đã trả / đổi gói (giá snapshot)
+    // musicLibrary: lazy khi vào tab Nhạc (không tải lúc login)
+    // weddings list: 1 lần qua setAdminView (không double-get)
     try {
-        await Promise.all([loadMusicLibraryAdmin(), loadPaymentSettingsAdmin(), loadPaymentList()]);
+        await loadPaymentSettingsAdmin({ force: true });
     } catch (error) {
         console.error(error);
-        showToast("Một phần dữ liệu admin chưa tải được.", "error");
+        showToast("Không tải được cấu hình thanh toán.", "error");
     }
+
+    const hashView = (window.location.hash || "").replace("#", "").trim();
+    setAdminView(hashView || "weddings");
 
     if (!hasLoadedInitialConfig) {
         const params = new URLSearchParams(window.location.search);
@@ -1504,7 +1622,7 @@ function initEvents() {
     const goList = () => {
         showWeddingListMode();
         setAdminView("weddings");
-        loadPaymentList();
+        void loadPaymentList({ force: false });
     };
     document.getElementById("backToWeddingListBtn")?.addEventListener("click", goList);
     document.getElementById("backToWeddingListBtn2")?.addEventListener("click", goList);
@@ -1516,11 +1634,29 @@ function initEvents() {
         setAdminView(window.location.hash.replace("#", "") || "weddings");
     });
 
+    document.getElementById("adminNavToggle")?.addEventListener("click", () => {
+        setAdminNavOpen(!document.body.classList.contains("admin-nav-open"));
+    });
+    document.getElementById("adminNavClose")?.addEventListener("click", () => {
+        setAdminNavOpen(false);
+    });
+    document.getElementById("adminNavBackdrop")?.addEventListener("click", () => {
+        setAdminNavOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && document.body.classList.contains("admin-nav-open")) {
+            setAdminNavOpen(false);
+        }
+    });
+    window.addEventListener("resize", () => {
+        if (!isMobileAdminLayout()) setAdminNavOpen(false);
+    });
+
     form?.addEventListener("submit", saveConfig);
     musicForm?.addEventListener("submit", saveMusicItem);
     paymentSettingsForm?.addEventListener("submit", savePaymentSettings);
     paymentList?.addEventListener("click", handlePaymentListClick);
-    refreshPaymentListBtn?.addEventListener("click", loadPaymentList);
+    refreshPaymentListBtn?.addEventListener("click", () => loadPaymentList({ force: true }));
     deleteOldWeddingsBtn?.addEventListener("click", () => {
         deleteStaleWeddings();
     });
@@ -1560,7 +1696,7 @@ function initEvents() {
         const ok = await deleteWeddingById(id, { confirm: true });
         if (ok) {
             showWeddingListMode();
-            await loadPaymentList();
+            await loadPaymentList({ force: true });
         }
     });
     musicList?.addEventListener("click", handleMusicListClick);

@@ -1,0 +1,635 @@
+/**
+ * UI Shell — component dùng chung cho Builder + Admin.
+ * Load SAU brand.css. Sửa token/component ở đây → cả 2 app.
+ *
+ * Không đụng thiệp (css/parts, css/blocks).
+ */
+/* ============================================================
+   Tokens
+   ============================================================ */
+:root {
+    --ui-font: Quicksand, Arial, sans-serif;
+    --ui-font-display: Lora, Georgia, serif;
+
+    --ui-primary: var(--brand-primary);
+    --ui-primary-rgb: var(--brand-primary-rgb);
+    --ui-primary-hover: var(--brand-primary-hover);
+    --ui-ink: var(--brand-ink);
+    --ui-muted: var(--brand-muted);
+    --ui-paper: var(--brand-paper);
+    --ui-surface: var(--brand-surface);
+
+    --ui-border: rgba(var(--brand-primary-rgb), .22);
+    --ui-border-strong: rgba(var(--brand-primary-rgb), .4);
+    --ui-line: rgba(var(--brand-primary-rgb), .18);
+    --ui-card: rgba(255, 255, 255, .9);
+    --ui-danger: #b42318;
+    --ui-danger-bg: rgba(180, 35, 24, .08);
+    --ui-success: #248553;
+
+    --ui-radius-xs: 8px;
+    --ui-radius-sm: 10px;
+    --ui-radius-md: 12px;
+    --ui-radius-lg: 14px;
+    --ui-radius-xl: 18px;
+    --ui-radius-2xl: 20px;
+    --ui-radius-pill: 999px;
+
+    --ui-input-h: 42px;
+    --ui-btn-h: 46px;
+    --ui-icon-btn: 32px;
+
+    --ui-shadow-btn: 0 12px 28px rgba(var(--brand-primary-rgb), .24);
+    --ui-shadow-card: 0 18px 50px rgba(36, 61, 44, .12);
+    --ui-focus-ring: 0 0 0 3px rgba(var(--brand-primary-rgb), .18);
+
+    --ui-sidebar-col: 232px;
+    --ui-label-size: 13px;
+    --ui-hint-size: 13px;
+    --ui-title-size: 20px;
+    --ui-display-size: 34px;
+}
+
+/* ============================================================
+   Buttons — .ui-btn + bridge shell
+   (loại trừ icon-btn / nav / picker / chip để không bị pill 46px)
+   ============================================================ */
+.ui-btn,
+.builder-shell button:not(.joint-event-btn):not(.media-chip__btn):not(.media-chip__body):not(.builder-step-nav__item):not(.admin-nav__item):not(.b-select__trigger):not(.b-select__option):not(.b-picker__nav):not(.b-picker__day):not(.b-picker__link):not(.joint-events-add):not(.builder-sidebar-toggle):not(.builder-mobile-preview-btn):not(.builder-mobile-from-start):not(.builder-mobile-back-edit):not(.builder-sidebar__close):not(.save-modal__close):not(.qr-crop-modal__close):not(.map-picker-modal__close):not(.guest-links__icon-btn):not(.guest-links__copy-all),
+.admin-shell button:not(.admin-nav__item):not(.admin-nav__close):not(.admin-nav-toggle):not(.admin-nav__logout):not(.admin-modal__close),
+.admin-app button:not(.admin-nav__item):not(.admin-nav__close):not(.admin-nav-toggle):not(.admin-nav__logout):not(.admin-modal__close) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: var(--ui-btn-h);
+    min-height: var(--ui-btn-h);
+    margin: 0;
+    padding: 0 18px;
+    border: 0;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-primary);
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--ui-shadow-btn);
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ui-btn:hover,
+.builder-shell button:not(.joint-event-btn):not(.media-chip__btn):not(.media-chip__body):not(.guest-links__icon-btn):not(.guest-links__copy-all):hover,
+.admin-shell button:not(.admin-nav__item):hover,
+.admin-app button:not(.admin-nav__item):hover {
+    filter: brightness(.97);
+}
+
+/* Ghost / secondary — dùng class .ghost hoặc .ui-btn--ghost */
+.ui-btn--ghost,
+.builder-shell button.ghost,
+.admin-shell button.ghost,
+.admin-app button.ghost {
+    background: #fff;
+    color: var(--ui-primary);
+    border: 1px solid rgba(var(--ui-primary-rgb), .28);
+    box-shadow: none;
+    filter: none;
+}
+
+.admin-shell button.ghost,
+.admin-app button.ghost {
+    background: rgba(255, 255, 255, .9);
+    box-shadow: inset 0 0 0 1px rgba(var(--ui-primary-rgb), .24);
+    border: 0;
+}
+
+.ui-btn--primary,
+.builder-shell button.ui-btn--primary,
+.admin-shell button.ui-btn--primary,
+.admin-app button.ui-btn--primary {
+    background: var(--ui-primary) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: var(--ui-shadow-btn) !important;
+}
+
+.ui-btn--danger,
+.builder-shell button.danger,
+.admin-shell button.danger,
+.admin-app button.danger,
+.builder-shell button.ghost.danger,
+.admin-shell button.ghost.danger,
+.admin-app button.ghost.danger {
+    background: #fff;
+    color: var(--ui-danger);
+    border: 1px solid rgba(180, 35, 24, .28);
+    box-shadow: none;
+}
+
+.ui-btn--sm,
+.builder-shell button.small,
+.admin-shell button.small,
+.admin-app button.small {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.ui-btn--icon {
+    width: var(--ui-icon-btn);
+    height: var(--ui-icon-btn);
+    min-height: var(--ui-icon-btn);
+    min-width: var(--ui-icon-btn);
+    padding: 0;
+    border-radius: var(--ui-radius-xs);
+}
+
+.ui-btn:disabled,
+.builder-shell button:disabled,
+.admin-shell button:disabled,
+.admin-app button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    filter: none;
+}
+
+/* ============================================================
+   Forms — label, input, select, textarea
+   ============================================================ */
+.ui-label,
+.builder-form label,
+.admin-form label,
+.login-form label,
+.invite-plan__label {
+    display: grid;
+    gap: 6px;
+    font-size: var(--ui-label-size);
+    font-weight: 800;
+    color: var(--ui-muted);
+}
+
+.ui-input,
+.builder-form input:not([type="file"]):not([type="color"]):not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="hidden"]),
+.builder-form select,
+.builder-form textarea,
+.admin-form input:not([type="file"]):not([type="color"]):not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
+.admin-form select,
+.admin-form textarea,
+.login-form input,
+.login-form select,
+.login-form textarea {
+    width: 100%;
+    height: var(--ui-input-h);
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    background: #fff;
+    color: var(--ui-ink);
+    font: inherit;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.builder-form textarea,
+.admin-form textarea,
+.login-form textarea,
+.ui-textarea {
+    height: auto;
+    min-height: 76px;
+    padding: 10px 12px;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.builder-form input:focus,
+.builder-form select:focus,
+.builder-form textarea:focus,
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus,
+.login-form input:focus,
+.login-form select:focus,
+.login-form textarea:focus,
+.ui-input:focus {
+    border-color: rgba(var(--ui-primary-rgb), .55);
+    box-shadow: var(--ui-focus-ring);
+}
+
+.builder-form input[type="color"],
+.admin-form input[type="color"] {
+    height: var(--ui-input-h);
+    padding: 4px;
+    cursor: pointer;
+}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+.ui-eyebrow,
+.eyebrow,
+.builder-heading p {
+    margin: 0 0 8px;
+    color: var(--ui-primary);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.ui-title,
+.builder-heading h1 {
+    margin: 0;
+    font-family: var(--ui-font-display);
+    font-size: var(--ui-display-size);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--ui-ink);
+}
+
+.ui-subtitle,
+.builder-heading span,
+.hero-desc,
+.panel-title p,
+.hero-card p {
+    display: block;
+    margin: 0;
+    color: var(--ui-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.ui-section-title,
+.card h2,
+.builder-step__title,
+.panel-title h2 {
+    margin: 0;
+    font-family: var(--ui-font-display);
+    font-size: var(--ui-title-size);
+    font-weight: 700;
+    color: var(--ui-ink);
+}
+
+.ui-hint,
+.hint {
+    margin: 12px 0 0;
+    color: var(--ui-muted);
+    font-size: var(--ui-hint-size);
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.ui-status,
+.status {
+    min-height: 22px;
+    margin: 0;
+    color: var(--ui-muted);
+    font-weight: 700;
+}
+
+/* ============================================================
+   Cards / panels
+   ============================================================ */
+.ui-card,
+.card,
+.panel,
+.hero-card,
+.mini-panel,
+.mini-card {
+    border: 1px solid var(--ui-line);
+    border-radius: var(--ui-radius-2xl);
+    background: var(--ui-card);
+    box-shadow: var(--ui-shadow-card);
+    box-sizing: border-box;
+}
+
+.card,
+.panel,
+.hero-card {
+    padding: 18px 20px;
+}
+
+.mini-panel,
+.mini-card {
+    padding: 14px;
+    box-shadow: none;
+}
+
+/* ============================================================
+   Radio cards (invite-plan + ceremony-mode)
+   ============================================================ */
+.ui-radio-grid,
+.invite-plan__options,
+.ceremony-mode {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    min-width: 0;
+}
+
+.invite-plan__options {
+    width: 100%;
+}
+
+.ui-radio-card,
+.invite-plan__card,
+.ceremony-mode__card {
+    position: relative;
+    display: block;
+    margin: 0;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.ui-radio-card input,
+.invite-plan__card input,
+.ceremony-mode__card input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.ui-radio-card__body,
+.invite-plan__body,
+.ceremony-mode__body {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-lg);
+    background: rgba(255, 255, 255, .78);
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    overflow-wrap: anywhere;
+}
+
+/* Ceremony: 2-col body with custom radio */
+.ceremony-mode__body {
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    align-items: start;
+}
+
+.ceremony-mode__body::before {
+    content: "";
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(var(--ui-primary-rgb), .35);
+    background: #fff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.ui-radio-card:hover .ui-radio-card__body,
+.invite-plan__card:hover .invite-plan__body,
+.ceremony-mode__card:hover .ceremony-mode__body {
+    border-color: rgba(var(--ui-primary-rgb), .42);
+    background: rgba(var(--ui-primary-rgb), .04);
+}
+
+.ui-radio-card input:checked + .ui-radio-card__body,
+.invite-plan__card input:checked + .invite-plan__body,
+.ceremony-mode__card input:checked + .ceremony-mode__body {
+    border-color: rgba(var(--ui-primary-rgb), .55);
+    background: rgba(var(--ui-primary-rgb), .1);
+    box-shadow: 0 10px 24px rgba(var(--ui-primary-rgb), .12);
+}
+
+.ceremony-mode__card input:checked + .ceremony-mode__body::before {
+    border-color: var(--ui-primary);
+    box-shadow: inset 0 0 0 5px var(--ui-primary);
+}
+
+.invite-plan__body strong,
+.ceremony-mode__body strong,
+.ui-radio-card__body strong {
+    color: var(--ui-ink);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ceremony-mode__card input:checked + .ceremony-mode__body strong {
+    color: var(--ui-primary);
+}
+
+.invite-plan__body em {
+    color: var(--ui-primary);
+    font-style: normal;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.invite-plan__body span,
+.ceremony-mode__body span,
+.ui-radio-card__body span {
+    color: var(--ui-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.ui-radio-card input:disabled + .ui-radio-card__body,
+.invite-plan__card input:disabled + .invite-plan__body,
+.ceremony-mode__card input:disabled + .ceremony-mode__body {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .ui-radio-grid,
+    .invite-plan__options,
+    .ceremony-mode {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   Sidebar nav items (builder steps + admin menu)
+   Shared “open tab” look — layout/padding sidebar vẫn ở app CSS
+   ============================================================ */
+.ui-nav-item,
+.builder-step-nav__item,
+.admin-nav__item {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: auto !important;
+    min-height: 46px;
+    margin: 0;
+    padding: 12px 16px 12px 14px !important;
+    border: 0 !important;
+    border-radius: 20px 0 0 20px !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, .92) !important;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: left;
+    box-shadow: none !important;
+    cursor: pointer;
+    outline: none !important;
+    transition: color .12s ease;
+    overflow: visible;
+    appearance: none;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    z-index: 0;
+}
+
+.ui-nav-item i,
+.builder-step-nav__item i,
+.admin-nav__item i {
+    flex-shrink: 0;
+    width: 1.2em;
+    font-size: 1.15em;
+    line-height: 1;
+    text-align: center;
+    color: inherit !important;
+    opacity: .95;
+}
+
+.ui-nav-item:hover:not(.is-active),
+.builder-step-nav__item:hover:not(.is-active),
+.admin-nav__item:hover:not(.is-active) {
+    background: rgba(255, 255, 255, .12) !important;
+    color: #fff !important;
+}
+
+.ui-nav-item.is-active,
+.builder-step-nav__item.is-active,
+.admin-nav__item.is-active {
+    background: var(--ui-paper) !important;
+    color: var(--ui-primary) !important;
+    border-radius: 20px 0 0 20px !important;
+    box-shadow: 10px 0 0 0 var(--ui-paper) !important;
+    z-index: 2;
+}
+
+.ui-nav-item.is-active:hover,
+.ui-nav-item.is-active:focus,
+.ui-nav-item.is-active:active,
+.builder-step-nav__item.is-active:hover,
+.builder-step-nav__item.is-active:focus,
+.builder-step-nav__item.is-active:active,
+.admin-nav__item.is-active:hover,
+.admin-nav__item.is-active:focus,
+.admin-nav__item.is-active:active {
+    background: var(--ui-paper) !important;
+    color: var(--ui-primary) !important;
+    box-shadow: 10px 0 0 0 var(--ui-paper) !important;
+}
+
+.ui-nav-item.is-active i,
+.builder-step-nav__item.is-active i,
+.admin-nav__item.is-active i {
+    opacity: 1;
+    color: var(--ui-primary) !important;
+}
+
+/* Góc lõm tab active */
+.ui-nav-item.is-active::before,
+.ui-nav-item.is-active::after,
+.builder-step-nav__item.is-active::before,
+.builder-step-nav__item.is-active::after,
+.admin-nav__item.is-active::before,
+.admin-nav__item.is-active::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ui-primary) !important;
+    pointer-events: none;
+    z-index: 3;
+    display: block !important;
+    transition: none !important;
+    transform: translateZ(0);
+    box-shadow: none;
+}
+
+.ui-nav-item.is-active::before,
+.builder-step-nav__item.is-active::before,
+.admin-nav__item.is-active::before {
+    top: -20px;
+    box-shadow: 10px 10px 0 0 var(--ui-paper);
+}
+
+.ui-nav-item.is-active::after,
+.builder-step-nav__item.is-active::after,
+.admin-nav__item.is-active::after {
+    bottom: -20px;
+    box-shadow: 10px -10px 0 0 var(--ui-paper);
+}
+
+/* Mobile drawer / chip: pill, không góc lõm */
+@media (max-width: 900px) {
+    .builder-step-nav__item,
+    .admin-nav__item {
+        border-radius: 12px !important;
+    }
+
+    .builder-step-nav__item.is-active,
+    .admin-nav__item.is-active {
+        background: #fff !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+
+    .builder-step-nav__item.is-active::before,
+    .builder-step-nav__item.is-active::after,
+    .admin-nav__item.is-active::before,
+    .admin-nav__item.is-active::after {
+        display: none !important;
+        content: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* ============================================================
+   Links
+   ============================================================ */
+.builder-shell a,
+.admin-shell a,
+.admin-app a {
+    color: var(--ui-primary);
+    font-weight: 800;
+}
+
+/* ============================================================
+   Grid helpers
+   ============================================================ */
+.ui-grid,
+.grid {
+    display: grid;
+    gap: 12px;
+}
+
+.ui-grid--2,
+.grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 700px) {
+    .ui-grid--2,
+    .grid.two {
+        grid-template-columns: 1fr;
+    }
+}

@@ -35,6 +35,76 @@ function mergeConfig(base, override) {
     return result;
 }
 
+/**
+ * Sau deep-merge với fallback config.js:
+ * - Thiệp cũ (trước joint/separate + events[]) chỉ có title/time/meal/address.
+ * - mergeConfig giữ events[] mẫu từ fallback → lịch hiển thị SAI.
+ * - Bỏ events[] / joint mẫu nếu doc Firebase không có field đó.
+ *
+ * Schema ceremony (mới):
+ *   mode: "separate" | "joint"
+ *   joint | bride | groom: { events[{id,title,date,time,icon}], title, time, meal, address, location, mapUrl }
+ * Schema thiệp cũ (vẫn đọc được):
+ *   bride/groom: { title, time, date?, meal{title,time}, address, location, mapUrl } — không mode, không events
+ */
+export function normalizeCeremonyAfterMerge(merged, rawData = null) {
+    if (!merged || typeof merged !== "object") return merged;
+
+    const rawCeremony = rawData && typeof rawData === "object"
+        ? (rawData.ceremony || null)
+        : null;
+    const ceremony = { ...(merged.ceremony || {}) };
+
+    // Doc không có mode → always separate (thiệp cũ = 2 nhà)
+    if (!rawCeremony || rawCeremony.mode == null || rawCeremony.mode === "") {
+        ceremony.mode = "separate";
+    } else {
+        ceremony.mode = rawCeremony.mode === "joint" ? "joint" : "separate";
+    }
+
+    for (const role of ["bride", "groom", "joint"]) {
+        const rawHouse = rawCeremony?.[role];
+        const house = ceremony[role];
+        if (!house || typeof house !== "object") continue;
+
+        // Firebase không có block joint (thiệp cũ) → bỏ events mẫu; giữ field khác nếu có
+        if (role === "joint" && (rawHouse == null || typeof rawHouse !== "object")) {
+            const { events: _drop, ...rest } = house;
+            ceremony.joint = rest;
+            continue;
+        }
+
+        const rawHasEvents = Array.isArray(rawHouse?.events) && rawHouse.events.length > 0;
+        if (!rawHasEvents) {
+            // Ưu tiên title/time/meal từ doc (và phần đã merge); không dùng events mẫu
+            const { events: _drop, ...rest } = house;
+            ceremony[role] = rest;
+        }
+    }
+
+    // ceremony.image: thiệp cũ thường KHÔNG upload → giữ fallback config (vd img/anh_2.jpg)
+    // để concept 2/3 timeline vẫn có ảnh. Chỉ xóa nếu raw ghi rõ image: "" (user xóa hẳn).
+    if (rawCeremony && Object.prototype.hasOwnProperty.call(rawCeremony, "image")
+        && !String(rawCeremony.image || "").trim()) {
+        delete ceremony.image;
+    } else if (!String(ceremony.image || "").trim() && fallbackWedding?.ceremony?.image) {
+        ceremony.image = fallbackWedding.ceremony.image;
+    }
+
+    return {
+        ...merged,
+        ceremony
+    };
+}
+
+function mergeWeddingWithFallback(rawData = {}, weddingId = "") {
+    const merged = mergeConfig(fallbackWedding, {
+        ...rawData,
+        weddingId: weddingId || rawData.weddingId || ""
+    });
+    return normalizeCeremonyAfterMerge(merged, rawData);
+}
+
 export function getWeddingIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get(WEDDING_QUERY_KEY);
@@ -64,10 +134,7 @@ async function fetchWeddingById(weddingId) {
     if (!doc.exists) {
         throw new WeddingConfigError(`Không tìm thấy thiệp cưới: ${weddingId}`, "not-found");
     }
-    return mergeConfig(fallbackWedding, {
-        ...doc.data(),
-        weddingId: doc.id
-    });
+    return mergeWeddingWithFallback(doc.data() || {}, doc.id);
 }
 
 async function fetchWeddingByAccessToken(token) {
@@ -100,10 +167,7 @@ async function fetchWeddingByAccessToken(token) {
     }
 
     const doc = snap.docs[0];
-    return mergeConfig(fallbackWedding, {
-        ...doc.data(),
-        weddingId: doc.id
-    });
+    return mergeWeddingWithFallback(doc.data() || {}, doc.id);
 }
 
 /** Gán cover.guest theo ?g= (index trong guests[]) trước khi render. */
@@ -129,7 +193,10 @@ function hasGalleryPhotoSrc(photos) {
 
 function applyPreviewOrFallback(previewConfig) {
     let merged = previewConfig
-        ? mergeConfig(fallbackWedding, previewConfig)
+        ? normalizeCeremonyAfterMerge(
+            mergeConfig(fallbackWedding, previewConfig),
+            previewConfig
+        )
         : fallbackWedding;
 
     // Preview builder / Firebase photos:[] đè mất album mẫu → gallery trống.
@@ -154,7 +221,8 @@ export async function loadWeddingConfig() {
     // Builder iframe: luôn dùng localStorage / thiệp mẫu — không đụng Firebase / ?t=
     if (isBuilderPreviewRequest()) {
         try {
-            const previewConfig = JSON.parse(localStorage.getItem("weddingBuilderPreview") || "null");
+            // sessionStorage: iframe cùng tab với builder (không dùng localStorage — tránh 2 tab đụng nhau)
+            const previewConfig = JSON.parse(sessionStorage.getItem("weddingBuilderPreview") || "null");
             return applyPreviewOrFallback(previewConfig);
         } catch (error) {
             console.warn("Không đọc được preview builder:", error);

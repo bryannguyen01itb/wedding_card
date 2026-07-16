@@ -4,7 +4,7 @@
  * Adding a new section later:
  *   1. Create folder js/modules/<name>/{module.js,render.js}
  *   2. Register in js/modules/index.js (SECTION_MODULES)
- *   3. Add CSS under css/blocks/<name>/ and import in css/blocks/index.css
+ *   3. Add CSS under css/blocks/<name>/skins.css and link in index.html
  *   4. Builder dropdowns auto-pick buildable sections
  *
  * Adding a new skin/concept later:
@@ -141,11 +141,23 @@ export function normalizeSkinId(value, fallback = "concept-1") {
 /** Skins 1–4 cho section thường. Section đặc biệt (vd gallery) tự khai báo `skins: [...]`. */
 const DEFAULT_SECTION_SKIN_IDS = ["concept-1", "concept-2", "concept-3", "concept-4"];
 
-export function getSectionSkinIds(sectionId) {
+/**
+ * @param {string} sectionId
+ * @param {{ ceremonyMode?: string }} [context] — timeline: separate | joint
+ */
+export function getSectionSkinIds(sectionId, context = {}) {
     const section = getSection(sectionId);
     const fallbackList = DEFAULT_SECTION_SKIN_IDS.filter(id => skins.has(id));
 
     if (!section) return fallbackList;
+
+    // Section tự filter skin theo ngữ cảnh (vd timeline theo ceremony.mode)
+    if (typeof section.getSkins === "function") {
+        const list = section.getSkins(context) || [];
+        return list
+            .map(id => normalizeSkinId(id, section.defaultSkin || "concept-1"))
+            .filter((id, index, arr) => id && arr.indexOf(id) === index);
+    }
 
     if (Array.isArray(section.skins) && section.skins.length) {
         return section.skins
@@ -168,14 +180,23 @@ export function getSectionSkinOptions(sectionId, skinId) {
     };
 }
 
-export function resolveSectionSkin(sectionId, blocks = {}) {
+/**
+ * @param {string} sectionId
+ * @param {object} blocks
+ * @param {{ ceremonyMode?: string }} [context]
+ */
+export function resolveSectionSkin(sectionId, blocks = {}, context = {}) {
     const section = getSection(sectionId);
+    const allowed = getSectionSkinIds(sectionId, context);
+    // Không có skin (vd timeline joint chưa có concept) → "" (render layout mặc định mode)
+    if (!allowed.length) return "";
+
     const fallback = section?.defaultSkin || "concept-1";
     const raw = normalizeSkinId(blocks?.[sectionId], fallback);
-    const allowed = getSectionSkinIds(sectionId);
 
     if (allowed.includes(raw)) return raw;
-    return allowed.includes(fallback) ? fallback : (allowed[0] || "concept-1");
+    if (allowed.includes(fallback)) return fallback;
+    return allowed[0];
 }
 
 export function getBodyBlockClass(sectionId, skinId) {

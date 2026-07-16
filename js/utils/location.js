@@ -61,8 +61,18 @@ export function resolveHouseProvince(wedding, houseKey) {
 /**
  * Poster: tỉnh cô dâu · tỉnh chú rể (1 link thiệp).
  * Trùng tỉnh → chỉ hiện 1 lần. Thiếu 1 bên → hiện bên còn lại.
+ * Tổ chức chung (ceremony.mode === "joint") → 1 tỉnh từ joint.
  */
 export function resolvePosterLocation(wedding) {
+    if (wedding?.ceremony?.mode === "joint") {
+        const joint = wedding.ceremony?.joint || {};
+        return (
+            formatProvinceName(joint.location)
+            || formatProvinceName(joint.address)
+            || ""
+        );
+    }
+
     const bride = resolveHouseProvince(wedding, "bride");
     const groom = resolveHouseProvince(wedding, "groom");
 

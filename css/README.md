@@ -2,25 +2,45 @@
 
 ## Entry
 
-**Production:** `index.html` load phẳng từng file + `?v=` (không dùng `@import` lồng).
+**Thiệp (production):** `index.html` load phẳng từng file + `?v=` (không dùng `@import` lồng).
 
-**Fallback:** `style.css` — 1 tầng `@import` (brand → tokens → parts → skins → unifier).
+**Builder / Admin:**
+
+```txt
+css/brand.css       # token màu
+css/ui-shell.css    # button, form, title, radio, sidebar-nav (dùng chung)
+builder/builder.css | admin/admin.css   # layout + feature riêng
+```
+
+**Thiệp fallback:** `style.css` — 1 tầng `@import` (brand → tokens → parts → skins → unifier).
 
 ```txt
 brand.css + tokens.css
 parts/base, cover, sections, countdown-thanks, animations
 parts/concept-1-classic.css   # wish / gift / thanks cố định
 parts/gift-polish.css
-parts/block-builder.css
+parts/block-builder.css       # font body/nickname + glue mixed-block
 blocks/<section>/skins.css    # cover…divider (buildable)
 blocks/theme-unifier.css      # luôn cuối
 ```
 
-`blocks/gift|wish|thanks/skins.css` = stub (style trong concept-1-classic) — **không** link trên HTML.
+Gift / wish / thanks **không** có `blocks/*/skins.css` — style nằm `concept-1-classic` (+ gift-polish / countdown-thanks).
 
-`blocks/index.css` = deprecated, không import.
+## UI shell (`css/ui-shell.css`)
 
-## Module skins (sửa theo section)
+Sửa **1 chỗ** cho Builder + Admin:
+
+| Token / class | Ý nghĩa |
+| --- | --- |
+| `--ui-primary`, `--ui-radius-*`, `--ui-btn-h`… | Spacing / màu shell |
+| `.ui-btn` / `.ghost` / `.danger` / `.small` | Nút |
+| `label` + `input/select/textarea` trong form | Form |
+| `.ui-eyebrow` / `.eyebrow`, `.ui-title`, `.ui-hint` / `.hint` | Typography |
+| `.ui-card` / `.card` / `.panel` | Card |
+| `.invite-plan__*`, `.ceremony-mode__*` | Radio card |
+| `.builder-step-nav__item`, `.admin-nav__item` | Sidebar tab active |
+
+## Module skins (sửa theo section thiệp)
 
 | Module | File |
 | --- | --- |
@@ -28,13 +48,13 @@ blocks/theme-unifier.css      # luôn cuối
 | gift / wish / thanks | `parts/concept-1-classic.css` (+ gift-polish / sections) |
 | nền / title chung | `blocks/theme-unifier.css` |
 
-## Class JS gắn
+## Class JS gắn (thiệp)
 
 - `body.block-<section>-concept-N`
 - `.section.block-skin-concept-N`
 
-## Tối ưu an toàn (không đổi giao diện)
+## Dọn dẹp đã làm
 
-- Không load 3 stub skins rỗng (bớt HTTP).
-- `tokens.css` không `@import brand` (tránh brand 2 lần).
-- Gộp selector kề nhau trùng lặp trong divider / gallery / timeline.
+- Xóa stub rỗng `blocks/gift|wish|thanks/skins.css` và `blocks/index.css` (deprecated).
+- Gỡ lớp migration `block-concepts` hỏng selector (`.cover.block-skin-concept-2.card` thiếu khoảng cách) ở cover/about/countdown/timeline.
+- Bỏ block cover trùng trong `block-builder.css` (bản sau cùng thắng).

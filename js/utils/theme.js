@@ -204,9 +204,9 @@ function applyBaseMediaConfig(config, rootStyle, bodyStyle, openLabel) {
     setVar(bodyStyle, "--concept-cover-label", toCssString(openLabel));
 }
 
-function applyModuleMedia(themeConfig, rootStyle, bodyStyle) {
-    const cover = getActiveConceptConfig(themeConfig, "cover");
-    const countdown = getActiveConceptConfig(themeConfig, "countdown");
+function applyModuleMedia(themeConfig, rootStyle, bodyStyle, context = {}) {
+    const cover = getActiveConceptConfig(themeConfig, "cover", context);
+    const countdown = getActiveConceptConfig(themeConfig, "countdown", context);
     const openLabel = resolveCoverOpenLabel(themeConfig);
 
     setImageVarWithFallback(bodyStyle, "--concept-cover-image", cover.config?.images?.cover, "poster");
@@ -215,7 +215,11 @@ function applyModuleMedia(themeConfig, rootStyle, bodyStyle) {
     setImageVarWithFallback(bodyStyle, "--concept-countdown-image", countdown.config?.images?.countdown, "countdown");
 }
 
-export function applyTheme(theme = {}) {
+/**
+ * @param {object|string} theme
+ * @param {{ ceremonyMode?: string }} [context]
+ */
+export function applyTheme(theme = {}, context = {}) {
     const themeConfig = typeof theme === "string"
         ? { primaryColor: theme }
         : theme;
@@ -225,6 +229,9 @@ export function applyTheme(theme = {}) {
     const bodyStyle = document.body.style;
     const baseConcept = applyBaseConceptClass();
     const baseConfig = themeConfig?.concepts?.[normalizeSkinId(baseConcept)] || {};
+    const skinContext = {
+        ceremonyMode: context.ceremonyMode || themeConfig.ceremonyMode || "separate"
+    };
 
     rootStyle.setProperty("--primary-color", primaryColor);
     rootStyle.setProperty("--primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
@@ -232,7 +239,7 @@ export function applyTheme(theme = {}) {
     applySharedThemeSurface(rootStyle, primaryColor);
 
     applyBuilderPalettes(bodyStyle, primaryColor);
-    applyModuleClasses(themeConfig);
+    applyModuleClasses(themeConfig, skinContext);
     applyBaseMediaConfig(baseConfig, rootStyle, bodyStyle, resolveCoverOpenLabel(themeConfig));
-    applyModuleMedia(themeConfig, rootStyle, bodyStyle);
+    applyModuleMedia(themeConfig, rootStyle, bodyStyle, skinContext);
 }

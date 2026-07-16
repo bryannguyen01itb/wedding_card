@@ -970,22 +970,49 @@
 .wish input,
 .wish textarea {
     width: 100%;
-    padding: .25rem;
+    padding: .22rem .25rem;
     margin-bottom: .25rem;
     border: 1px solid #ddd;
     border-radius: 12px;
     outline: none;
+    /* Theo scale rem thiệp (.28rem ≈ 11px trên mobile) — không ép 16px */
     font-size: .28rem;
+    line-height: 1.45;
+    color: #333;
 }
 
-.wish input{
+.wish input {
     margin-bottom: 0;
 }
 
 .wish textarea {
-
     resize: none;
+    min-height: 1.6rem;
+}
 
+/* Placeholder nhỏ hơn chữ gõ — đỡ “to” so với chip side/attendance */
+.wish input::placeholder,
+.wish textarea::placeholder {
+    font-size: .24rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #9aa0a6;
+    opacity: 1;
+}
+
+.wish input::-webkit-input-placeholder,
+.wish textarea::-webkit-input-placeholder {
+    font-size: .24rem;
+    font-weight: 400;
+    color: #9aa0a6;
+}
+
+.wish input::-moz-placeholder,
+.wish textarea::-moz-placeholder {
+    font-size: .24rem;
+    font-weight: 400;
+    color: #9aa0a6;
+    opacity: 1;
 }
 
 .wish-side {
@@ -1193,33 +1220,26 @@
 }
 
 .load-more {
-
     display: flex;
     justify-content: center;
     align-items: center;
     gap: .12rem;
-
     margin: .6rem auto 0;
-
     padding: .22rem .7rem;
-
     background: var(--primary-color);
     color: #fff;
-
     border: none;
     border-radius: 999px;
-
     font-size: .28rem;
     font-weight: 500;
     letter-spacing: .02rem;
-
     cursor: pointer;
-
     transition: .3s;
+    box-shadow: 0 8px 20px rgba(var(--primary-rgb), .35);
+}
 
-    box-shadow:
-        0 8px 20px rgba(var(--primary-rgb), .35);
-
+.load-more[hidden] {
+    display: none !important;
 }
 
 .load-more:hover {
@@ -1565,33 +1585,59 @@
 
 }
 
-.copy-box {
+.copy-box,
+button.copy-box {
     margin-top: .35rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    border: 0;
     background: #f6f6f6;
     border-radius: 12px;
     padding: .22rem .3rem;
     cursor: pointer;
-    transition: .25s;
+    transition: background .25s, box-shadow .25s;
+    font: inherit;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
 }
 
-.copy-box:hover {
+.copy-box:hover,
+button.copy-box:hover {
     background: #eeeeee;
 }
 
-.copy-box span {
+.copy-box:active,
+button.copy-box:active,
+.copy-box.is-copied {
+    background: rgba(var(--primary-rgb), .12);
+}
+
+.copy-box:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.copy-box span,
+.copy-box [data-copy-label] {
     font-size: .32rem;
     font-weight: 400;
     color: #444;
     letter-spacing: 1px;
+    pointer-events: none; /* click luôn vào button */
 }
 
 .copy-box i {
     font-size: .42rem;
     opacity: .7;
     color: var(--primary-color);
+    pointer-events: none;
+    flex-shrink: 0;
 }
 
 .timeline-side-badge {
@@ -1654,7 +1700,21 @@
     margin-bottom: .42rem;
 }
 
-.wish input,
-.wish textarea {
-    font-size: max(16px, .28rem);
+/* Nhiều sự kiện / card (tổ chức riêng — concept 1–4) */
+.timeline-events--multi {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(2.2rem, 1fr));
+    gap: .16rem;
+    align-items: stretch;
+}
+
+.timeline-events--multi .timeline-event {
+    flex: unset;
+    min-width: 0;
+}
+
+.timeline-events--multi .timeline-event + .timeline-event {
+    border-left: 0;
+    border-top: 0;
+    padding-left: .08rem;
 }

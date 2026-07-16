@@ -10,7 +10,8 @@ export const thanksModule = {
     order: 110,
     buildable: false,
     applySkin: false,
-    cssFile: "css/blocks/thanks/skins.css",
+    // Style: css/parts/countdown-thanks.css + concept-1-classic.css
+    cssFile: "css/parts/countdown-thanks.css",
     skins: ["concept-1"],
     render: renderThanks
 };

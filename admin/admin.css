@@ -1,15 +1,16 @@
 * {
     box-sizing:border-box
 }
+/* Component chung: css/ui-shell.css (link từ index.html) */
 :root {
-    /* màu từ css/brand.css — không hardcode hex ở đây */
-    --admin-card: rgba(255,255,255,.88);
-    --admin-line: rgba(var(--admin-primary-rgb), .18)
+    --admin-card: var(--ui-card, rgba(255,255,255,.88));
+    --admin-line: var(--ui-line, rgba(var(--admin-primary-rgb), .18));
+    --admin-sidebar-col: var(--ui-sidebar-col, 232px);
 }
 body {
     margin:0;
     color:var(--admin-ink);
-    font-family:Quicksand,Arial,sans-serif;
+    font-family:var(--ui-font, Quicksand,Arial,sans-serif);
     background:radial-gradient(circle at 12% 8%,rgba(var(--admin-primary-rgb),.22),transparent 28%),linear-gradient(135deg,var(--admin-paper) 0%,var(--admin-paper) 48%,var(--admin-surface) 100%)
 }
 .admin-shell {
@@ -24,42 +25,25 @@ body {
     align-items:stretch;
     margin-bottom:24px
 }
-.eyebrow {
-    margin:0 0 8px;
-    color:var(--admin-primary);
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:.16em;
-    text-transform:uppercase
-}
+/* .eyebrow, .hero-desc, titles → ui-shell */
 h1,h2,h3,p {
     margin-top:0
 }
 h1 {
     max-width:680px;
     margin-bottom:12px;
-    font-family:Lora,Georgia,serif;
+    font-family:var(--ui-font-display, Lora,Georgia,serif);
     font-size:clamp(34px,5vw,58px);
     line-height:1.05
 }
-.hero-desc,
-.panel-title p,
-.hero-card p {
-    color:var(--admin-muted);
-    line-height:1.65
-}
-.hero-card,
-.panel,
-.mini-panel {
-    border:1px solid var(--admin-line);
-    border-radius:18px;
-    background:var(--admin-card);
-    box-shadow:0 18px 60px rgba(36,61,44,.1);
-    backdrop-filter:blur(14px)
-}
+/* .panel / .hero-card / .mini-panel surface → ui-shell; padding admin */
 .hero-card,
 .panel {
-    padding:24px
+    padding:24px;
+    backdrop-filter:blur(14px)
+}
+.mini-panel {
+    backdrop-filter:blur(14px)
 }
 .load-row,
 .color-row {
@@ -91,56 +75,26 @@ h1 {
 }
 .panel-title h2 {
     margin-bottom:4px;
-    font-family:Lora,Georgia,serif;
     font-size:24px
 }
+/* .grid / label / input → ui-shell */
 .grid {
-    display:grid;
     gap:16px
 }
-.grid.two,
-.split-panels {
-    grid-template-columns:repeat(2,minmax(0,1fr))
-}
 .split-panels {
     display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:16px
 }
 .mini-panel {
     display:grid;
     gap:14px;
-    padding:18px;
-    box-shadow:none
+    padding:18px
 }
 .mini-panel h3 {
     margin-bottom:2px;
     color:var(--admin-primary);
     font-size:18px
-}
-label {
-    display:grid;
-    gap:8px;
-    color:var(--admin-muted);
-    font-size:13px;
-    font-weight:700
-}
-input,select,textarea {
-    width:100%;
-    border:1px solid var(--admin-line);
-    border-radius:12px;
-    padding:13px 14px;
-    color:var(--admin-ink);
-    background:rgba(255,255,255,.92);
-    font:inherit;
-    outline:none;
-    transition:border-color .2s ease,box-shadow .2s ease
-}
-input:focus,select:focus,textarea:focus {
-    border-color:rgba(var(--admin-primary-rgb),.55);
-    box-shadow:0 0 0 4px rgba(var(--admin-primary-rgb),.12)
-}
-textarea {
-    resize:vertical
 }
 input[type=color] {
     flex:0 0 58px;
@@ -169,44 +123,36 @@ input[type=color] {
     background:var(--admin-primary);
     font-weight:700
 }
+/* Footer actions — fixed đáy màn hình khi đang sửa thiệp */
 .sticky-actions {
-    position:sticky;
-    bottom:0;
-    z-index:10;
-    display:flex;
-    justify-content:flex-end;
-    gap:12px;
-    padding:16px 0 0;
-    background:linear-gradient(180deg,transparent,var(--admin-paper) 32%)
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    z-index: 35;
 }
-button {
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    min-height:46px;
-    border:0;
-    border-radius:999px;
-    padding:0 20px;
-    color:#fff;
-    background:var(--admin-primary);
-    font:inherit;
-    font-weight:800;
-    cursor:pointer;
-    box-shadow:0 12px 28px rgba(var(--admin-primary-rgb),.24)
+
+/* Chỉ hiện fixed khi panel sửa mở */
+#weddingEditPanel:not([hidden]) .sticky-actions {
+    position: fixed;
+    left: var(--admin-sidebar-col, 232px);
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(var(--admin-primary-rgb), .16);
+    background: rgba(255, 255, 255, .96);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -12px 32px rgba(20, 50, 40, .1);
 }
-button.ghost {
-    color:var(--admin-primary);
-    background:rgba(255,255,255,.9);
-    box-shadow:inset 0 0 0 1px rgba(var(--admin-primary-rgb),.24)
+
+/* Chừa chỗ cuối form để không bị footer che */
+#weddingEditPanel:not([hidden]) .admin-form {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
+/* button / ghost / a → css/ui-shell.css */
 button:disabled {
-    cursor:wait;
-    opacity:.62
-}
-a {
-    color:var(--admin-primary);
-    font-weight:800
+    cursor:wait
 }
 .toast {
     position:fixed;
@@ -544,12 +490,6 @@ body.admin-modal-open {
     padding:18px;
     border-radius:16px
 }
-.sticky-actions {
-    flex-direction:column-reverse
-}
-button {
-    width:100%
-}
 }
 
 
@@ -589,10 +529,7 @@ button {
 }
 
 button.small {
-    width: auto;
-    min-height: 36px;
-    padding: 0 14px;
-    font-size: 13px;
+    width: auto; /* size → ui-shell .ui-btn--sm / button.small */
 }
 
 /* Admin layout fixes */
@@ -609,10 +546,6 @@ button.small {
 
 #previewLink {
     display: inline-block;
-}
-
-.sticky-actions {
-    padding: 16px 0 calc(18px + env(safe-area-inset-bottom));
 }
 
 /* Shared music library */
@@ -655,7 +588,13 @@ button.small {
 }
 
 .music-item.is-inactive {
-    opacity: .62;
+    opacity: .85;
+    border-style: dashed;
+    background: rgba(159, 63, 50, .04);
+}
+
+.music-item.is-inactive .music-item__info em {
+    color: #9f3f32;
 }
 
 .music-item__info {
@@ -687,6 +626,21 @@ button.small {
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+}
+
+/* Ẩn / Hiện — màu khác nhau rõ */
+.music-item__actions button[data-action="toggle"].is-visible-state {
+    background: rgba(77, 117, 72, .14) !important;
+    color: #3d6b38 !important;
+    border: 1px solid rgba(77, 117, 72, .38) !important;
+    box-shadow: none !important;
+}
+
+.music-item__actions button[data-action="toggle"].is-hidden-state {
+    background: rgba(159, 63, 50, .12) !important;
+    color: #9f3f32 !important;
+    border: 1px solid rgba(159, 63, 50, .35) !important;
+    box-shadow: none !important;
 }
 
 button.danger {
@@ -723,10 +677,144 @@ button.danger {
     }
 }
 
+/* ===== Form payment / music / hero-card (không phải .admin-form → ui-shell bỏ sót) ===== */
+.admin-app label,
+.payment-settings-form label,
+.music-form label,
+.hero-card label {
+    display: grid !important;
+    gap: 6px;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--admin-muted);
+}
+
+.admin-app input:not([type="file"]):not([type="color"]):not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
+.admin-app select,
+.admin-app textarea,
+.payment-settings-form input,
+.payment-settings-form select,
+.payment-settings-form textarea,
+.music-form input,
+.music-form select,
+.music-form textarea,
+.hero-card input {
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    height: 46px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--admin-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--admin-ink);
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-app textarea,
+.payment-settings-form textarea {
+    height: auto;
+    min-height: 88px;
+    padding: 10px 12px;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.admin-app .grid,
+.payment-settings-form .grid,
+.music-form .grid {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.admin-app .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-app .span-2 {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+.load-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+}
+
+.load-row input {
+    flex: 1 1 160px;
+    min-width: 0 !important;
+    width: auto !important;
+}
+
+.load-row button {
+    flex: 0 0 auto;
+    width: auto !important;
+    white-space: nowrap;
+}
+
+.hero-card {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.hero-card a {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.music-grid {
+    display: grid;
+    grid-template-columns: minmax(140px, .8fr) minmax(200px, 1.4fr) minmax(140px, .7fr) auto;
+    gap: 14px;
+    align-items: end;
+    min-width: 0;
+}
+
+.music-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: end;
+    justify-content: flex-end;
+}
+
+.music-actions button {
+    width: auto !important;
+    white-space: nowrap;
+}
+
+.payment-settings-form {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.payment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.payment-actions button {
+    width: auto !important;
+}
+
 /* Payment admin */
 .payment-admin {
     display: grid;
     gap: 18px;
+    min-width: 0;
 }
 
 .payment-admin.is-hidden {
@@ -761,8 +849,11 @@ button.ghost.danger {
 .payment-list-head {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    align-items: center;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(var(--admin-primary-rgb), .12);
 }
 
 .payment-list-head h3 {
@@ -772,7 +863,8 @@ button.ghost.danger {
 
 .payment-list {
     display: grid;
-    gap: 10px;
+    gap: 12px;
+    margin-top: 4px;
 }
 
 .payment-item {
@@ -819,10 +911,12 @@ button.ghost.danger {
 
 .payment-list-head__actions {
     display: flex;
+    flex-shrink: 0;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: flex-end;
     align-items: center;
+    margin-top: 2px;
 }
 
 .load-row .ghost.danger {
@@ -921,20 +1015,77 @@ button.ghost.danger {
     cursor: pointer;
 }
 
-.payment-item__actions button.is-plan-active {
-    background: rgba(var(--admin-primary-rgb), .16);
-    color: var(--brand-primary-hover);
-    border-color: rgba(var(--admin-primary-rgb), .4);
+/* Gói 1 link / nhiều link — active khác hẳn (solid primary) */
+.payment-item__actions button[data-plan-action] {
+    background: #fff !important;
+    color: var(--admin-primary) !important;
+    border: 1px solid rgba(var(--admin-primary-rgb), .28) !important;
+    box-shadow: none !important;
+    font-weight: 800;
+}
+
+.payment-item__actions button[data-plan-action].is-plan-active {
+    background: var(--admin-primary) !important;
+    color: #fff !important;
+    border-color: var(--admin-primary) !important;
+    box-shadow: 0 8px 18px rgba(var(--admin-primary-rgb), .28) !important;
     font-weight: 900;
 }
 
-/* ===== Admin app layout: sidebar menu + single view ===== */
+/* Khóa / Đã trả cũng dễ phân biệt */
+.payment-item__actions button[data-payment-action="paid"] {
+    background: rgba(77, 117, 72, .12) !important;
+    color: #3d6b38 !important;
+    border: 1px solid rgba(77, 117, 72, .35) !important;
+    box-shadow: none !important;
+}
+
+.payment-item__actions button[data-payment-action="locked"] {
+    background: rgba(159, 63, 50, .1) !important;
+    color: #9f3f32 !important;
+    border: 1px solid rgba(159, 63, 50, .32) !important;
+    box-shadow: none !important;
+}
+
+/* ===== Admin app layout — sidebar kiểu builder (primary + tab mở) ===== */
+:root {
+    --admin-sidebar-col: 232px;
+}
+
+html, body {
+    height: 100%;
+}
+
+/* Login: giữ shell giữa trang */
+.admin-shell:has(#loginPanel:not(.is-hidden)) {
+    width: min(520px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 48px 0 80px;
+    min-height: 100%;
+}
+
+/* App: full viewport như builder-shell */
+.admin-shell:has(#adminApp:not(.is-hidden):not([hidden])) {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+}
+
 .admin-app {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: var(--admin-sidebar-col) minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
     width: 100%;
+    height: 100%;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--admin-paper);
 }
 
 .admin-app.is-hidden,
@@ -942,72 +1093,169 @@ button.ghost.danger {
     display: none !important;
 }
 
+/* Sidebar primary — giống builder-sidebar */
 .admin-nav {
-    position: sticky;
-    top: 16px;
-    display: grid;
-    gap: 14px;
-    padding: 18px;
-    border: 1px solid var(--admin-line);
-    border-radius: 18px;
-    background: var(--admin-card);
-    box-shadow: 0 18px 60px rgba(98, 69, 38, .1);
+    position: relative;
+    top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    min-height: 0;
+    padding: 18px 0 calc(18px + env(safe-area-inset-bottom, 0px)) 12px;
+    border: 0;
+    border-radius: 0;
+    background: var(--admin-primary);
+    color: #fff;
+    box-shadow: none;
+    overflow-x: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 5;
 }
 
-.admin-nav__brand strong {
+.admin-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 14px 8px 4px;
+    padding: 4px 6px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, .18);
+}
+
+.admin-nav__close {
+    display: none;
+    margin-left: auto;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    place-items: center;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, .16) !important;
+    color: #fff !important;
+    font-size: 15px;
+    box-shadow: none !important;
+    cursor: pointer;
+}
+
+.admin-nav__close:hover {
+    background: rgba(255, 255, 255, .26) !important;
+}
+
+/* Mobile chrome + backdrop — desktop ẩn */
+.admin-mobile-chrome,
+.admin-nav-backdrop {
+    display: none;
+}
+
+.admin-nav__mark {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+    font-size: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+
+.admin-nav__brand-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.15;
+}
+
+.admin-nav__brand-text strong {
     display: block;
-    margin-bottom: 6px;
+    margin: 0;
     font-family: Lora, Georgia, serif;
-    font-size: 22px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: #fff;
+}
+
+.admin-nav__brand-text span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    opacity: .85;
+    color: #fff;
 }
 
 .admin-nav__email {
     display: block;
-    color: var(--admin-muted);
-    font-size: 12px;
+    margin: 0 14px 6px 4px;
+    padding: 0 6px;
+    color: rgba(255, 255, 255, .78);
+    font-size: 11px;
     font-weight: 700;
     overflow-wrap: anywhere;
+    line-height: 1.35;
 }
 
 .admin-nav__list {
-    display: grid;
-    gap: 8px;
-}
-
-.admin-nav__item {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 46px;
-    padding: 0 12px;
-    border: 1px solid transparent;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--admin-ink);
-    font: inherit;
-    font-weight: 800;
-    text-align: left;
-    cursor: pointer;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 16px 0 16px;
+    overflow: visible;
 }
 
-.admin-nav__item i {
-    color: var(--admin-primary);
-    font-size: 18px;
-}
-
-.admin-nav__item.is-active {
-    background: rgba(var(--admin-primary-rgb), .14);
-    border-color: rgba(var(--admin-primary-rgb), .22);
-    color: #7a5520;
+/* Nav item look → css/ui-shell.css (.admin-nav__item) */
+.admin-nav__item span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .admin-nav__logout {
-    width: 100%;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: auto;
+    margin: 8px 14px 0 4px;
+    min-height: 42px;
+    padding: 10px 14px !important;
+    border: 1px solid rgba(255, 255, 255, .28) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, .1) !important;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: none !important;
 }
 
+.admin-nav__logout:hover {
+    background: rgba(255, 255, 255, .18) !important;
+    color: #fff !important;
+}
+
+.admin-nav__logout i {
+    color: inherit;
+}
+
+/* Main content */
 .admin-main {
     min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 28px 28px calc(28px + env(safe-area-inset-bottom, 0px));
+    background: var(--admin-paper);
+    border: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-view {
@@ -1018,38 +1266,207 @@ button.ghost.danger {
     display: block;
 }
 
+#weddingEditPanel:not([hidden]) {
+    display: block;
+}
+
 .admin-hero {
     margin-bottom: 18px;
 }
 
-/* music/payment panels no longer need separate hide when using views */
 .admin-view .panel {
     margin-bottom: 18px;
 }
 
 @media (max-width: 900px) {
-    .admin-shell {
-        width: min(100% - 20px, 1120px);
-        padding-top: 16px;
+    body.admin-logged-in {
+        overflow: hidden;
+    }
+
+    .admin-shell:has(#adminApp:not(.is-hidden):not([hidden])),
+    body.admin-logged-in .admin-shell {
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden;
     }
 
     .admin-app {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        display: block;
+        position: relative;
+        grid-template-columns: none;
+        height: 100%;
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
     }
 
-    .admin-nav {
-        position: relative;
-        top: auto;
+    /* Top chrome: [☰] + tên tab */
+    .admin-mobile-chrome {
+        display: flex;
+        align-items: center;
         gap: 10px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 40;
+        min-height: 52px;
+        padding: calc(6px + env(safe-area-inset-top, 0px)) 12px 6px;
+        background: #fff;
+        border-bottom: 1px solid rgba(var(--admin-primary-rgb), .12);
+        box-shadow: 0 6px 18px rgba(36, 61, 44, .06);
+        box-sizing: border-box;
+    }
+
+    .admin-nav-toggle {
+        flex: 0 0 auto;
+        width: 40px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        margin: 0;
+        padding: 0 !important;
+        display: grid !important;
+        place-items: center;
+        border: 0 !important;
+        border-radius: 12px !important;
+        background: rgba(var(--admin-primary-rgb), .1) !important;
+        color: var(--admin-primary) !important;
+        font-size: 22px;
+        line-height: 1;
+        box-shadow: none !important;
+        cursor: pointer;
+    }
+
+    .admin-nav-toggle:hover,
+    .admin-nav-toggle[aria-expanded="true"] {
+        background: rgba(var(--admin-primary-rgb), .18) !important;
+    }
+
+    .admin-mobile-chrome__title {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
+        color: var(--admin-ink);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-nav-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 48;
+        background: rgba(20, 40, 35, .42);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+    }
+
+    body.admin-nav-open .admin-nav-backdrop {
+        display: block !important;
+    }
+
+    /* Drawer sidebar */
+    .admin-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(288px, 86vw);
+        height: 100%;
+        height: 100dvh;
+        z-index: 50;
+        flex-direction: column;
+        transform: translateX(-105%);
+        transition: transform .22s ease;
+        box-shadow: 12px 0 40px rgba(20, 40, 35, .22);
+        padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(18px + env(safe-area-inset-bottom, 0px));
+        overflow-x: hidden;
+        overflow-y: auto;
+        pointer-events: none;
+    }
+
+    body.admin-nav-open .admin-nav {
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    .admin-nav__brand {
+        display: flex;
+        margin: 0 0 10px;
+        padding: 4px 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, .18);
+    }
+
+    .admin-nav__brand-text span {
+        display: block;
+    }
+
+    .admin-nav__close {
+        display: grid;
+    }
+
+    .admin-nav__email {
+        display: block;
+        margin: 0 0 10px;
+        padding: 0 4px;
     }
 
     .admin-nav__list {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        flex: 1 1 auto;
+        gap: 4px;
+        padding: 8px 0;
+        overflow: visible;
     }
 
     .admin-nav__item {
-        min-height: 48px;
+        width: 100%;
+        min-height: 46px;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+        white-space: normal;
+    }
+
+    .admin-nav__item.is-active {
+        background: #fff !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        color: var(--admin-primary) !important;
+    }
+
+    .admin-nav__item.is-active::before,
+    .admin-nav__item.is-active::after {
+        display: none !important;
+        content: none !important;
+        box-shadow: none !important;
+    }
+
+    .admin-nav__logout {
+        margin: 8px 0 0;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 14px !important;
+        border-radius: 12px !important;
+        justify-content: flex-start;
+    }
+
+    .admin-main {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%;
+        height: 100dvh;
+        padding: calc(60px + env(safe-area-inset-top, 0px)) 14px calc(24px + env(safe-area-inset-bottom, 0px));
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
     }
 
     .admin-hero {
@@ -1069,11 +1486,62 @@ button.ghost.danger {
         width: 100%;
     }
 
-    .sticky-actions {
+    #weddingEditPanel:not([hidden]) .sticky-actions {
+        left: 0;
+        right: 0;
         flex-direction: column;
+        align-items: stretch;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
     }
 
-    .sticky-actions button {
+    #weddingEditPanel:not([hidden]) .sticky-actions button {
         width: 100%;
     }
+
+    #weddingEditPanel:not([hidden]) .admin-form {
+        padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .admin-app .grid.two,
+    .music-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .music-actions {
+        justify-content: stretch;
+    }
+
+    .music-actions button {
+        flex: 1;
+    }
+
+    .load-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .load-row input {
+        width: 100% !important;
+        flex: 1 1 auto;
+    }
+
+    .load-row button {
+        width: 100% !important;
+    }
+}
+
+/* Fallback nếu :has() không hỗ trợ — app full width qua class body */
+body.admin-logged-in {
+    overflow: hidden;
+    background: var(--admin-paper);
+}
+
+body.admin-logged-in .admin-shell {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
 }

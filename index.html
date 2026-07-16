@@ -22,27 +22,27 @@
       CSS phẳng + cùng ?v= → sửa file con browser fetch lại đúng.
       Bump v= (1 chuỗi) khi đổi CSS quan trọng.
       brand → tokens → parts → skins → unifier (cuối = thắng).
-      gift/wish/thanks: style nằm concept-1-classic — không load skins stub rỗng.
+      gift/wish/thanks: style nằm concept-1-classic (+ gift-polish) — không có blocks/*/skins.
     -->
-    <link rel="stylesheet" href="css/brand.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/tokens.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/base.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/cover.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/sections.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/countdown-thanks.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/animations.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/concept-1-classic.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/gift-polish.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/parts/block-builder.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/cover/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/poster/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/save-date/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/about/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/timeline/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/gallery/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/countdown/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/divider/skins.css?v=20260715-css1">
-    <link rel="stylesheet" href="css/blocks/theme-unifier.css?v=20260715-css1">
+    <link rel="stylesheet" href="css/brand.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/tokens.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/base.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/cover.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/sections.css?v=20260716-wish-lm">
+    <link rel="stylesheet" href="css/parts/countdown-thanks.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/animations.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/concept-1-classic.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/gift-polish.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/parts/block-builder.css?v=20260716-tl23v2">
+    <link rel="stylesheet" href="css/blocks/cover/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/poster/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/save-date/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/about/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/timeline/skins.css?v=20260716-tl-mid">
+    <link rel="stylesheet" href="css/blocks/gallery/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/countdown/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/divider/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/theme-unifier.css?v=20260716-css3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- display=swap đã bật; đủ font body + nickname (fonts.js) + DM Serif (skins) -->
@@ -248,7 +248,7 @@
 
                     <div class="wish-list" id="wishList"></div>
 
-                    <button id="loadMoreBtn" class="load-more" type="button"></button>
+                    <button id="loadMoreBtn" class="load-more" type="button" hidden style="display:none" aria-hidden="true"></button>
 
                 </section>
 
@@ -363,7 +363,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore-compat.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=20260716-push1"></script>
 
 </body>
 

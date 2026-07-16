@@ -54,6 +54,27 @@ export const SKIN_DEFINITIONS = [
         aliases: ["7", "concept7", "line", "schedule"],
         openLabel: "Open",
         palette: "none"
+    },
+    {
+        id: "joint-1",
+        label: "Chung · Concept 1 (trục dọc)",
+        aliases: ["joint1", "joint-line", "joint-timeline"],
+        openLabel: "Open",
+        palette: "none"
+    },
+    {
+        id: "joint-2",
+        label: "Chung · Concept 2 (đường sóng)",
+        aliases: ["joint2", "joint-wave", "joint-wavy"],
+        openLabel: "Open",
+        palette: "none"
+    },
+    {
+        id: "joint-3",
+        label: "Chung · Concept 3 (trục xen kẽ)",
+        aliases: ["joint3", "joint-split", "joint-zigzag"],
+        openLabel: "Open",
+        palette: "none"
     }
 ];
 

@@ -10,7 +10,8 @@ export const wishModule = {
     order: 100,
     buildable: false,
     applySkin: false,
-    cssFile: "css/blocks/wish/skins.css",
+    // Style: css/parts/concept-1-classic.css (+ sections.css)
+    cssFile: "css/parts/concept-1-classic.css",
     skins: ["concept-1"],
     render: renderWishForm
 };

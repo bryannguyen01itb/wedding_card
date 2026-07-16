@@ -404,18 +404,29 @@ export async function loadEditSession(db, editToken) {
     }
 }
 
-/** Trích public_id từ URL Cloudinary */
+/**
+ * Trích public_id từ URL Cloudinary.
+ * Bỏ transformation (c_fill,w_…) và version (v123).
+ */
 export function extractCloudinaryPublicId(url) {
     const raw = String(url || "").trim();
     if (!raw || !/res\.cloudinary\.com/i.test(raw)) return "";
     try {
-        // .../upload/v123/folder/name.jpg  or  .../upload/folder/name.jpg
+        // .../upload/[transforms/][v123/]folder/name.jpg
         const path = raw.split("/upload/")[1] || "";
         const noQuery = path.split("?")[0];
         const parts = noQuery.split("/").filter(Boolean);
-        // drop version segment v123456
-        const start = parts[0] && /^v\d+$/i.test(parts[0]) ? 1 : 0;
-        const idParts = parts.slice(start);
+        // Bỏ các segment transform (chứa ,) và version v\d+
+        const idParts = parts.filter(part => {
+            if (!part) return false;
+            if (/^v\d+$/i.test(part)) return false;
+            if (part.includes(",")) return false;
+            // transform dạng t_name
+            if (/^[a-z]_/i.test(part) && !part.includes("/") && /^(c_|w_|h_|q_|f_|fl_|dpr_|e_|b_|ar_|g_|x_|y_)/i.test(part)) {
+                return false;
+            }
+            return true;
+        });
         if (!idParts.length) return "";
         // remove extension on last segment
         const last = idParts[idParts.length - 1].replace(/\.[a-z0-9]+$/i, "");
@@ -423,6 +434,37 @@ export function extractCloudinaryPublicId(url) {
         return idParts.join("/");
     } catch (_) {
         return "";
+    }
+}
+
+/**
+ * Xóa asset bằng delete_token (trả về khi upload, không cần API secret).
+ * Cần bật "Return delete token" trên unsigned preset (mặc định nhiều preset có).
+ */
+export async function destroyCloudinaryByDeleteToken(cloudName, deleteToken) {
+    const cloud = String(cloudName || "").trim();
+    const token = String(deleteToken || "").trim();
+    if (!cloud || !token) return { ok: false, error: "missing_token" };
+    try {
+        const body = new URLSearchParams({ token });
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloud}/delete_by_token`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body
+            }
+        );
+        const data = await response.json().catch(() => ({}));
+        const ok = response.ok && (data.result === "ok" || data.result === "not found");
+        return {
+            ok,
+            result: data.result || null,
+            status: response.status,
+            error: ok ? "" : String(data.error?.message || data.result || response.status)
+        };
+    } catch (error) {
+        return { ok: false, error: String(error?.message || error) };
     }
 }
 
@@ -458,14 +500,35 @@ export function collectCloudinaryPublicIds(config = {}) {
 }
 
 /**
- * Gọi API xóa ảnh Cloudinary (Cloudflare Pages Function).
- * Local python server: fail silently — admin vẫn xóa được Firestore.
+ * Gọi API xóa ảnh Cloudinary.
+ *
+ * - Production (Pages): /api/cloudinary-cleanup
+ * - Local: http://127.0.0.1:8788/api/cloudinary-cleanup
+ *   (chạy `npm run dev:cloudinary` với CLOUDINARY_API_KEY/SECRET)
+ * - Local static server không có API + không có proxy 8788 → skipped
  */
 export async function requestCloudinaryCleanup(publicIds, options = {}) {
     const ids = (Array.isArray(publicIds) ? publicIds : []).map(s => String(s || "").trim()).filter(Boolean);
     if (!ids.length) return { ok: true, deleted: 0, skipped: true };
 
-    const endpoint = options.endpoint || "/api/cloudinary-cleanup";
+    const host = typeof location !== "undefined" ? String(location.hostname || "") : "";
+    const isLocal = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+    const localPort = options.localPort || 8788;
+    const localEndpoint = `http://127.0.0.1:${localPort}/api/cloudinary-cleanup`;
+
+    /** @type {string[]} */
+    const endpoints = [];
+    if (options.endpoint) {
+        endpoints.push(options.endpoint);
+    } else if (isLocal) {
+        // Ưu tiên local proxy (npm run dev:cloudinary)
+        endpoints.push(localEndpoint);
+        // Không gọi /api trên python http.server (501) trừ khi force
+        if (options.force) endpoints.push("/api/cloudinary-cleanup");
+    } else {
+        endpoints.push("/api/cloudinary-cleanup");
+    }
+
     const headers = {
         "Content-Type": "application/json"
     };
@@ -476,19 +539,50 @@ export async function requestCloudinaryCleanup(publicIds, options = {}) {
         headers.Authorization = `Bearer ${options.idToken}`;
     }
 
-    try {
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ publicIds: ids })
-        });
-        if (!response.ok) {
-            const text = await response.text();
-            return { ok: false, error: text.slice(0, 200), status: response.status };
+    let lastError = "cleanup_failed";
+    let lastStatus = 0;
+
+    for (const endpoint of endpoints) {
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({ publicIds: ids })
+            });
+            if (!response.ok) {
+                const text = await response.text();
+                lastStatus = response.status;
+                // python http.server → 501
+                if (response.status === 501 || /unsupported method/i.test(text)) {
+                    lastError = "local_static_server_no_api";
+                    continue;
+                }
+                lastError = text.slice(0, 200) || `http_${response.status}`;
+                continue;
+            }
+            const data = await response.json().catch(() => ({}));
+            return { ok: true, endpoint, ...data };
+        } catch (error) {
+            // ECONNREFUSED khi chưa chạy npm run dev:cloudinary
+            lastError = String(error?.message || error);
+            if (/Failed to fetch|NetworkError|Load failed/i.test(lastError)) {
+                lastError = isLocal
+                    ? "local_cleanup_proxy_offline"
+                    : lastError;
+            }
         }
-        const data = await response.json().catch(() => ({}));
-        return { ok: true, ...data };
-    } catch (error) {
-        return { ok: false, error: String(error?.message || error) };
     }
+
+    if (isLocal && (lastError === "local_cleanup_proxy_offline" || lastError === "local_static_server_no_api")) {
+        return {
+            ok: false,
+            skipped: true,
+            deleted: 0,
+            error: lastError,
+            status: lastStatus,
+            hint: "Local: chạy `npm run dev:cloudinary` (cần CLOUDINARY_API_KEY + SECRET), hoặc bật Return delete token trên preset."
+        };
+    }
+
+    return { ok: false, error: lastError, status: lastStatus };
 }

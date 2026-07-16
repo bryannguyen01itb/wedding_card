@@ -13,7 +13,8 @@ export const giftModule = {
     order: 90,
     buildable: false,
     applySkin: false,
-    cssFile: "css/blocks/gift/skins.css",
+    // Style: css/parts/concept-1-classic.css + gift-polish.css (không có skins riêng)
+    cssFile: "css/parts/gift-polish.css",
     skins: ["concept-1"],
     render: renderGift
 };

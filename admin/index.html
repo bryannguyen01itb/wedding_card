@@ -9,12 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
-    <link rel="stylesheet" href="admin.css?v=brand-12c4b8">
+    <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-3">
+    <link rel="stylesheet" href="admin.css?v=push1">
 </head>
 <body>
     <main class="admin-shell">
         <section class="login-panel" id="loginPanel">
-            <p class="eyebrow">Wedding Admin</p>
+            <p class="eyebrow">BRYAN INVITE</p>
             <h1>Đăng nhập quản lý thiệp</h1>
             <p>Tài khoản và mật khẩu được Firebase Authentication lưu, không lưu trong code.</p>
             <form id="loginForm" class="login-form">
@@ -25,28 +26,44 @@
         </section>
 
         <div id="adminApp" class="admin-app is-hidden" hidden>
-            <aside class="admin-nav" aria-label="Menu admin">
+            <!-- Mobile: 3 gạch + tên tab (drawer menu như builder) -->
+            <header class="admin-mobile-chrome" id="adminMobileChrome" aria-label="Thanh điều hướng mobile">
+                <button type="button" class="admin-nav-toggle" id="adminNavToggle" aria-label="Mở menu" aria-expanded="false" aria-controls="adminNav">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <strong class="admin-mobile-chrome__title" id="adminMobileTitle">Danh sách thiệp</strong>
+            </header>
+            <div class="admin-nav-backdrop" id="adminNavBackdrop" hidden></div>
+
+            <aside class="admin-nav" id="adminNav" aria-label="Menu admin">
                 <div class="admin-nav__brand">
-                    <p class="eyebrow">Admin</p>
-                    <strong>Wedding Card</strong>
-                    <span id="accountEmail" class="admin-nav__email"></span>
+                    <span class="admin-nav__mark" aria-hidden="true"><i class="bi bi-heart-fill"></i></span>
+                    <div class="admin-nav__brand-text">
+                        <strong>BRYAN</strong>
+                        <span>INVITE</span>
+                    </div>
+                    <button type="button" class="admin-nav__close" id="adminNavClose" aria-label="Đóng menu">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
                 </div>
+                <span id="accountEmail" class="admin-nav__email"></span>
                 <nav class="admin-nav__list">
                     <button type="button" class="admin-nav__item is-active" data-admin-nav="weddings">
-                        <i class="bi bi-card-list"></i>
+                        <i class="bi bi-card-list" aria-hidden="true"></i>
                         <span>Danh sách thiệp</span>
                     </button>
                     <button type="button" class="admin-nav__item" data-admin-nav="payment">
-                        <i class="bi bi-credit-card-2-front-fill"></i>
+                        <i class="bi bi-credit-card-2-front-fill" aria-hidden="true"></i>
                         <span>Thanh toán</span>
                     </button>
                     <button type="button" class="admin-nav__item" data-admin-nav="music">
-                        <i class="bi bi-music-note-list"></i>
+                        <i class="bi bi-music-note-list" aria-hidden="true"></i>
                         <span>Thư viện nhạc</span>
                     </button>
                 </nav>
-                <button id="logoutBtn" type="button" class="ghost admin-nav__logout">
-                    <i class="bi bi-box-arrow-right"></i> Thoát
+                <button id="logoutBtn" type="button" class="admin-nav__logout">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Thoát</span>
                 </button>
             </aside>
 
@@ -65,7 +82,7 @@
                             <div class="payment-list-head">
                                 <div>
                                     <h3>Tất cả thiệp Firebase</h3>
-                                    <p class="payment-list-desc">Thiệp quá 30 ngày được đánh dấu để dọn. Bấm <strong>Sửa</strong> để chỉnh config.</p>
+                                    <p class="payment-list-desc">Thiệp quá 30 ngày được đánh dấu để dọn. Bấm <strong>Sửa</strong> để chỉnh config. List không tải ảnh Cloudinary (chỉ text Firebase).</p>
                                 </div>
                                 <div class="payment-list-head__actions">
                                     <button id="deleteOldWeddingsBtn" type="button" class="ghost small danger" title="Xóa vĩnh viễn thiệp không cập nhật &gt; 30 ngày">
@@ -301,6 +318,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script type="module" src="admin.js"></script>
+    <script type="module" src="admin.js?v=push1"></script>
 </body>
 </html>

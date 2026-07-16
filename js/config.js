@@ -10,12 +10,24 @@
  *      * Generate lúc Lưu Firebase; hiện popup chờ TT + admin danh sách thiệp
  *      * Khách chỉ cần mã này khi CK; admin đối chiếu mã ↔ thiệp
  *
- * 1) Poster location — 1 link thiệp, hiện cả 2 tỉnh
- *    - ceremony.bride.location  — tỉnh/TP nhà gái (vd: "Hà Nội")
- *    - ceremony.groom.location  — tỉnh/TP nhà trai (vd: "Hải Phòng")
- *    - Để trống → lấy cụm cuối ceremony.*.address, uppercase
- *    - Poster: "HÀ NỘI · HẢI PHÒNG" (cô dâu · chú rể); trùng tỉnh → 1 lần
+ * 1) Ceremony / timeline (Firebase: weddings/{id}.ceremony)
+ *    Mode:
+ *    - ceremony.mode: "separate" | "joint"
+ *      * separate = 2 nhà (bride + groom) — mặc định thiệp cũ không có field mode
+ *      * joint    = tổ chức chung 1 địa điểm (ceremony.joint)
+ *    Events (schema mới, builder lưu):
+ *    - ceremony.bride|groom|joint.events[]: { id, title, date, time, icon }
+ *    Legacy mirror (vẫn ghi khi Lưu — tương thích thiệp / code cũ):
+ *    - title, time, date, meal: { title, time }  (mirror từ events)
+ *    - address, location, mapUrl
+ *    Thiệp cũ trên Firebase (trước khi có joint/events):
+ *    - CHỈ có bride/groom: title, time, meal, address, location, mapUrl
+ *    - KHÔNG có mode, joint, events[] → app đọc legacy; mode = separate
+ *    - Lưu lại builder → tự nâng cấp: thêm mode + events[] + mirror
  *    - (Đã bỏ wedding.location root và ?side=groom|bride)
+ *    Poster location — 1 link thiệp, hiện cả 2 tỉnh:
+ *    - ceremony.bride.location / ceremony.groom.location (hoặc joint.location)
+ *    - Để trống → lấy cụm cuối address, uppercase
  *
  * 2) Gói thiệp + khách mời
  *    - plan: "single" | "multi"
@@ -299,12 +311,71 @@ export let wedding = {
         }
     },
 
-    // --- Lịch trình ngày cưới ---
+    // --- Lịch trình ngày cưới (xem header schema §1) ---
+    // Mẫu local + thiệp MỚI: mode + events[] + mirror title/time/meal.
+    // Thiệp CŨ trên Firebase có thể thiếu mode/events/joint — app migrate lúc đọc.
     ceremony: {
+        /**
+         * separate = nhà trai / nhà gái riêng (timeline concept 1–7)
+         * joint    = tổ chức chung 1 địa điểm (timeline concept joint-1…3)
+         * Firebase thiếu field → coi là "separate"
+         */
+        mode: "separate", // "separate" | "joint"
         image: "img/anh_2.jpg",
         mapButtonLabel: "Chỉ đường",
+        /**
+         * mode === "joint": 1 địa điểm + N sự kiện.
+         * events[] canonical; title/time/meal = mirror (tương thích thiệp cũ / code cũ).
+         */
+        joint: {
+            events: [
+                {
+                    id: "je_meal",
+                    title: "TIỆC CƯỚI",
+                    date: "2026-09-12",
+                    time: "18:00",
+                    icon: "cup"
+                },
+                {
+                    id: "je_ceremony",
+                    title: "LỄ THÀNH HÔN",
+                    date: "2026-09-12",
+                    time: "19:00",
+                    icon: "hearts"
+                }
+            ],
+            /** Mirror events — thiệp/render cũ vẫn đọc được */
+            title: "LỄ THÀNH HÔN",
+            date: "2026-09-12",
+            time: "19:00",
+            meal: {
+                title: "TIỆC CƯỚI",
+                time: "18:00 • 12.09.2026"
+            },
+            address: "Nhà hàng / Trung tâm tiệc cưới — Địa chỉ tổ chức chung",
+            location: "",
+            mapUrl: "https://maps.app.goo.gl/YSFromJyb9d6s9wi6"
+        },
         bride: {
+            events: [
+                {
+                    id: "be_meal",
+                    title: "BỮA CƠM THÂN MẬT",
+                    date: "2026-09-11",
+                    time: "17:00",
+                    icon: "cup"
+                },
+                {
+                    id: "be_ceremony",
+                    title: "LỄ VU QUY",
+                    date: "2026-09-12",
+                    time: "10:00",
+                    icon: "hearts"
+                }
+            ],
+            /** Mirror events — schema thiệp cũ chỉ có các field này */
             title: "LỄ VU QUY",
+            date: "2026-09-12",
             time: "10:00",
             meal: {
                 title: "BỮA CƠM THÂN MẬT",
@@ -320,7 +391,25 @@ export let wedding = {
             mapUrl: "https://maps.app.goo.gl/YSFromJyb9d6s9wi6"
         },
         groom: {
+            events: [
+                {
+                    id: "ge_meal",
+                    title: "BỮA CƠM THÂN MẬT",
+                    date: "2026-09-12",
+                    time: "16:00",
+                    icon: "cup"
+                },
+                {
+                    id: "ge_ceremony",
+                    title: "LỄ THÀNH HÔN",
+                    date: "2026-09-12",
+                    time: "17:00",
+                    icon: "hearts"
+                }
+            ],
+            /** Mirror events — schema thiệp cũ */
             title: "LỄ THÀNH HÔN",
+            date: "2026-09-12",
             time: "17:00",
             meal: {
                 title: "BỮA CƠM THÂN MẬT",

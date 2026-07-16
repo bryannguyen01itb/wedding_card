@@ -42,6 +42,24 @@ export function setSplitName(id, value) {
     });
 }
 
+/** So sánh URL ảnh/media — tránh gán lại src trùng → browser không tải lại. */
+function isSameResourceUrl(el, nextSrc) {
+    const next = String(nextSrc || "").trim();
+    if (!next) {
+        return !String(el?.getAttribute?.("src") || el?.src || "").trim();
+    }
+    const currentAttr = String(el?.getAttribute?.("src") || "").trim();
+    if (currentAttr === next) return true;
+    try {
+        const base = typeof location !== "undefined" ? location.href : undefined;
+        const a = new URL(el.currentSrc || el.src || currentAttr, base).href;
+        const b = new URL(next, base).href;
+        return a === b;
+    } catch {
+        return currentAttr === next;
+    }
+}
+
 export function setSrc(id, value, fallbackKey = "") {
     const el = $(id);
     if (!el) return;
@@ -51,7 +69,9 @@ export function setSrc(id, value, fallbackKey = "") {
         return;
     }
 
-    el.src = value;
+    const next = value || "";
+    if (isSameResourceUrl(el, next)) return;
+    el.src = next;
 }
 
 export function bindClick(element, handler) {

@@ -36,11 +36,74 @@ import {
     upsertOrderCodeMap,
     upsertEditSession,
     loadEditSession,
-    extractCloudinaryPublicId
+    extractCloudinaryPublicId,
+    requestCloudinaryCleanup,
+    destroyCloudinaryByDeleteToken
 } from "../js/utils/security.js";
 
 /** public_id Cloudinary đã upload trong phiên (ghi vào builder.cloudinaryPublicIds) */
 let sessionCloudinaryPublicIds = [];
+/** public_id cần xóa khi user xóa/đổi ảnh (flush sau Lưu Firebase) */
+const orphanedCloudinaryPublicIds = new Set();
+/** fieldName → public_id Cloudinary đang gắn (chính xác từ upload response) */
+const lastRemotePublicIds = new Map();
+/** public_id → delete_token (xóa được từ browser, không cần secret) */
+const cloudinaryDeleteTokens = new Map();
+const DELETE_TOKEN_STORAGE_KEY = "weddingBuilderCloudinaryDeleteTokens";
+
+function loadDeleteTokensFromSession() {
+    try {
+        const raw = sessionStorage.getItem(DELETE_TOKEN_STORAGE_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        const now = Date.now();
+        Object.entries(obj || {}).forEach(([id, meta]) => {
+            const token = String(meta?.token || "").trim();
+            const exp = Number(meta?.exp || 0);
+            if (id && token && exp > now) cloudinaryDeleteTokens.set(id, token);
+        });
+    } catch (_) {
+        /* ignore */
+    }
+}
+
+function persistDeleteToken(publicId, deleteToken) {
+    const id = String(publicId || "").trim();
+    const token = String(deleteToken || "").trim();
+    if (!id || !token) return;
+    cloudinaryDeleteTokens.set(id, token);
+    try {
+        const raw = sessionStorage.getItem(DELETE_TOKEN_STORAGE_KEY);
+        const obj = raw ? JSON.parse(raw) : {};
+        // Token Cloudinary thường ~10 phút
+        obj[id] = { token, exp: Date.now() + 9 * 60 * 1000 };
+        // dọn hết hạn
+        const now = Date.now();
+        Object.keys(obj).forEach(key => {
+            if (!obj[key]?.exp || obj[key].exp <= now) delete obj[key];
+        });
+        sessionStorage.setItem(DELETE_TOKEN_STORAGE_KEY, JSON.stringify(obj));
+    } catch (_) {
+        /* ignore */
+    }
+}
+
+function forgetDeleteToken(publicId) {
+    const id = String(publicId || "").trim();
+    if (!id) return;
+    cloudinaryDeleteTokens.delete(id);
+    try {
+        const raw = sessionStorage.getItem(DELETE_TOKEN_STORAGE_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        delete obj[id];
+        sessionStorage.setItem(DELETE_TOKEN_STORAGE_KEY, JSON.stringify(obj));
+    } catch (_) {
+        /* ignore */
+    }
+}
+
+loadDeleteTokensFromSession();
 
 const form = document.getElementById("builderForm");
 const frame = document.getElementById("previewFrame");
@@ -163,6 +226,8 @@ function isMediaFieldActive(fieldName) {
         return Boolean(opts.usesPersonAvatars);
     }
     if (name === "timelineImage") {
+        // Tổ chức chung: layout joint chưa dùng ảnh ceremony (concept joint thêm sau)
+        if (getSelectedCeremonyMode() === "joint") return false;
         const opts = getSectionSkinOptions("timeline", getSelectedBlockValue("blockTimeline"));
         // default true nếu skin chưa khai báo
         return opts.usesCeremonyImage !== false;
@@ -170,6 +235,472 @@ function isMediaFieldActive(fieldName) {
 
     // cover, poster, preview, countdown, gallery — luôn dùng ảnh
     return true;
+}
+
+/** separate | joint */
+function getSelectedCeremonyMode() {
+    const checked = form?.querySelector('input[name="ceremonyMode"]:checked');
+    const value = String(checked?.value || readField("ceremonyMode") || "separate").trim();
+    return value === "joint" ? "joint" : "separate";
+}
+
+function setCeremonyMode(mode) {
+    const next = mode === "joint" ? "joint" : "separate";
+    form?.querySelectorAll('input[name="ceremonyMode"]').forEach(input => {
+        input.checked = input.value === next;
+    });
+}
+
+/* --- Ceremony events (joint / bride / groom): N sự kiện, sắp xếp --- */
+const CEREMONY_EVENT_ICON_OPTIONS = [
+    { id: "cup", label: "Bữa tiệc", bi: "bi-cup-hot" },
+    { id: "hearts", label: "Lễ cưới", bi: "bi-hearts" },
+    { id: "camera", label: "Chụp ảnh", bi: "bi-camera" },
+    { id: "mic", label: "Phát biểu", bi: "bi-mic" },
+    { id: "music", label: "Âm nhạc", bi: "bi-music-note-beamed" },
+    { id: "gift", label: "Quà tặng", bi: "bi-gift" },
+    { id: "car", label: "Di chuyển", bi: "bi-car-front" },
+    { id: "star", label: "Khác", bi: "bi-stars" }
+];
+/** alias cũ */
+const JOINT_EVENT_ICON_OPTIONS = CEREMONY_EVENT_ICON_OPTIONS;
+const MIN_CEREMONY_EVENTS = 1;
+const MAX_CEREMONY_EVENTS = 8;
+
+const CEREMONY_EVENTS_LIST_IDS = {
+    joint: "jointEventsList",
+    bride: "brideEventsList",
+    groom: "groomEventsList"
+};
+const CEREMONY_EVENTS_ADD_IDS = {
+    joint: "addJointEventBtn",
+    bride: "addBrideEventBtn",
+    groom: "addGroomEventBtn"
+};
+
+/** @type {Record<"joint"|"bride"|"groom", { id: string, title: string, date: string, time: string, icon: string }[]>} */
+const ceremonyEventsState = {
+    joint: [],
+    bride: [],
+    groom: []
+};
+
+function newCeremonyEventId() {
+    return `ce_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function getMainWeddingDate() {
+    return String(readField("date") || fallbackWedding.date || "").trim() || "2026-09-12";
+}
+
+function shiftDateIso(isoDate, dayDelta) {
+    const base = toDateInputValue(isoDate) || getMainWeddingDate();
+    const [y, m, d] = base.split("-").map(Number);
+    if (!y || !m || !d) return base;
+    const dt = new Date(y, m - 1, d + dayDelta);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+function createDefaultCeremonyEvents(role = "joint", mainDate = getMainWeddingDate()) {
+    const date = mainDate || getMainWeddingDate();
+    if (role === "bride") {
+        return [
+            {
+                id: newCeremonyEventId(),
+                title: "BỮA CƠM THÂN MẬT",
+                date: shiftDateIso(date, -1),
+                time: "17:00",
+                icon: "cup"
+            },
+            {
+                id: newCeremonyEventId(),
+                title: "LỄ VU QUY",
+                date,
+                time: "10:00",
+                icon: "hearts"
+            }
+        ];
+    }
+    if (role === "groom") {
+        return [
+            {
+                id: newCeremonyEventId(),
+                title: "BỮA CƠM THÂN MẬT",
+                date,
+                time: "16:00",
+                icon: "cup"
+            },
+            {
+                id: newCeremonyEventId(),
+                title: "LỄ THÀNH HÔN",
+                date,
+                time: "17:00",
+                icon: "hearts"
+            }
+        ];
+    }
+    // joint
+    return [
+        {
+            id: newCeremonyEventId(),
+            title: "TIỆC CƯỚI",
+            date,
+            time: "18:00",
+            icon: "cup"
+        },
+        {
+            id: newCeremonyEventId(),
+            title: "LỄ THÀNH HÔN",
+            date,
+            time: "19:00",
+            icon: "hearts"
+        }
+    ];
+}
+
+function createDefaultJointEvents(mainDate = getMainWeddingDate()) {
+    return createDefaultCeremonyEvents("joint", mainDate);
+}
+
+/** Normalize events từ Firebase / form → mảng sạch. */
+function normalizeCeremonyEventsList(rawEvents, role = "joint", mainDate = getMainWeddingDate()) {
+    if (!Array.isArray(rawEvents) || !rawEvents.length) {
+        return createDefaultCeremonyEvents(role, mainDate);
+    }
+
+    return rawEvents
+        .slice(0, MAX_CEREMONY_EVENTS)
+        .map((ev, index) => {
+            const iconId = String(ev?.icon || "").trim();
+            const known = CEREMONY_EVENT_ICON_OPTIONS.some(opt => opt.id === iconId);
+            return {
+                id: String(ev?.id || "").trim() || newCeremonyEventId(),
+                title: String(ev?.title || "").trim() || `Sự kiện ${index + 1}`,
+                date: toDateInputValue(ev?.date || mainDate) || mainDate,
+                time: String(ev?.time || "").split("•")[0].trim() || "18:00",
+                icon: known ? iconId : (index === 0 ? "cup" : index === 1 ? "hearts" : "star")
+            };
+        });
+}
+
+function normalizeJointEventsList(rawEvents, mainDate = getMainWeddingDate()) {
+    return normalizeCeremonyEventsList(rawEvents, "joint", mainDate);
+}
+
+/** Migrate thiệp cũ (title/time/meal) → events[]. */
+function ceremonyEventsFromLegacyHouse(house = {}, role = "joint", mainDate = "") {
+    const date = mainDate || house?.date || getMainWeddingDate();
+    if (Array.isArray(house?.events) && house.events.length) {
+        return normalizeCeremonyEventsList(house.events, role, date);
+    }
+
+    const mealSplit = splitMealTime(house?.meal?.time);
+    const events = [];
+    const defaultMeal = role === "joint" ? "TIỆC CƯỚI" : "BỮA CƠM THÂN MẬT";
+    const defaultCeremony = role === "bride" ? "LỄ VU QUY" : "LỄ THÀNH HÔN";
+
+    if (house?.meal?.title || mealSplit.time || mealSplit.date) {
+        events.push({
+            id: newCeremonyEventId(),
+            title: house?.meal?.title || defaultMeal,
+            date: mealSplit.date || toDateInputValue(date) || date,
+            time: mealSplit.time || (role === "bride" ? "17:00" : "16:00"),
+            icon: "cup"
+        });
+    }
+
+    if (house?.title || house?.time || house?.date) {
+        events.push({
+            id: newCeremonyEventId(),
+            title: house?.title || defaultCeremony,
+            date: toDateInputValue(house?.date || date) || date,
+            time: String(house?.time || (role === "bride" ? "10:00" : "17:00")).split("•")[0].trim(),
+            icon: "hearts"
+        });
+    }
+
+    return events.length
+        ? normalizeCeremonyEventsList(events, role, date)
+        : createDefaultCeremonyEvents(role, date);
+}
+
+function jointEventsFromLegacyJoint(joint = {}, mainDate = "") {
+    return ceremonyEventsFromLegacyHouse(joint, "joint", mainDate);
+}
+
+function syncCeremonyEventsStateFromDom(role) {
+    const listId = CEREMONY_EVENTS_LIST_IDS[role];
+    const list = listId ? document.getElementById(listId) : null;
+    if (!list) return ceremonyEventsState[role] || [];
+
+    const rows = [...list.querySelectorAll("[data-ceremony-event-id]")];
+    if (!rows.length) return ceremonyEventsState[role] || [];
+
+    ceremonyEventsState[role] = rows.map((row, index) => {
+        const id = row.dataset.ceremonyEventId || newCeremonyEventId();
+        return {
+            id,
+            title: String(row.querySelector('[data-ceremony-field="title"]')?.value || "").trim()
+                || `Sự kiện ${index + 1}`,
+            date: String(row.querySelector('[data-ceremony-field="date"]')?.value || "").trim()
+                || getMainWeddingDate(),
+            time: String(row.querySelector('[data-ceremony-field="time"]')?.value || "").trim() || "18:00",
+            icon: String(row.querySelector('[data-ceremony-field="icon"]')?.value || "star").trim() || "star"
+        };
+    });
+
+    return ceremonyEventsState[role];
+}
+
+function syncJointEventsStateFromDom() {
+    return syncCeremonyEventsStateFromDom("joint");
+}
+
+function getCeremonyEventsForSave(role) {
+    syncCeremonyEventsStateFromDom(role);
+    return normalizeCeremonyEventsList(
+        ceremonyEventsState[role] || [],
+        role,
+        getMainWeddingDate()
+    );
+}
+
+function getJointEventsForSave() {
+    return getCeremonyEventsForSave("joint");
+}
+
+/** Mirror events → title/time/meal (tương thích thiệp / code cũ). */
+function buildCeremonyLegacyMirror(events, role, mainDate) {
+    const list = normalizeCeremonyEventsList(events, role, mainDate);
+    const first = list[0] || null;
+    const second = list[1] || first;
+    const defaultMeal = role === "joint" ? "TIỆC CƯỚI" : "BỮA CƠM THÂN MẬT";
+    const defaultCeremony = role === "bride"
+        ? "LỄ VU QUY"
+        : "LỄ THÀNH HÔN";
+    return {
+        title: second?.title || defaultCeremony,
+        date: second?.date || mainDate,
+        time: second?.time || (role === "bride" ? "10:00" : "17:00"),
+        meal: {
+            title: first?.title || defaultMeal,
+            time: formatMealTime(first?.date || mainDate, first?.time || "18:00")
+        }
+    };
+}
+
+function buildJointLegacyMirror(events, mainDate) {
+    return buildCeremonyLegacyMirror(events, "joint", mainDate);
+}
+
+function updateAddCeremonyEventButton(role) {
+    const btnId = CEREMONY_EVENTS_ADD_IDS[role];
+    const btn = btnId ? document.getElementById(btnId) : null;
+    if (!btn) return;
+    const len = (ceremonyEventsState[role] || []).length;
+    const full = len >= MAX_CEREMONY_EVENTS;
+    btn.disabled = full;
+    btn.setAttribute("aria-disabled", full ? "true" : "false");
+    btn.title = full ? `Tối đa ${MAX_CEREMONY_EVENTS} sự kiện` : "Thêm sự kiện";
+}
+
+function renderCeremonyEventsList(role) {
+    const listId = CEREMONY_EVENTS_LIST_IDS[role];
+    const list = listId ? document.getElementById(listId) : null;
+    if (!list) return;
+
+    if (!ceremonyEventsState[role]?.length) {
+        ceremonyEventsState[role] = createDefaultCeremonyEvents(role);
+    }
+
+    const events = ceremonyEventsState[role];
+    list.textContent = "";
+    events.forEach((ev, index) => {
+        const row = document.createElement("div");
+        row.className = "joint-event-row";
+        row.dataset.ceremonyEventId = ev.id;
+        row.dataset.ceremonyEventsRole = role;
+
+        const head = document.createElement("div");
+        head.className = "joint-event-row__head";
+        head.innerHTML = `<strong>Sự kiện ${index + 1}</strong>`;
+
+        const actions = document.createElement("div");
+        actions.className = "joint-event-row__actions";
+        actions.innerHTML = `
+            <button type="button" class="joint-event-btn" data-ceremony-move="-1" title="Lên" ${index === 0 ? "disabled" : ""} aria-label="Đưa lên">
+                <i class="bi bi-arrow-up"></i>
+            </button>
+            <button type="button" class="joint-event-btn" data-ceremony-move="1" title="Xuống" ${index >= events.length - 1 ? "disabled" : ""} aria-label="Đưa xuống">
+                <i class="bi bi-arrow-down"></i>
+            </button>
+            <button type="button" class="joint-event-btn joint-event-btn--danger" data-ceremony-remove title="Xóa" ${events.length <= MIN_CEREMONY_EVENTS ? "disabled" : ""} aria-label="Xóa sự kiện">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+        head.appendChild(actions);
+        row.appendChild(head);
+
+        const titleLabel = document.createElement("label");
+        titleLabel.textContent = "Tên sự kiện";
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.dataset.ceremonyField = "title";
+        titleInput.value = ev.title || "";
+        titleInput.placeholder = "vd: BỮA CƠM, LỄ VU QUY…";
+        titleLabel.appendChild(titleInput);
+        row.appendChild(titleLabel);
+
+        const dt = document.createElement("div");
+        dt.className = "grid two compact-grid datetime-grid";
+        const dateLabel = document.createElement("label");
+        dateLabel.textContent = "Ngày";
+        const dateInput = document.createElement("input");
+        dateInput.type = "date";
+        dateInput.dataset.ceremonyField = "date";
+        dateInput.value = ev.date || getMainWeddingDate();
+        dateLabel.appendChild(dateInput);
+        const timeLabel = document.createElement("label");
+        timeLabel.textContent = "Giờ";
+        const timeInput = document.createElement("input");
+        timeInput.type = "time";
+        timeInput.dataset.ceremonyField = "time";
+        timeInput.value = ev.time || "18:00";
+        timeLabel.appendChild(timeInput);
+        dt.appendChild(dateLabel);
+        dt.appendChild(timeLabel);
+        row.appendChild(dt);
+
+        const iconLabel = document.createElement("label");
+        iconLabel.textContent = "Icon (concept timeline)";
+        const iconSelect = document.createElement("select");
+        iconSelect.dataset.ceremonyField = "icon";
+        CEREMONY_EVENT_ICON_OPTIONS.forEach(opt => {
+            const option = document.createElement("option");
+            option.value = opt.id;
+            option.textContent = opt.label;
+            if (opt.id === ev.icon) option.selected = true;
+            iconSelect.appendChild(option);
+        });
+        iconLabel.appendChild(iconSelect);
+        row.appendChild(iconLabel);
+        enhanceCustomSelect(iconSelect);
+
+        list.appendChild(row);
+    });
+
+    updateAddCeremonyEventButton(role);
+    if (typeof enhanceDateTimePickers === "function") {
+        enhanceDateTimePickers(list);
+    }
+}
+
+function renderJointEventsList() {
+    renderCeremonyEventsList("joint");
+}
+
+function renderAllCeremonyEventsLists() {
+    ["joint", "bride", "groom"].forEach(role => renderCeremonyEventsList(role));
+}
+
+function addCeremonyEvent(role) {
+    syncCeremonyEventsStateFromDom(role);
+    const list = ceremonyEventsState[role] || [];
+    if (list.length >= MAX_CEREMONY_EVENTS) return;
+    list.push({
+        id: newCeremonyEventId(),
+        title: `SỰ KIỆN ${list.length + 1}`,
+        date: getMainWeddingDate(),
+        time: "18:00",
+        icon: "star"
+    });
+    ceremonyEventsState[role] = list;
+    renderCeremonyEventsList(role);
+    scheduleCeremonyEventsPreview();
+}
+
+function removeCeremonyEvent(role, eventId) {
+    syncCeremonyEventsStateFromDom(role);
+    let list = ceremonyEventsState[role] || [];
+    if (list.length <= MIN_CEREMONY_EVENTS) return;
+    list = list.filter(ev => ev.id !== eventId);
+    if (!list.length) list = createDefaultCeremonyEvents(role);
+    ceremonyEventsState[role] = list;
+    renderCeremonyEventsList(role);
+    scheduleCeremonyEventsPreview();
+}
+
+function moveCeremonyEvent(role, eventId, delta) {
+    syncCeremonyEventsStateFromDom(role);
+    const list = [...(ceremonyEventsState[role] || [])];
+    const index = list.findIndex(ev => ev.id === eventId);
+    if (index < 0) return;
+    const next = index + delta;
+    if (next < 0 || next >= list.length) return;
+    const [item] = list.splice(index, 1);
+    list.splice(next, 0, item);
+    ceremonyEventsState[role] = list;
+    renderCeremonyEventsList(role);
+    scheduleCeremonyEventsPreview();
+}
+
+function scheduleCeremonyEventsPreview() {
+    window.clearTimeout(scheduleCeremonyEventsPreview.timer);
+    scheduleCeremonyEventsPreview.timer = window.setTimeout(() => {
+        if (typeof refreshPreview !== "function") return;
+        // Mobile: không auto mở tab preview khi sửa lịch / địa điểm
+        refreshPreview(true, {
+            focusPreview: false,
+            previewState: { opened: true, scrollY: 0, target: ".timeline" }
+        });
+    }, 280);
+}
+
+function scheduleJointEventsPreview() {
+    scheduleCeremonyEventsPreview();
+}
+
+function isCeremonyEventControl(target) {
+    return Boolean(
+        target?.closest?.("[data-ceremony-events-role]")
+        || target?.closest?.("[data-ceremony-event-id]")
+        || target?.dataset?.ceremonyField
+        || target?.dataset?.jointField
+    );
+}
+
+function isJointEventControl(target) {
+    return isCeremonyEventControl(target);
+}
+
+/** Ẩn/hiện form lịch+maps theo mode + làm mới select concept timeline. */
+function syncCeremonyModeUI() {
+    const mode = getSelectedCeremonyMode();
+    const separate = mode === "separate";
+
+    const separatePanel = document.getElementById("ceremonySeparatePanel");
+    const jointPanel = document.getElementById("ceremonyJointPanel");
+
+    if (separatePanel) separatePanel.hidden = !separate;
+    if (jointPanel) jointPanel.hidden = separate;
+
+    if (separate) {
+        if (!ceremonyEventsState.bride?.length) {
+            ceremonyEventsState.bride = createDefaultCeremonyEvents("bride");
+        }
+        if (!ceremonyEventsState.groom?.length) {
+            ceremonyEventsState.groom = createDefaultCeremonyEvents("groom");
+        }
+        renderCeremonyEventsList("bride");
+        renderCeremonyEventsList("groom");
+    } else if (!ceremonyEventsState.joint?.length) {
+        ceremonyEventsState.joint = createDefaultCeremonyEvents("joint");
+        renderCeremonyEventsList("joint");
+    }
+
+    populateBuilderBlockSelects(form, { ceremonyMode: mode });
+    enhanceAllCustomSelects(form);
+    syncMediaUploadVisibility();
 }
 
 /** Ẩn/hiện .media-item theo concept; hủy blob pending của field ẩn (không upload). */
@@ -198,24 +729,6 @@ function syncMediaUploadVisibility() {
             if (fileInput) fileInput.value = "";
         }
     });
-
-    const hint = document.getElementById("mediaConceptHint");
-    if (hint) {
-        const aboutOpts = getSectionSkinOptions("about", getSelectedBlockValue("blockAbout"));
-        const timelineOpts = getSectionSkinOptions("timeline", getSelectedBlockValue("blockTimeline"));
-        const bits = [];
-        if (aboutOpts.usesAboutCardImage) {
-            bits.push("Đôi nét: ảnh đôi (1 ảnh)");
-        } else if (aboutOpts.usesPersonAvatars) {
-            bits.push("Đôi nét: avatar chú rể & cô dâu");
-        }
-        if (timelineOpts.usesCeremonyImage === false) {
-            bits.push("Lịch trình concept này không dùng ảnh — đã ẩn ô upload");
-        }
-        hint.textContent = bits.length
-            ? `${bits.join(". ")}. Chỉ hiện ô cần thiết để tránh upload thừa.`
-            : "Chỉ hiện ô upload ảnh mà concept đang chọn thực sự dùng — tránh upload thừa lên Cloudinary.";
-    }
 }
 
 function clone(value) {
@@ -346,6 +859,7 @@ function setControlValue(name, value) {
     const field = form.elements[name];
     if (field && value !== undefined && value !== null) {
         field.value = value;
+        if (field.tagName === "SELECT") refreshCustomSelect(field);
     }
 }
 
@@ -440,6 +954,7 @@ function populateMusicOptions(config = loadedWeddingConfig) {
         );
         if (match) musicSelect.value = match.value;
     }
+    refreshCustomSelect(musicSelect);
 }
 
 async function loadMusicLibrary() {
@@ -793,6 +1308,15 @@ function updateResultLinks(weddingId, accessToken = getWeddingAccessToken()) {
     }
 
     resultLinks.hidden = false;
+    const emptyHint = document.getElementById("linksStepEmptyHint");
+    if (emptyHint) emptyHint.hidden = true;
+    document.body.dataset.hasResultLinks = "1";
+    document.getElementById("builderLinksNavBtn")?.classList.add("has-links");
+}
+
+/** Mở tab Link thiệp (sau khi lưu / mở khóa). */
+function goToLinksStep(options = {}) {
+    goToBuilderStep(8, { scroll: true, ...options });
 }
 
 function hasPaymentAmount(source = {}) {
@@ -849,10 +1373,8 @@ function showPaymentModal(weddingId) {
     if (paymentOrderCodeText) paymentOrderCodeText.textContent = orderCode;
     // Số tiền theo payment của wedding này (đã snapshot lúc lưu), không đọc settings live
     paymentAmountText.textContent = formatPaymentAmount(resolvePaymentAmountSource(loadedWeddingConfig));
-    const baseMsg = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
-    paymentMessageText.textContent = orderCode && orderCode !== "—"
-        ? `${baseMsg} Mã của bạn: ${orderCode}.`
-        : baseMsg;
+    // Mã GD đã hiện ở #paymentOrderCodeText — không lặp “Mã của bạn: …”
+    paymentMessageText.textContent = paymentSettings.message || DEFAULT_PAYMENT_SETTINGS.message;
 
     const autoStatus = document.getElementById("paymentAutoStatus");
     if (autoStatus) {
@@ -903,6 +1425,7 @@ function showUnlockedLinks(weddingId, accessToken = getWeddingAccessToken()) {
     hidePaymentModal();
     updateResultLinks(weddingId, accessToken);
     showSaveModal(weddingId);
+    goToLinksStep({ scroll: true });
 }
 
 function buildPendingPayment(weddingId) {
@@ -1025,12 +1548,13 @@ async function loadPaymentSettings() {
 
 function showSaveModal(weddingId) {
     updateResultLinks(weddingId, getWeddingAccessToken());
+    // Danh sách link nằm tab 8 — chuyển sẵn (popup vẫn mở)
+    goToLinksStep({ scroll: false, instant: true });
     if (!saveModal) {
         return;
     }
 
     hidePaymentModal();
-    const alreadyOpen = saveModal.hidden === false;
     saveModal.hidden = false;
     document.body.classList.add("modal-open");
 
@@ -1041,7 +1565,6 @@ function showSaveModal(weddingId) {
             ? `Đã tạo ${guests.length} link thiệp theo khách mời`
             : "Vui lòng lưu lại link thiệp";
     }
-    void alreadyOpen;
 }
 
 function hideSaveModal() {
@@ -1054,16 +1577,40 @@ function hideSaveModal() {
 }
 
 async function copyText(value, button) {
+    const text = String(value || "").trim();
+    if (!text) {
+        setStatus("Chưa có nội dung để copy.", "error");
+        return;
+    }
     try {
-        await navigator.clipboard.writeText(value);
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+        }
         if (button) {
             const original = button.innerHTML;
-            button.innerHTML = '<i class="bi bi-check-lg"></i> Da copy';
-            window.setTimeout(() => { button.innerHTML = original; }, 1400);
+            const iconOnly = button.classList.contains("guest-links__icon-btn");
+            button.classList.add("is-copied");
+            button.innerHTML = iconOnly
+                ? '<i class="bi bi-check-lg"></i>'
+                : '<i class="bi bi-check-lg"></i> Đã copy';
+            window.setTimeout(() => {
+                button.innerHTML = original;
+                button.classList.remove("is-copied");
+            }, 1400);
         }
     } catch (error) {
         console.error(error);
-        setStatus("Khong copy duoc link, hay copy thu cong.", "error");
+        setStatus("Không copy được, hãy copy thủ công.", "error");
     }
 }
 
@@ -1115,10 +1662,30 @@ function renderBuilderGalleryFields() {
         const fieldName = `galleryPhoto${number}`;
         const row = document.createElement("div");
         row.className = "builder-gallery-row media-item";
+        row.dataset.mediaField = fieldName;
         row.innerHTML = `
-            <div class="gallery-index">Ảnh ${number}<input type="hidden" name="${fieldName}"></div>
-            <div class="upload-row"><input type="file" accept="image/*" data-upload-target="${fieldName}" tabindex="-1" aria-hidden="true"><button type="button" data-upload-button="${fieldName}"><i class="bi bi-image"></i> Chọn ảnh</button></div>
-            <div class="media-ready" data-media-ready="${fieldName}" hidden><img alt="Gallery ${number}" data-media-thumb="${fieldName}"><strong>Đã có ảnh</strong></div>
+            <input type="hidden" name="${fieldName}">
+            <input type="file" accept="image/*" data-upload-target="${fieldName}" tabindex="-1" aria-hidden="true">
+            <div class="media-chip">
+                <button type="button" class="media-chip__body" data-media-focus="${fieldName}" title="Xem gallery trên thiệp">
+                    <span class="media-chip__thumb" aria-hidden="true">
+                        <i class="bi bi-image media-chip__placeholder"></i>
+                        <img alt="" data-media-thumb="${fieldName}" hidden>
+                    </span>
+                    <span class="media-chip__text">
+                        <strong class="media-chip__title">Ảnh album ${number}</strong>
+                        <em class="media-chip__hint" data-media-hint="${fieldName}">Chưa có ảnh</em>
+                    </span>
+                </button>
+                <div class="media-chip__actions">
+                    <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="${fieldName}">
+                        <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
+                    </button>
+                    <button type="button" class="media-chip__btn media-chip__btn--delete" data-media-clear="${fieldName}" disabled aria-label="Xóa ảnh">
+                        <i class="bi bi-trash" aria-hidden="true"></i><span>Xóa</span>
+                    </button>
+                </div>
+            </div>
         `;
         builderGalleryFields.appendChild(row);
     });
@@ -1258,10 +1825,241 @@ function normalizeBuilderMediaUrl(value) {
     return isDisplayableMediaUrl(url) ? url : "";
 }
 
-function rememberRemoteMediaUrl(fieldName, url) {
+function rememberRemoteMediaUrl(fieldName, url, publicId = "") {
     if (fieldName && isRemoteMediaUrl(url)) {
         lastRemoteMediaUrls.set(fieldName, String(url).trim());
     }
+    const id = String(publicId || extractCloudinaryPublicId(url) || "").trim();
+    if (fieldName && id) {
+        lastRemotePublicIds.set(fieldName, id);
+    }
+}
+
+function getPreviousRemotePublicId(fieldName) {
+    if (lastRemotePublicIds.has(fieldName)) {
+        return lastRemotePublicIds.get(fieldName) || "";
+    }
+    return extractCloudinaryPublicId(getPreviousRemoteUrl(fieldName));
+}
+
+function normalizePublicIdCandidate(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    const fromUrl = extractCloudinaryPublicId(s);
+    if (fromUrl) return fromUrl;
+    // raw public_id
+    if (/^[\w./-]+$/.test(s) && !/^https?:/i.test(s)) {
+        return s.replace(/\.[a-z0-9]+$/i, "");
+    }
+    return "";
+}
+
+/** Đưa public_id vào hàng đợi xóa (đổi/xóa ảnh). */
+function queueCloudinaryDelete(urlOrPublicId, { force = false } = {}) {
+    const id = normalizePublicIdCandidate(urlOrPublicId);
+    if (!id) {
+        console.warn("[builder] queueCloudinaryDelete: cannot parse public_id from", String(urlOrPublicId || "").slice(0, 120));
+        return "";
+    }
+    // Không xóa nếu field khác vẫn trỏ cùng asset (trừ force)
+    if (!force && isCloudinaryPublicIdInUse(id)) {
+        console.info("[builder] skip queue delete (still in use):", id);
+        return "";
+    }
+    orphanedCloudinaryPublicIds.add(id);
+    console.info("[builder] queued Cloudinary delete:", id);
+    return id;
+}
+
+function isCloudinaryPublicIdInUse(publicId, extraUrls = []) {
+    const target = String(publicId || "").trim();
+    if (!target) return false;
+    const sameId = (a, b) => a && b && (a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`));
+    const check = url => sameId(extractCloudinaryPublicId(url), target);
+    for (const name of [...MEDIA_FIELD_NAMES, ...QR_PENDING_FIELDS]) {
+        // Chỉ URL live https trên form — blob/empty không giữ asset
+        const val = readField(name);
+        if (!isRemoteMediaUrl(val)) continue;
+        if (check(val)) return true;
+    }
+    for (const url of extraUrls) {
+        if (check(url)) return true;
+    }
+    return false;
+}
+
+/** Public ids đang gắn trên form (URL https Cloudinary + map field). */
+function collectLiveCloudinaryPublicIdsFromForm() {
+    const ids = new Set();
+    for (const name of [...MEDIA_FIELD_NAMES, ...QR_PENDING_FIELDS]) {
+        const val = readField(name);
+        if (!isRemoteMediaUrl(val)) continue;
+        const fromUrl = extractCloudinaryPublicId(val);
+        if (fromUrl) ids.add(fromUrl);
+        const mapped = lastRemotePublicIds.get(name);
+        if (mapped) ids.add(mapped);
+    }
+    return [...ids];
+}
+
+/**
+ * Xóa 1 public_id: ưu tiên delete_token (browser), fallback /api/cloudinary-cleanup.
+ */
+async function destroyOneCloudinaryAsset(publicId) {
+    const id = String(publicId || "").trim();
+    if (!id) return { ok: false, publicId: id, error: "empty" };
+
+    // Token có thể map đúng id hoặc id không có folder prefix
+    let token = cloudinaryDeleteTokens.get(id);
+    if (!token) {
+        for (const [key, value] of cloudinaryDeleteTokens.entries()) {
+            if (key === id || key.endsWith(`/${id}`) || id.endsWith(`/${key}`)) {
+                token = value;
+                break;
+            }
+        }
+    }
+    if (token) {
+        const byToken = await destroyCloudinaryByDeleteToken(CLOUDINARY_CLOUD_NAME, token);
+        if (byToken.ok) {
+            forgetDeleteToken(id);
+            // dọn alias keys
+            [...cloudinaryDeleteTokens.keys()].forEach(key => {
+                if (key === id || key.endsWith(`/${id}`) || id.endsWith(`/${key}`)) {
+                    forgetDeleteToken(key);
+                }
+            });
+            console.info("[builder] deleted via delete_token:", id);
+            return { ok: true, publicId: id, method: "delete_token" };
+        }
+        console.warn("[builder] delete_by_token failed:", id, byToken.error || byToken);
+    }
+
+    const api = await requestCloudinaryCleanup([id]);
+    if (api.ok && !api.skipped) {
+        forgetDeleteToken(id);
+        console.info("[builder] deleted via cleanup API:", id, api);
+        return { ok: true, publicId: id, method: "cleanup_api", deleted: api.deleted };
+    }
+    if (
+        api.skipped
+        || api.error === "local_static_server_no_api"
+        || api.error === "local_cleanup_proxy_offline"
+        || api.error === "local_no_cleanup_api"
+    ) {
+        return {
+            ok: false,
+            publicId: id,
+            error: api.error || "local_no_cleanup_api",
+            hint: api.hint
+                || "Local: chạy `npm run dev:cloudinary` (API_KEY+SECRET) hoặc bật Return delete token trên preset"
+        };
+    }
+    return {
+        ok: false,
+        publicId: id,
+        error: api.error || "cleanup_failed",
+        status: api.status
+    };
+}
+
+/** Xóa ngay 1 asset cũ (sau khi upload ảnh mới / clear). */
+async function deleteReplacedCloudinaryAsset(oldPublicIdOrUrl, newPublicId = "") {
+    const oldId = normalizePublicIdCandidate(oldPublicIdOrUrl);
+    const newId = normalizePublicIdCandidate(newPublicId);
+    if (!oldId || (newId && (oldId === newId))) return { ok: true, skipped: true };
+    // Tạm gỡ map field trỏ old để isCloudinaryPublicIdInUse không chặn
+    const touched = [];
+    for (const name of [...MEDIA_FIELD_NAMES, ...QR_PENDING_FIELDS]) {
+        if (lastRemotePublicIds.get(name) === oldId) {
+            touched.push([name, lastRemotePublicIds.get(name)]);
+            lastRemotePublicIds.delete(name);
+        }
+    }
+    queueCloudinaryDelete(oldId, { force: true });
+    const result = await destroyOneCloudinaryAsset(oldId);
+    if (!result.ok) {
+        // giữ trong orphan queue để flush lúc save
+        orphanedCloudinaryPublicIds.add(oldId);
+        // restore maps if delete failed and field still needs them? no — already replaced
+    } else {
+        orphanedCloudinaryPublicIds.delete(oldId);
+    }
+    return result;
+}
+
+/**
+ * Xóa ảnh Cloudinary đã đánh dấu orphan.
+ * 1) delete_token (local + production)
+ * 2) /api/cloudinary-cleanup (CF Pages + env secret)
+ */
+async function flushOrphanedCloudinaryDeletes(liveIds = null) {
+    const live = new Set(
+        (liveIds || collectLiveCloudinaryPublicIdsFromForm()).map(s => String(s).trim()).filter(Boolean)
+    );
+    // prev list trên wedding − live = rác
+    const prevListed = Array.isArray(loadedWeddingConfig.builder?.cloudinaryPublicIds)
+        ? loadedWeddingConfig.builder.cloudinaryPublicIds
+        : [];
+    prevListed.forEach(item => {
+        const id = String(item || "").trim().replace(/\.[a-z0-9]+$/i, "");
+        if (id && !live.has(id) && ![...live].some(l => l === id || l.endsWith(`/${id}`) || id.endsWith(`/${l}`))) {
+            orphanedCloudinaryPublicIds.add(id);
+        }
+    });
+
+    // lastRemotePublicIds của field đã trống / đã đổi
+    for (const name of [...MEDIA_FIELD_NAMES, ...QR_PENDING_FIELDS]) {
+        const val = readField(name);
+        const mapped = lastRemotePublicIds.get(name);
+        if (!mapped) continue;
+        if (!isRemoteMediaUrl(val)) {
+            // field đã xóa / blob pending
+            if (!isBlobUrl(val)) orphanedCloudinaryPublicIds.add(mapped);
+        } else {
+            const liveId = extractCloudinaryPublicId(val);
+            if (liveId && liveId !== mapped) orphanedCloudinaryPublicIds.add(mapped);
+        }
+    }
+
+    const toDelete = [...orphanedCloudinaryPublicIds].filter(id => {
+        if (!id) return false;
+        if (live.has(id)) return false;
+        if ([...live].some(l => l === id || l.endsWith(`/${id}`) || id.endsWith(`/${l}`))) return false;
+        return true;
+    });
+    orphanedCloudinaryPublicIds.clear();
+    if (!toDelete.length) {
+        console.info("[builder] Cloudinary cleanup: nothing to delete");
+        return { ok: true, deleted: 0, skipped: true };
+    }
+
+    console.info("[builder] Cloudinary cleanup trying:", toDelete);
+
+    sessionCloudinaryPublicIds = sessionCloudinaryPublicIds.filter(id => !toDelete.includes(id));
+
+    let deleted = 0;
+    const failed = [];
+    for (const id of toDelete) {
+        // eslint-disable-next-line no-await-in-loop
+        const result = await destroyOneCloudinaryAsset(id);
+        if (result.ok) deleted += 1;
+        else {
+            failed.push(id);
+            orphanedCloudinaryPublicIds.add(id);
+            console.warn("[builder] Cloudinary delete failed:", id, result.error || result);
+        }
+    }
+
+    if (failed.length) {
+        console.warn(
+            "[builder] Còn %s ảnh chưa xóa được. Local: cần delete_token từ preset; production: /api/cloudinary-cleanup + env Cloudinary.",
+            failed.length
+        );
+    } else {
+        console.info("[builder] Cloudinary cleanup ok:", deleted, "asset(s)");
+    }
+    return { ok: failed.length === 0, deleted, failed };
 }
 
 function getPreviousRemoteUrl(fieldName) {
@@ -1395,7 +2193,7 @@ async function verifyAllBuilderRemoteMedia() {
 
     if (broken.length) {
         setStatus(
-            `Có ${broken.length} ảnh không còn trên Cloudinary (đã xóa/hỏng). Chọn lại ảnh rồi Lưu Firebase.`,
+            `Có ${broken.length} ảnh không còn trên Cloudinary (đã xóa/hỏng). Chọn lại ảnh rồi Lưu thiệp.`,
             "error"
         );
     }
@@ -1427,23 +2225,43 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
     // Unique mỗi lần upload thật (ảnh mới / URL cũ đã xóa)
     const publicId = `${assetKey}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
-    const data = new FormData();
-    data.append("file", blob, filename);
-    data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    data.append("folder", folder);
-    data.append("public_id", publicId);
+    async function postUpload(withDeleteToken) {
+        const data = new FormData();
+        data.append("file", blob, filename);
+        data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        data.append("folder", folder);
+        data.append("public_id", publicId);
+        // Xin delete_token — xóa ảnh sau không cần API secret (preset phải cho phép)
+        if (withDeleteToken) data.append("return_delete_token", "1");
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-        method: "POST",
-        body: data
-    });
-
-    if (!response.ok) {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: "POST",
+            body: data
+        });
         const detail = await response.text();
-        throw new Error(formatCloudinaryError(detail));
+        let parsed = {};
+        try {
+            parsed = detail ? JSON.parse(detail) : {};
+        } catch (_) {
+            parsed = { raw: detail };
+        }
+        return { ok: response.ok, status: response.status, detail, parsed };
     }
 
-    const result = await response.json();
+    // 1) Ưu tiên có delete_token; 2) fallback nếu preset chặn param
+    let uploadResult = await postUpload(true);
+    if (!uploadResult.ok) {
+        const errMsg = String(uploadResult.parsed?.error?.message || uploadResult.detail || "");
+        if (/delete_token|not allowed|invalid/i.test(errMsg)) {
+            console.warn("[builder] return_delete_token bị preset chặn — upload lại không token");
+            uploadResult = await postUpload(false);
+        }
+    }
+    if (!uploadResult.ok) {
+        throw new Error(formatCloudinaryError(uploadResult.detail));
+    }
+
+    const result = uploadResult.parsed || {};
     const url = String(result.secure_url || "").trim();
     if (!url) throw new Error("Cloudinary không trả về URL ảnh.");
     recordUpload();
@@ -1452,9 +2270,23 @@ async function uploadBlobToCloudinary(blob, filename, options = {}) {
     if (storedPublicId && !sessionCloudinaryPublicIds.includes(storedPublicId)) {
         sessionCloudinaryPublicIds.push(storedPublicId);
     }
+    const deleteToken = String(result.delete_token || "").trim();
+    if (storedPublicId && deleteToken) {
+        persistDeleteToken(storedPublicId, deleteToken);
+    } else if (storedPublicId && !deleteToken) {
+        console.warn(
+            "[builder] Upload không có delete_token — bật Return delete token trên preset",
+            CLOUDINARY_UPLOAD_PRESET,
+            "hoặc deploy /api/cloudinary-cleanup"
+        );
+    }
     const version = result.version || Date.now();
     const versioned = url.includes("?") ? `${url}&v=${version}` : `${url}?v=${version}`;
-    return versioned;
+    return {
+        url: versioned,
+        publicId: storedPublicId,
+        deleteToken
+    };
 }
 
 function clearPendingMedia(fieldName) {
@@ -1480,34 +2312,75 @@ function setPendingMediaBlob(fieldName, blob, meta = {}) {
         blob,
         objectUrl,
         sourceHash: String(meta.sourceHash || ""),
-        previousRemoteUrl: String(meta.previousRemoteUrl || "")
+        previousRemoteUrl: String(meta.previousRemoteUrl || ""),
+        previousPublicId: String(meta.previousPublicId || "").trim()
     });
     return objectUrl;
 }
 
-function showMediaReady(fieldName, url) {
-    const ready = document.querySelector(`[data-media-ready="${fieldName}"]`);
+function formatMediaBytes(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    if (n < 1024) return `${Math.round(n)} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(n < 10 * 1024 ? 1 : 0)} KB`;
+    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getMediaItemEl(fieldName) {
+    return document.querySelector(`.media-item[data-media-field="${fieldName}"]`)
+        || document.querySelector(`[data-upload-button="${fieldName}"]`)?.closest(".media-item")
+        || null;
+}
+
+/**
+ * Chip file gọn: empty = placeholder + “Chạm để chọn”; có ảnh = thumb + meta + nút xóa.
+ * @param {string} fieldName
+ * @param {string} url
+ * @param {{ fileName?: string, fileSize?: number }} [meta]
+ */
+function showMediaReady(fieldName, url, meta = {}) {
+    const item = getMediaItemEl(fieldName);
     const thumb = document.querySelector(`[data-media-thumb="${fieldName}"]`);
-    if (!ready) return;
+    const hint = document.querySelector(`[data-media-hint="${fieldName}"]`);
+    const clearBtn = document.querySelector(`[data-media-clear="${fieldName}"]`);
+    const pickBtn = document.querySelector(`[data-upload-button="${fieldName}"]`);
+    if (!item && !thumb) return;
 
     const displayUrl = normalizeBuilderMediaUrl(url);
     if (displayUrl) {
+        item?.classList.add("is-filled");
         if (thumb) {
+            thumb.hidden = false;
             thumb.onload = null;
             thumb.onerror = () => {
-                // Ảnh hỏng / 404 → coi như chưa có (phía user thấy mất thumb)
                 if (isRemoteMediaUrl(displayUrl) && readField(fieldName) === displayUrl) {
                     invalidateBrokenRemoteField(fieldName);
                 } else {
                     showMediaReady(fieldName, "");
                 }
             };
-            // Remote: cache-bust để không hiện bản đã xóa còn cache
             thumb.src = isRemoteMediaUrl(displayUrl) ? cacheBustMediaUrl(displayUrl) : displayUrl;
         }
-        ready.hidden = false;
+        if (hint) {
+            const name = String(meta.fileName || item?.dataset.mediaFileName || "").trim();
+            const size = formatMediaBytes(meta.fileSize ?? item?.dataset.mediaFileSize);
+            if (name && size) hint.textContent = `${name} · ${size}`;
+            else if (name) hint.textContent = name;
+            else if (size) hint.textContent = size;
+            else hint.textContent = isRemoteMediaUrl(displayUrl) ? "Đã lưu trên cloud" : "Đã chọn — lưu khi bấm Lưu thiệp";
+        }
+        if (clearBtn) {
+            clearBtn.hidden = false;
+            clearBtn.disabled = false;
+        }
+        if (pickBtn) {
+            pickBtn.setAttribute("aria-label", "Upload / đổi ảnh");
+            const label = pickBtn.querySelector("span");
+            if (label && label.textContent.trim() === "Upload") {
+                /* keep Upload label */
+            }
+        }
 
-        // Verify nền: URL Cloudinary chết → xóa luôn field + fingerprint
         if (isRemoteMediaUrl(displayUrl)) {
             remoteMediaUrlAlive(displayUrl).then(alive => {
                 if (!alive && readField(fieldName) === displayUrl) {
@@ -1516,12 +2389,51 @@ function showMediaReady(fieldName, url) {
             });
         }
     } else {
+        item?.classList.remove("is-filled");
+        if (item) {
+            delete item.dataset.mediaFileName;
+            delete item.dataset.mediaFileSize;
+        }
         if (thumb) {
             thumb.onload = null;
             thumb.onerror = null;
             thumb.removeAttribute("src");
+            thumb.hidden = true;
         }
-        ready.hidden = true;
+        if (hint) hint.textContent = "Chưa có ảnh · bấm để xem vị trí trên thiệp";
+        if (clearBtn) {
+            clearBtn.hidden = false;
+            clearBtn.disabled = true;
+        }
+        if (pickBtn) pickBtn.setAttribute("aria-label", "Upload ảnh");
+    }
+}
+
+function clearMediaField(fieldName) {
+    if (!fieldName) return;
+    // Lấy public_id / URL trước khi xóa field — xóa Cloudinary ngay (best-effort)
+    const current = readField(fieldName);
+    const previous = getPreviousRemoteUrl(fieldName) || lastRemoteMediaUrls.get(fieldName) || "";
+    const oldPublicId = lastRemotePublicIds.get(fieldName)
+        || extractCloudinaryPublicId(isRemoteMediaUrl(current) ? current : previous);
+    clearPendingMedia(fieldName);
+    clearPendingQr(fieldName);
+    lastRemoteMediaUrls.delete(fieldName);
+    lastRemotePublicIds.delete(fieldName);
+    clearStoredFingerprint(fieldName);
+    setField(fieldName, "");
+    const input = document.querySelector(`[data-upload-target="${fieldName}"], [data-qr-input="${fieldName}"]`);
+    if (input) input.value = "";
+    if (isQrMediaField(fieldName)) showQrReady(fieldName, "");
+    else showMediaReady(fieldName, "");
+    setStatus("");
+    refreshPreview(false);
+    if (oldPublicId) {
+        deleteReplacedCloudinaryAsset(oldPublicId).then(result => {
+            if (!result?.ok && !result?.skipped) {
+                console.warn("[builder] clearMediaField delete failed:", oldPublicId, result);
+            }
+        });
     }
 }
 
@@ -1534,7 +2446,8 @@ let mediaStageInFlight = 0;
 
 async function stageImageForField(fieldName, file, options = {}) {
     const button = document.querySelector(`[data-upload-button="${fieldName}"]`);
-    const oldLabel = button?.innerHTML;
+    const item = getMediaItemEl(fieldName);
+    const hint = document.querySelector(`[data-media-hint="${fieldName}"]`);
     mediaStageInFlight += 1;
 
     try {
@@ -1546,11 +2459,22 @@ async function stageImageForField(fieldName, file, options = {}) {
             setStatus("Chọn file ảnh trước.", "error");
             return;
         }
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý…';
+        if (button) button.disabled = true;
+        if (item) item.classList.add("is-processing");
+        if (hint) hint.textContent = "Đang xử lý…";
+
+        const fileMeta = {
+            fileName: String(file.name || "image").trim() || "image",
+            fileSize: Number(file.size) || 0
+        };
+        if (item) {
+            item.dataset.mediaFileName = fileMeta.fileName;
+            item.dataset.mediaFileSize = String(fileMeta.fileSize || "");
         }
+
         const previousRemoteUrl = getPreviousRemoteUrl(fieldName);
+        const previousPublicId = getPreviousRemotePublicId(fieldName)
+            || extractCloudinaryPublicId(previousRemoteUrl);
         const sourceHash = await hashSourceFile(file);
         const knownFp = getStoredFingerprint(fieldName);
 
@@ -1564,8 +2488,8 @@ async function stageImageForField(fieldName, file, options = {}) {
         ) {
             clearPendingMedia(fieldName);
             setField(fieldName, previousRemoteUrl);
-            showMediaReady(fieldName, previousRemoteUrl);
-            rememberRemoteMediaUrl(fieldName, previousRemoteUrl);
+            showMediaReady(fieldName, previousRemoteUrl, fileMeta);
+            rememberRemoteMediaUrl(fieldName, previousRemoteUrl, previousPublicId);
             setStatus("");
             refreshPreview(false);
             return;
@@ -1574,20 +2498,28 @@ async function stageImageForField(fieldName, file, options = {}) {
         const blob = await compressImageFile(file, options);
         if (!blob) throw new Error("Không nén được ảnh.");
         // Ảnh mới (hoặc URL cũ chết) → pending, Lưu Firebase sẽ upload public_id unique
-        const objectUrl = setPendingMediaBlob(fieldName, blob, { sourceHash, previousRemoteUrl });
+        const objectUrl = setPendingMediaBlob(fieldName, blob, {
+            sourceHash,
+            previousRemoteUrl,
+            previousPublicId
+        });
         setField(fieldName, objectUrl);
-        showMediaReady(fieldName, objectUrl);
+        showMediaReady(fieldName, objectUrl, {
+            ...fileMeta,
+            fileSize: Number(blob.size) || fileMeta.fileSize
+        });
         setStatus("");
         refreshPreview(false);
     } catch (error) {
         console.error(error);
         setStatus(error.message || "Xử lý ảnh thất bại.", "error");
+        // Khôi phục hint nếu fail
+        const current = readField(fieldName);
+        showMediaReady(fieldName, current);
     } finally {
         mediaStageInFlight = Math.max(0, mediaStageInFlight - 1);
-        if (button) {
-            button.disabled = false;
-            button.innerHTML = oldLabel || '<i class="bi bi-image"></i> Chọn ảnh';
-        }
+        if (button) button.disabled = false;
+        if (item) item.classList.remove("is-processing");
     }
 }
 
@@ -1607,7 +2539,9 @@ async function recoverPendingMediaFromBlobFields() {
                 blob,
                 objectUrl: value,
                 sourceHash: "",
-                previousRemoteUrl: lastRemoteMediaUrls.get(fieldName) || ""
+                previousRemoteUrl: lastRemoteMediaUrls.get(fieldName) || "",
+                previousPublicId: lastRemotePublicIds.get(fieldName)
+                    || extractCloudinaryPublicId(lastRemoteMediaUrls.get(fieldName) || "")
             });
         } catch (error) {
             console.warn("[builder] recover pending failed:", fieldName, error);
@@ -1649,9 +2583,17 @@ async function flushPendingMediaUploads() {
         }
 
         setStatus(`Đang upload ảnh ${fieldName}…`);
-        const url = await uploadBlobToCloudinary(pending.blob, `${fieldName}.jpg`, {
+        const oldPublicId = pending.previousPublicId
+            || getPreviousRemotePublicId(fieldName)
+            || extractCloudinaryPublicId(pending.previousRemoteUrl)
+            || extractCloudinaryPublicId(lastRemoteMediaUrls.get(fieldName) || "");
+        // Gỡ map public_id cũ TRƯỚC khi ghi URL mới (tránh “still in use”)
+        if (oldPublicId) lastRemotePublicIds.delete(fieldName);
+
+        const uploaded = await uploadBlobToCloudinary(pending.blob, `${fieldName}.jpg`, {
             assetKey: fieldName
         });
+        const url = uploaded?.url || "";
         if (!url || !isRemoteMediaUrl(url)) {
             throw new Error(`Upload ${fieldName} thất bại — không có URL Cloudinary.`);
         }
@@ -1662,7 +2604,17 @@ async function flushPendingMediaUploads() {
         }
         clearPendingMedia(fieldName);
         showMediaReady(fieldName, url);
-        rememberRemoteMediaUrl(fieldName, url);
+        rememberRemoteMediaUrl(fieldName, url, uploaded.publicId);
+
+        // Xóa ngay ảnh cũ trên Cloudinary (delete_token hoặc cleanup API)
+        if (oldPublicId && oldPublicId !== uploaded.publicId) {
+            setStatus(`Đang xóa ảnh cũ ${fieldName} trên Cloudinary…`);
+            // eslint-disable-next-line no-await-in-loop
+            const del = await deleteReplacedCloudinaryAsset(oldPublicId, uploaded.publicId);
+            if (!del.ok && !del.skipped) {
+                console.warn("[builder] immediate delete failed, will retry on flush:", oldPublicId, del);
+            }
+        }
     }
 }
 
@@ -1671,7 +2623,7 @@ function assertNoBlobMediaUrls() {
         name => isMediaFieldActive(name) && isBlobUrl(readField(name))
     );
     if (bad.length) {
-        throw new Error(`Ảnh vẫn còn bản tạm: ${bad.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
+        throw new Error(`Ảnh vẫn còn bản tạm: ${bad.join(", ")}. Thử chọn lại rồi Lưu thiệp.`);
     }
 }
 
@@ -1731,50 +2683,19 @@ function setPendingQrBlob(fieldName, blob, meta = {}) {
         blob,
         objectUrl,
         sourceHash: String(meta.sourceHash || ""),
-        previousRemoteUrl: String(meta.previousRemoteUrl || "")
+        previousRemoteUrl: String(meta.previousRemoteUrl || ""),
+        previousPublicId: String(meta.previousPublicId || "").trim()
     });
     return objectUrl;
 }
 
 function showQrReady(fieldName, url) {
+    // Đồng bộ UI chip (thumb + nút Xóa) giống media
+    showMediaReady(fieldName, url, {
+        fileName: url ? `Đã cắt ${QR_FIELD_LABELS[fieldName] || "QR"}` : ""
+    });
     const ready = document.querySelector(`[data-qr-ready="${fieldName}"]`);
-    const thumb = document.querySelector(`[data-qr-thumb="${fieldName}"]`);
-    if (!ready) return;
-
-    const displayUrl = normalizeBuilderMediaUrl(url);
-    if (displayUrl) {
-        if (thumb) {
-            thumb.onload = null;
-            thumb.onerror = () => {
-                if (isRemoteMediaUrl(displayUrl) && readField(fieldName) === displayUrl) {
-                    invalidateBrokenRemoteField(fieldName);
-                } else {
-                    showQrReady(fieldName, "");
-                }
-            };
-            thumb.src = isRemoteMediaUrl(displayUrl) ? cacheBustMediaUrl(displayUrl) : displayUrl;
-        }
-        ready.hidden = false;
-        const title = ready.querySelector("strong");
-        if (title) {
-            title.textContent = `Đã cắt ${QR_FIELD_LABELS[fieldName] || "QR"}`;
-        }
-
-        if (isRemoteMediaUrl(displayUrl)) {
-            remoteMediaUrlAlive(displayUrl).then(alive => {
-                if (!alive && readField(fieldName) === displayUrl) {
-                    invalidateBrokenRemoteField(fieldName);
-                }
-            });
-        }
-    } else {
-        if (thumb) {
-            thumb.onload = null;
-            thumb.onerror = null;
-            thumb.removeAttribute("src");
-        }
-        ready.hidden = true;
-    }
+    if (ready) ready.hidden = true; // legacy marker — UI dùng chip
 }
 
 /**
@@ -1800,9 +2721,16 @@ async function flushPendingQrUploads() {
         }
 
         setStatus(`Đang upload ${QR_FIELD_LABELS[fieldName] || "QR"} lên Cloudinary…`);
-        const url = await uploadBlobToCloudinary(pending.blob, `${fieldName}.png`, {
+        const oldPublicId = pending.previousPublicId
+            || getPreviousRemotePublicId(fieldName)
+            || extractCloudinaryPublicId(pending.previousRemoteUrl)
+            || extractCloudinaryPublicId(lastRemoteMediaUrls.get(fieldName) || "");
+        if (oldPublicId) lastRemotePublicIds.delete(fieldName);
+
+        const uploaded = await uploadBlobToCloudinary(pending.blob, `${fieldName}.png`, {
             assetKey: fieldName
         });
+        const url = uploaded?.url || "";
         if (!url || !isRemoteMediaUrl(url)) {
             throw new Error(`Upload ${QR_FIELD_LABELS[fieldName] || fieldName} thất bại.`);
         }
@@ -1810,7 +2738,16 @@ async function flushPendingQrUploads() {
         clearPendingQr(fieldName);
         setField(fieldName, url);
         showQrReady(fieldName, url);
-        rememberRemoteMediaUrl(fieldName, url);
+        rememberRemoteMediaUrl(fieldName, url, uploaded.publicId);
+
+        if (oldPublicId && oldPublicId !== uploaded.publicId) {
+            setStatus(`Đang xóa QR cũ trên Cloudinary…`);
+            // eslint-disable-next-line no-await-in-loop
+            const del = await deleteReplacedCloudinaryAsset(oldPublicId, uploaded.publicId);
+            if (!del.ok && !del.skipped) {
+                console.warn("[builder] QR immediate delete failed:", oldPublicId, del);
+            }
+        }
     }
 }
 
@@ -1875,6 +2812,8 @@ async function saveQrFromModal() {
         const cropSig = `${qrCropZoom?.value || 1}|${qrCropX?.value || 0}|${qrCropY?.value || 0}`;
         const sourceHash = `${sourceFileHash}#${cropSig}`;
         const previousRemoteUrl = getPreviousRemoteUrl(fieldName);
+        const previousPublicId = getPreviousRemotePublicId(fieldName)
+            || extractCloudinaryPublicId(previousRemoteUrl);
         const knownFp = getStoredFingerprint(fieldName);
 
         // Cùng file + cùng crop + URL còn → giữ, không pending upload
@@ -1888,7 +2827,7 @@ async function saveQrFromModal() {
             clearPendingQr(fieldName);
             setField(fieldName, previousRemoteUrl);
             showQrReady(fieldName, previousRemoteUrl);
-            rememberRemoteMediaUrl(fieldName, previousRemoteUrl);
+            rememberRemoteMediaUrl(fieldName, previousRemoteUrl, previousPublicId);
             closeQrCropModal();
             setStatus("");
             refreshPreview(false);
@@ -1896,7 +2835,11 @@ async function saveQrFromModal() {
         }
 
         // QR mới / crop khác — pending, Lưu Firebase mới upload
-        const objectUrl = setPendingQrBlob(fieldName, blob, { sourceHash, previousRemoteUrl });
+        const objectUrl = setPendingQrBlob(fieldName, blob, {
+            sourceHash,
+            previousRemoteUrl,
+            previousPublicId
+        });
         setField(fieldName, objectUrl);
         showQrReady(fieldName, objectUrl);
         closeQrCropModal();
@@ -1931,13 +2874,19 @@ function buildCoordinateMapUrl(point) {
 }
 
 function getDefaultMapCenter(role) {
-    const urlPoint = parseLatLngFromMapUrl(readField(role === "bride" ? "brideMapUrl" : "groomMapUrl"));
+    const urlPoint = parseLatLngFromMapUrl(readField(getMapUrlFieldForRole(role)));
     if (urlPoint) return urlPoint;
     return { lat: 20.8449, lng: 106.6881 };
 }
 
 function getRoleAddressSeed(role) {
+    if (role === "joint") return readField("jointAddress");
     return readField(role === "bride" ? "brideAddress" : "groomAddress");
+}
+
+function getMapUrlFieldForRole(role) {
+    if (role === "joint") return "jointMapUrl";
+    return role === "bride" ? "brideMapUrl" : "groomMapUrl";
 }
 
 function setMapPickerHint(message) {
@@ -2134,9 +3083,11 @@ function openMapPicker(role) {
     document.body.classList.add("modal-open");
 
     if (mapPickerTitle) {
-        mapPickerTitle.textContent = role === "bride"
-            ? "Chọn điểm nhà gái trên bản đồ"
-            : "Chọn điểm nhà trai trên bản đồ";
+        mapPickerTitle.textContent = role === "joint"
+            ? "Chọn địa điểm tổ chức chung trên bản đồ"
+            : role === "bride"
+                ? "Chọn điểm nhà gái trên bản đồ"
+                : "Chọn điểm nhà trai trên bản đồ";
     }
 
     // Prefill ô tìm từ địa chỉ đã nhập (nếu có)
@@ -2174,7 +3125,7 @@ function saveSelectedMapPoint() {
         return;
     }
 
-    const fieldName = activeMapPickerRole === "bride" ? "brideMapUrl" : "groomMapUrl";
+    const fieldName = getMapUrlFieldForRole(activeMapPickerRole);
     setField(fieldName, buildCoordinateMapUrl(selectedMapPoint));
     closeMapPicker();
     setStatus("Đã lưu link Google Maps theo tọa độ đã chọn.", "success");
@@ -2320,41 +3271,46 @@ function createCustomerConfig() {
             thanks: readText(data, "subtitleThanks")
         },
         ceremony: {
+            mode: getSelectedCeremonyMode(),
             image: isMediaFieldActive("timelineImage") ? readField("timelineImage") : "",
-            bride: {
-                title: readText(data, "brideCeremonyTitle")
-                    || loadedWeddingConfig.ceremony?.bride?.title
-                    || fallbackWedding.ceremony?.bride?.title
-                    || "LỄ VU QUY",
-                time: readText(data, "brideCeremonyTime"),
-                address: readText(data, "brideAddress"),
-                location: resolveHouseLocationInput(data, "bride", "brideAddress", "brideLocation"),
-                mapUrl: readText(data, "brideMapUrl"),
-                meal: {
-                    title: readText(data, "brideMealTitle")
-                        || loadedWeddingConfig.ceremony?.bride?.meal?.title
-                        || fallbackWedding.ceremony?.bride?.meal?.title
-                        || "BỮA CƠM THÂN MẬT",
-                    time: formatMealTime(data.get("brideMealDate"), data.get("brideMealTime"))
-                }
-            },
-            groom: {
-                title: readText(data, "groomCeremonyTitle")
-                    || loadedWeddingConfig.ceremony?.groom?.title
-                    || fallbackWedding.ceremony?.groom?.title
-                    || "LỄ THÀNH HÔN",
-                time: readText(data, "groomCeremonyTime"),
-                address: readText(data, "groomAddress"),
-                location: resolveHouseLocationInput(data, "groom", "groomAddress", "groomLocation"),
-                mapUrl: readText(data, "groomMapUrl"),
-                meal: {
-                    title: readText(data, "groomMealTitle")
-                        || loadedWeddingConfig.ceremony?.groom?.meal?.title
-                        || fallbackWedding.ceremony?.groom?.meal?.title
-                        || "BỮA CƠM THÂN MẬT",
-                    time: formatMealTime(data.get("groomMealDate"), data.get("groomMealTime"))
-                }
-            }
+            joint: (() => {
+                const mainDate = readText(data, "date") || fallbackWedding.date || "";
+                const events = getJointEventsForSave();
+                const legacy = buildJointLegacyMirror(events, mainDate);
+                return {
+                    events,
+                    ...legacy,
+                    address: readText(data, "jointAddress"),
+                    location: String(readText(data, "jointAddress") || "")
+                        ? (extractProvinceFromAddress(readText(data, "jointAddress")) || "")
+                        : (loadedWeddingConfig.ceremony?.joint?.location || ""),
+                    mapUrl: readText(data, "jointMapUrl")
+                };
+            })(),
+            bride: (() => {
+                const mainDate = readText(data, "date") || fallbackWedding.date || "";
+                const events = getCeremonyEventsForSave("bride");
+                const legacy = buildCeremonyLegacyMirror(events, "bride", mainDate);
+                return {
+                    events,
+                    ...legacy,
+                    address: readText(data, "brideAddress"),
+                    location: resolveHouseLocationInput(data, "bride", "brideAddress", "brideLocation"),
+                    mapUrl: readText(data, "brideMapUrl")
+                };
+            })(),
+            groom: (() => {
+                const mainDate = readText(data, "date") || fallbackWedding.date || "";
+                const events = getCeremonyEventsForSave("groom");
+                const legacy = buildCeremonyLegacyMirror(events, "groom", mainDate);
+                return {
+                    events,
+                    ...legacy,
+                    address: readText(data, "groomAddress"),
+                    location: resolveHouseLocationInput(data, "groom", "groomAddress", "groomLocation"),
+                    mapUrl: readText(data, "groomMapUrl")
+                };
+            })()
         },
         gallery: {
             photos: getGalleryPhotosFromForm()
@@ -2399,6 +3355,7 @@ function removeEmptyMediaFields(config) {
     removeIfBlank(next.ceremony, "image");
     removeIfBlank(next.ceremony?.bride, "mapUrl");
     removeIfBlank(next.ceremony?.groom, "mapUrl");
+    removeIfBlank(next.ceremony?.joint, "mapUrl");
     ["qr", "bank", "accountName", "accountNumber"].forEach(key => {
         removeIfBlank(next.gift?.groom, key);
         removeIfBlank(next.gift?.bride, key);
@@ -2591,7 +3548,29 @@ function fillBuilderForm(config = {}) {
     );
     setControlValue("groomMapUrl", config.ceremony?.groom?.mapUrl);
     setControlValue("brideMapUrl", config.ceremony?.bride?.mapUrl);
+    setControlValue("jointMapUrl", config.ceremony?.joint?.mapUrl);
     setControlValue("date", config.date);
+
+    const ceremonyMode = config.ceremony?.mode === "joint" ? "joint" : "separate";
+    setCeremonyMode(ceremonyMode);
+
+    const mainWeddingDate = config.date || getMainWeddingDate();
+    ceremonyEventsState.joint = jointEventsFromLegacyJoint(
+        config.ceremony?.joint || {},
+        mainWeddingDate
+    );
+    ceremonyEventsState.bride = ceremonyEventsFromLegacyHouse(
+        config.ceremony?.bride || {},
+        "bride",
+        mainWeddingDate
+    );
+    ceremonyEventsState.groom = ceremonyEventsFromLegacyHouse(
+        config.ceremony?.groom || {},
+        "groom",
+        mainWeddingDate
+    );
+    renderAllCeremonyEventsLists();
+    setControlValue("jointAddress", config.ceremony?.joint?.address);
 
     setControlValue("primaryColor", theme.primaryColor || BRAND_PRIMARY);
     populateMusicOptions(config);
@@ -2600,6 +3579,7 @@ function fillBuilderForm(config = {}) {
     clearPendingQr("giftGroomQr");
     clearPendingQr("giftBrideQr");
     lastRemoteMediaUrls.clear();
+    lastRemotePublicIds.clear();
     mediaFingerprints = {
         ...(config.builder?.mediaFingerprints && typeof config.builder.mediaFingerprints === "object"
             ? config.builder.mediaFingerprints
@@ -2621,35 +3601,35 @@ function fillBuilderForm(config = {}) {
 
     setControlValue("coverPosterImage", coverUrl);
     showMediaReady("coverPosterImage", coverUrl);
-    rememberRemoteMediaUrl("coverPosterImage", coverUrl);
+    rememberRemoteMediaUrl("coverPosterImage", coverUrl, extractCloudinaryPublicId(coverUrl));
     setControlValue("previewImage", previewUrl);
     showMediaReady("previewImage", previewUrl);
-    rememberRemoteMediaUrl("previewImage", previewUrl);
+    rememberRemoteMediaUrl("previewImage", previewUrl, extractCloudinaryPublicId(previewUrl));
     setControlValue("aboutImage", aboutUrl);
     showMediaReady("aboutImage", aboutUrl);
-    rememberRemoteMediaUrl("aboutImage", aboutUrl);
+    rememberRemoteMediaUrl("aboutImage", aboutUrl, extractCloudinaryPublicId(aboutUrl));
     setControlValue("timelineImage", timelineUrl);
     showMediaReady("timelineImage", timelineUrl);
-    rememberRemoteMediaUrl("timelineImage", timelineUrl);
+    rememberRemoteMediaUrl("timelineImage", timelineUrl, extractCloudinaryPublicId(timelineUrl));
     setControlValue("countdownImage", countdownUrl);
     showMediaReady("countdownImage", countdownUrl);
-    rememberRemoteMediaUrl("countdownImage", countdownUrl);
+    rememberRemoteMediaUrl("countdownImage", countdownUrl, extractCloudinaryPublicId(countdownUrl));
     setControlValue("groomAvatar", groomAvatarUrl);
     showMediaReady("groomAvatar", groomAvatarUrl);
-    rememberRemoteMediaUrl("groomAvatar", groomAvatarUrl);
+    rememberRemoteMediaUrl("groomAvatar", groomAvatarUrl, extractCloudinaryPublicId(groomAvatarUrl));
     setControlValue("brideAvatar", brideAvatarUrl);
     showMediaReady("brideAvatar", brideAvatarUrl);
-    rememberRemoteMediaUrl("brideAvatar", brideAvatarUrl);
+    rememberRemoteMediaUrl("brideAvatar", brideAvatarUrl, extractCloudinaryPublicId(brideAvatarUrl));
 
     setControlValue("giftGroomQr", giftGroomQrUrl);
     showQrReady("giftGroomQr", giftGroomQrUrl);
-    rememberRemoteMediaUrl("giftGroomQr", giftGroomQrUrl);
+    rememberRemoteMediaUrl("giftGroomQr", giftGroomQrUrl, extractCloudinaryPublicId(giftGroomQrUrl));
     setControlValue("giftGroomBank", config.gift?.groom?.bank);
     setControlValue("giftGroomAccountName", config.gift?.groom?.accountName);
     setControlValue("giftGroomAccountNumber", config.gift?.groom?.accountNumber);
     setControlValue("giftBrideQr", giftBrideQrUrl);
     showQrReady("giftBrideQr", giftBrideQrUrl);
-    rememberRemoteMediaUrl("giftBrideQr", giftBrideQrUrl);
+    rememberRemoteMediaUrl("giftBrideQr", giftBrideQrUrl, extractCloudinaryPublicId(giftBrideQrUrl));
     setControlValue("giftBrideBank", config.gift?.bride?.bank);
     setControlValue("giftBrideAccountName", config.gift?.bride?.accountName);
     setControlValue("giftBrideAccountNumber", config.gift?.bride?.accountNumber);
@@ -2666,8 +3646,11 @@ function fillBuilderForm(config = {}) {
         const src = normalizeBuilderMediaUrl(photo?.src || "");
         setControlValue(fieldName, src);
         showMediaReady(fieldName, src);
-        rememberRemoteMediaUrl(fieldName, src);
+        rememberRemoteMediaUrl(fieldName, src, extractCloudinaryPublicId(src));
     });
+    // Fill timeline skins theo mode trước khi gán value
+    populateBuilderBlockSelects(form, { ceremonyMode });
+    enhanceAllCustomSelects(form);
     getBuildableSections().forEach(section => {
         setControlValue(section.builderField, blocks[section.id] || section.defaultSkin);
     });
@@ -2694,24 +3677,75 @@ function fillBuilderForm(config = {}) {
     setControlValue("subtitleCountdown", subtitles.countdown);
     setControlValue("subtitleThanks", Array.isArray(subtitles.thanks) ? subtitles.thanks.join("\n") : subtitles.thanks);
 
-    const brideMeal = splitMealTime(config.ceremony?.bride?.meal?.time);
-    const groomMeal = splitMealTime(config.ceremony?.groom?.meal?.time);
-    setControlValue("brideCeremonyTitle", config.ceremony?.bride?.title);
-    setControlValue("groomCeremonyTitle", config.ceremony?.groom?.title);
-    setControlValue("brideCeremonyTime", config.ceremony?.bride?.time);
-    setControlValue("groomCeremonyTime", config.ceremony?.groom?.time);
-    setControlValue("brideMealTitle", config.ceremony?.bride?.meal?.title);
-    setControlValue("groomMealTitle", config.ceremony?.groom?.meal?.title);
-    setControlValue("brideMealDate", brideMeal.date);
-    setControlValue("brideMealTime", brideMeal.time);
-    setControlValue("groomMealDate", groomMeal.date);
-    setControlValue("groomMealTime", groomMeal.time);
-
-    // Sau khi gán block concept → ẩn ô ảnh không dùng
-    syncMediaUploadVisibility();
+    // Mode lịch + ẩn/hiện form + ô ảnh theo concept
+    // (events bride/groom/joint đã render ở trên)
+    syncCeremonyModeUI();
 }
 
+/**
+ * Load doc Firebase → config builder.
+ * Thiệp cũ không có ceremony.mode / events[] / joint → giữ title/time/meal,
+ * không dính events mẫu từ fallbackWedding (tránh lịch sai khi mở sửa).
+ */
 function buildLoadedConfigFromData(weddingId, data = {}) {
+    const rawCeremony = data.ceremony || {};
+    const stripFallbackEvents = (role, fallbackHouse = {}, rawHouse = {}) => {
+        const meal = {
+            ...(fallbackHouse.meal || {}),
+            ...(rawHouse.meal || {})
+        };
+        const merged = {
+            ...(fallbackHouse || {}),
+            ...(rawHouse || {}),
+            meal
+        };
+        // Doc không có events[] → bỏ mảng mẫu, migrate lúc fill form từ title/meal
+        if (!Array.isArray(rawHouse?.events) || !rawHouse.events.length) {
+            delete merged.events;
+        }
+        return merged;
+    };
+
+    const hasRawJoint = rawCeremony.joint && typeof rawCeremony.joint === "object";
+    const ceremony = {
+        ...(fallbackWedding.ceremony || {}),
+        ...rawCeremony,
+        // Thiệp cũ không có mode → separate (2 nhà)
+        mode: rawCeremony.mode === "joint" ? "joint" : "separate",
+        bride: stripFallbackEvents(
+            "bride",
+            fallbackWedding.ceremony?.bride,
+            rawCeremony.bride || {}
+        ),
+        groom: stripFallbackEvents(
+            "groom",
+            fallbackWedding.ceremony?.groom,
+            rawCeremony.groom || {}
+        ),
+        joint: hasRawJoint
+            ? stripFallbackEvents("joint", fallbackWedding.ceremony?.joint, rawCeremony.joint)
+            : {
+                // Không ghi events mẫu vào state load — form joint dùng default khi user bật mode joint
+                address: "",
+                location: "",
+                mapUrl: "",
+                title: "",
+                time: "",
+                meal: { title: "", time: "" }
+            }
+    };
+
+    // Thiệp cũ không field image → đừng dính path img/ mẫu
+    if (!Object.prototype.hasOwnProperty.call(rawCeremony, "image")
+        || !String(rawCeremony.image || "").trim()) {
+        if (String(ceremony.image || "").startsWith("img/")) {
+            delete ceremony.image;
+        }
+        if (!String(rawCeremony.image || "").trim()) {
+            delete ceremony.image;
+        }
+    }
+
     return {
         ...clone(fallbackWedding),
         ...data,
@@ -2750,26 +3784,7 @@ function buildLoadedConfigFromData(weddingId, data = {}) {
             ...(fallbackWedding.sectionSubtitles || {}),
             ...(data.sectionSubtitles || {})
         },
-        ceremony: {
-            ...(fallbackWedding.ceremony || {}),
-            ...(data.ceremony || {}),
-            bride: {
-                ...(fallbackWedding.ceremony?.bride || {}),
-                ...(data.ceremony?.bride || {}),
-                meal: {
-                    ...(fallbackWedding.ceremony?.bride?.meal || {}),
-                    ...(data.ceremony?.bride?.meal || {})
-                }
-            },
-            groom: {
-                ...(fallbackWedding.ceremony?.groom || {}),
-                ...(data.ceremony?.groom || {}),
-                meal: {
-                    ...(fallbackWedding.ceremony?.groom?.meal || {}),
-                    ...(data.ceremony?.groom?.meal || {})
-                }
-            }
-        },
+        ceremony,
         builder: {
             ...(fallbackWedding.builder || {}),
             ...(data.builder || {})
@@ -2990,17 +4005,31 @@ const TITLE_SUBTITLE_PREVIEW_MAP = {
     subtitleCountdown: ".countdown",
     titleThanks: ".thanks",
     subtitleThanks: ".thanks",
-    // Lịch tổ chức → timeline
-    brideCeremonyTitle: ".timeline",
-    groomCeremonyTitle: ".timeline",
-    brideMealTitle: ".timeline",
-    groomMealTitle: ".timeline",
-    brideCeremonyTime: ".timeline",
-    groomCeremonyTime: ".timeline",
-    brideMealDate: ".timeline",
-    brideMealTime: ".timeline",
-    groomMealDate: ".timeline",
-    groomMealTime: ".timeline"
+    // Lịch tổ chức — ngày chính (poster / countdown / save-date)
+    date: ".poster",
+    // Lịch tổ chức riêng / chung → timeline
+    brideAddress: ".timeline",
+    groomAddress: ".timeline",
+    jointAddress: ".timeline",
+    // Poster (cô dâu / chú rể)
+    brideLocation: ".poster",
+    groomLocation: ".poster"
+};
+
+/** Ô upload ảnh → section preview (click body để nhảy đúng chỗ trên thiệp). */
+const MEDIA_PREVIEW_MAP = {
+    coverPosterImage: ".poster",
+    previewImage: ".poster",
+    aboutImage: ".about",
+    timelineImage: ".timeline",
+    countdownImage: ".countdown",
+    groomAvatar: ".about",
+    brideAvatar: ".about",
+    giftGroomQr: ".gift",
+    giftBrideQr: ".gift",
+    ...Object.fromEntries(
+        Array.from({ length: GALLERY_SIZE }, (_, i) => [`galleryPhoto${i + 1}`, ".gallery"])
+    )
 };
 
 function isMobileBuilderLayout() {
@@ -3013,19 +4042,21 @@ function isSectionJumpField(fieldName) {
     if (name.startsWith("block")) return true;
     if (name.startsWith("title") || name.startsWith("subtitle")) return true;
     if (Object.prototype.hasOwnProperty.call(TITLE_SUBTITLE_PREVIEW_MAP, name)) return true;
+    if (Object.prototype.hasOwnProperty.call(MEDIA_PREVIEW_MAP, name)) return true;
     return false;
 }
 
 function readPreviewState() {
     try {
-        return JSON.parse(localStorage.getItem(PREVIEW_STATE_KEY) || "null") || { ...COVER_PREVIEW_STATE };
+        // sessionStorage: mỗi tab builder độc lập (không đụng preview tab khác)
+        return JSON.parse(sessionStorage.getItem(PREVIEW_STATE_KEY) || "null") || { ...COVER_PREVIEW_STATE };
     } catch (error) {
         return { ...COVER_PREVIEW_STATE };
     }
 }
 
 function savePreviewState(state) {
-    localStorage.setItem(PREVIEW_STATE_KEY, JSON.stringify({
+    sessionStorage.setItem(PREVIEW_STATE_KEY, JSON.stringify({
         opened: Boolean(state?.opened),
         scrollY: Math.max(0, Math.round(Number(state?.scrollY || 0))),
         target: String(state?.target || "")
@@ -3044,8 +4075,28 @@ function getPreviewTargetFromField(fieldName) {
     if (TITLE_SUBTITLE_PREVIEW_MAP[name]) {
         return TITLE_SUBTITLE_PREVIEW_MAP[name];
     }
+    if (MEDIA_PREVIEW_MAP[name]) {
+        return MEDIA_PREVIEW_MAP[name];
+    }
     const targetMap = getPreviewTargetMap();
     return targetMap[name] || "";
+}
+
+/** Highlight ô ảnh đang focus + nhảy preview thiệp. */
+function focusMediaFieldPreview(fieldName) {
+    const name = String(fieldName || "").trim();
+    if (!name) return;
+    document.querySelectorAll(".media-item.is-preview-focus, .qr-upload.is-preview-focus").forEach(el => {
+        el.classList.remove("is-preview-focus");
+    });
+    const item = document.querySelector(`.media-item[data-media-field="${name}"], .qr-upload[data-qr-box="${name}"]`);
+    item?.classList.add("is-preview-focus");
+    if (isSectionJumpField(name)) {
+        jumpPreviewToField(name, {
+            updateStatus: false,
+            focusPreview: isMobileBuilderLayout()
+        });
+    }
 }
 
 /**
@@ -3154,6 +4205,8 @@ function setBuilderMobileTab(tab) {
     document.querySelectorAll("[data-builder-tab]").forEach(button => {
         button.classList.toggle("is-active", button.dataset.builderTab === next);
     });
+    // Đóng drawer bước khi sang preview
+    if (next === "preview") setBuilderSidebarOpen(false);
 }
 
 function scrollToPreviewPanel() {
@@ -3166,20 +4219,113 @@ function scrollToPreviewPanel() {
     });
 }
 
+/** postMessage type — khớp js/app.js BUILDER_PREVIEW_SOFT_MSG */
+const BUILDER_PREVIEW_SOFT_MSG = "wedding-builder-preview-soft";
+
+/**
+ * Soft update: iframe đã load preview=builder → chỉ postMessage + localStorage.
+ * Tránh frame.src = …&cb= → full reload HTML/CSS/JS + re-fetch ảnh Cloudinary.
+ * Hard reload khi: iframe chưa sẵn sàng, options.hard, hoặc srcdoc lỗi.
+ */
+function isPreviewFrameSoftReady() {
+    if (!frame) return false;
+    try {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+        if (!win || !doc) return false;
+        // srcdoc trang lỗi (thiếu wedding) — không soft
+        if (frame.srcdoc) return false;
+        const href = String(win.location?.href || "");
+        if (!href || href === "about:blank") return false;
+        const params = new URLSearchParams(win.location.search || "");
+        return params.get("preview") === "builder";
+    } catch {
+        return false;
+    }
+}
+
+function softNotifyPreviewFrame(previewState) {
+    try {
+        const win = frame?.contentWindow;
+        if (!win) return false;
+        win.postMessage({
+            type: BUILDER_PREVIEW_SOFT_MSG,
+            previewState: {
+                opened: Boolean(previewState?.opened),
+                scrollY: Number(previewState?.scrollY || 0),
+                target: String(previewState?.target || "")
+            },
+            ts: Date.now()
+        }, window.location.origin);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function hardReloadPreviewFrame(previewState) {
+    previewLoadToken += 1;
+    // section + open trên URL: mobile đọc chắc hơn localStorage
+    // vd ?preview=builder&open=1&section=timeline
+    const sectionId = String(previewState.target || "").replace(/^\./, "").trim();
+    const qs = new URLSearchParams({
+        preview: "builder",
+        open: (previewState.opened || sectionId) ? "1" : "0",
+        cb: String(Date.now()),
+        pt: String(previewLoadToken)
+    });
+    if (sectionId) qs.set("section", sectionId);
+    // Xóa srcdoc lỗi (nếu có) trước khi gán src
+    try {
+        frame.removeAttribute("srcdoc");
+    } catch {
+        /* ignore */
+    }
+    frame.src = `../index.html?${qs.toString()}`;
+}
+
 function refreshPreview(updateStatus = true, options = {}) {
     const config = createPreviewConfig();
-    localStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
+    // sessionStorage theo tab — 2 tab builder (có id / không id) không ăn preview của nhau
+    sessionStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
 
     const previewState = resolvePreviewState(options);
+    // Có target section → luôn opened (bỏ màn cover)
+    if (previewState.target) {
+        previewState.opened = true;
+    }
     savePreviewState(previewState);
 
-    previewLoadToken += 1;
-    // Dùng cb/pt — KHÔNG dùng ?t= (đã dành cho payment.accessToken 32 hex)
-    frame.src = `../index.html?preview=builder&cb=${Date.now()}&pt=${previewLoadToken}`;
+    const sectionId = String(previewState.target || "").replace(/^\./, "").trim();
+    const forceHard = options.hard === true || options.forceHard === true;
+    const canSoft = !forceHard && isPreviewFrameSoftReady();
+
+    if (canSoft && softNotifyPreviewFrame(previewState)) {
+        // Soft: không đụng frame.src → ảnh Cloudinary đã cache trong DOM không tải lại
+        if (updateStatus) {
+            const labels = {
+                poster: "Poster", "save-date": "Save the date", about: "Đôi nét",
+                timeline: "Lịch trình", gallery: "Album ảnh", wish: "Lời chúc",
+                gift: "Mừng cưới", countdown: "Đếm ngược", thanks: "Cảm ơn"
+            };
+            setStatus(`Đã cập nhật preview · ${labels[sectionId] || (sectionId || "Ảnh bìa")}`);
+        }
+        if (options.focusPreview) {
+            scrollToPreviewPanel();
+        }
+        return;
+    }
+
+    hardReloadPreviewFrame(previewState);
 
     if (updateStatus) {
-        const sectionHint = previewState.target ? ` → ${previewState.target}` : " → cover";
-        setStatus(`Preview: ${config.weddingId || "chua-co-id"}${sectionHint}`);
+        const t = sectionId;
+        const labels = {
+            poster: "Poster", "save-date": "Save the date", about: "Đôi nét",
+            timeline: "Lịch trình", gallery: "Album ảnh", wish: "Lời chúc",
+            gift: "Mừng cưới", countdown: "Đếm ngược", thanks: "Cảm ơn"
+        };
+        setStatus(`Đã cập nhật preview · ${labels[t] || (t || "Ảnh bìa")}`);
     }
     if (options.focusPreview) {
         scrollToPreviewPanel();
@@ -3274,24 +4420,18 @@ function handleTitleSubtitleInput(event) {
     }, 320);
 }
 
-/** Mobile: rời ô title/subtitle/lịch → mở preview đúng section vừa sửa. */
+/**
+ * Mobile: rời ô title/subtitle/lịch → chỉ nhớ section, KHÔNG auto mở tab preview
+ * (bước “Lịch & địa điểm” + “Tiêu đề & mô tả”). User bấm “Xem” khi cần.
+ */
 function handleTitleSubtitleFocusOut(event) {
     const field = event.target;
     const name = String(field?.name || "").trim();
     if (!TITLE_SUBTITLE_PREVIEW_MAP[name]) return;
     if (!isMobileBuilderLayout()) return;
 
+    // Chỉ ghi nhớ field để khi user mở preview thủ công → đúng section
     rememberJumpField(name);
-
-    // Đợi focus chuyển sang ô khác; nếu vẫn trong cùng nhóm jump field thì không nhảy
-    window.setTimeout(() => {
-        const activeName = String(document.activeElement?.name || "").trim();
-        if (TITLE_SUBTITLE_PREVIEW_MAP[activeName]) return;
-        jumpPreviewToField(name, {
-            updateStatus: true,
-            focusPreview: true
-        });
-    }, 0);
 }
 
 /** Chặn double-submit (Enter / double-click) → popup Lưu 2 lần. */
@@ -3326,7 +4466,7 @@ async function saveConfig(event) {
             wait += 1;
         }
         if (mediaStageInFlight > 0) {
-            throw new Error("Đang xử lý ảnh — đợi giây lát rồi Lưu Firebase lại.");
+            throw new Error("Đang xử lý ảnh — đợi giây lát rồi Lưu thiệp lại.");
         }
 
         // 1) Mọi ảnh/QR user vừa chọn (pending / blob field) → upload Cloudinary
@@ -3349,14 +4489,14 @@ async function saveConfig(event) {
             name => isMediaFieldActive(name) && isBlobUrl(readField(name))
         );
         if (blobMedia.length) {
-            throw new Error(`Ảnh tạm chưa upload xong: ${blobMedia.join(", ")}. Thử chọn lại rồi Lưu Firebase.`);
+            throw new Error(`Ảnh tạm chưa upload xong: ${blobMedia.join(", ")}. Thử chọn lại rồi Lưu thiệp.`);
         }
 
         let payload = createSavePayload();
         const groomQr = payload.gift?.groom?.qr || "";
         const brideQr = payload.gift?.bride?.qr || "";
         if (isBlobUrl(groomQr) || isBlobUrl(brideQr)) {
-            throw new Error("QR vẫn còn bản tạm (blob). Thử cắt lại rồi Lưu Firebase.");
+            throw new Error("QR vẫn còn bản tạm (blob). Thử cắt lại rồi Lưu thiệp.");
         }
 
         const availableWeddingId = await findAvailableWeddingId(payload.weddingId);
@@ -3392,13 +4532,8 @@ async function saveConfig(event) {
         // editToken: link sửa ?e= (legacy thiệp không có token vẫn mở bằng ?wedding=)
         const existingEditToken = normalizeEditToken(loadedWeddingConfig?.builder?.editToken);
         const editToken = existingEditToken || generateEditToken();
-        const prevPublicIds = Array.isArray(loadedWeddingConfig.builder?.cloudinaryPublicIds)
-            ? loadedWeddingConfig.builder.cloudinaryPublicIds
-            : [];
-        const cloudinaryPublicIds = [...new Set([
-            ...prevPublicIds,
-            ...sessionCloudinaryPublicIds
-        ])].filter(Boolean);
+        // Chỉ lưu public_id còn gắn URL trên form (đã flush upload)
+        const liveCloudinaryIds = collectLiveCloudinaryPublicIdsFromForm();
 
         payload.builder = {
             ...(payload.builder || {}),
@@ -3414,7 +4549,7 @@ async function saveConfig(event) {
                 ...(loadedWeddingConfig.builder?.mediaFingerprints || {}),
                 ...(payload.builder?.mediaFingerprints || {})
             },
-            cloudinaryPublicIds
+            cloudinaryPublicIds: liveCloudinaryIds
         };
 
         // Ghi dấu thời gian để admin dọn thiệp > 30 ngày
@@ -3459,6 +4594,20 @@ async function saveConfig(event) {
             upsertEditSession(db, editToken, sessionPayload)
         ]);
 
+        // Xóa ảnh Cloudinary đã bỏ / thay (delete_token hoặc cleanup API)
+        let cleanupNote = "";
+        try {
+            const cleanupResult = await flushOrphanedCloudinaryDeletes(liveCloudinaryIds);
+            if (cleanupResult?.deleted > 0) {
+                cleanupNote = ` · đã xóa ${cleanupResult.deleted} ảnh cũ Cloudinary`;
+            } else if (cleanupResult?.failed?.length) {
+                cleanupNote = ` · ${cleanupResult.failed.length} ảnh cũ chưa xóa được (cần delete_token / API cleanup)`;
+                console.warn("[builder] orphan cleanup failed ids:", cleanupResult.failed);
+            }
+        } catch (cleanupError) {
+            console.warn("[builder] orphan Cloudinary cleanup error:", cleanupError);
+        }
+
         sessionCloudinaryPublicIds = [];
 
         // Giữ payment (accessToken, unlocked…) sau save — createPreviewConfig không mang field này
@@ -3480,9 +4629,9 @@ async function saveConfig(event) {
         syncInvitePlanUI();
         const savedCode = normalizeOrderCode(payload.payment?.orderCode) || "";
         setStatus(
-            savedCode
+            (savedCode
                 ? `Đã lưu bản nháp. Mã giao dịch: ${savedCode}`
-                : "Đã lưu bản nháp thành công.",
+                : "Đã lưu bản nháp thành công.") + cleanupNote,
             "success"
         );
         refreshPreview(false);
@@ -3503,14 +4652,14 @@ async function saveConfig(event) {
         setStatus(
             message
                 ? `Lưu thất bại: ${message.slice(0, 160)}`
-                : "Luu Firebase that bai. Kiem tra dang nhap hoac Firestore Rules.",
+                : "Lưu thiệp thất bại. Kiem tra dang nhap hoac Firestore Rules.",
             "error"
         );
     } finally {
         saveConfigInFlight = false;
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Luu Firebase';
+            saveBtn.innerHTML = '<i class="bi bi-cloud-upload-fill"></i> Lưu thiệp';
         }
     }
 }
@@ -3524,10 +4673,29 @@ function pickMediaFile(fieldName) {
 }
 
 function handleUploadClick(event) {
+    const clearBtn = event.target.closest("[data-media-clear]");
+    if (clearBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (clearBtn.disabled) return;
+        clearMediaField(clearBtn.dataset.mediaClear);
+        return;
+    }
+
+    // Click body ô ảnh → nhảy preview đúng section thiệp
+    const focusBtn = event.target.closest("[data-media-focus]");
+    if (focusBtn) {
+        event.preventDefault();
+        focusMediaFieldPreview(focusBtn.dataset.mediaFocus);
+        return;
+    }
+
     const button = event.target.closest("[data-upload-button]");
     if (!button) return;
 
     const fieldName = button.dataset.uploadButton;
+    // Upload: cũng focus preview khu vực đó
+    focusMediaFieldPreview(fieldName);
     // QR: mở file → crop modal. Media: mở file → tự stage + preview (không bấm thêm)
     if (document.querySelector(`[data-qr-input="${fieldName}"]`)) {
         pickQrFile(fieldName);
@@ -3575,6 +4743,15 @@ form.addEventListener("input", event => {
     if (name.startsWith("block")) {
         return;
     }
+    // Sự kiện joint / nhà trai / nhà gái
+    if (isCeremonyEventControl(event.target)) {
+        const role = event.target.closest("[data-ceremony-events-role]")?.dataset?.ceremonyEventsRole
+            || event.target.closest("[data-ceremony-event-id]")?.dataset?.ceremonyEventsRole
+            || "joint";
+        syncCeremonyEventsStateFromDom(role);
+        scheduleCeremonyEventsPreview();
+        return;
+    }
     // Title / subtitle / lịch tổ chức: nhảy đúng section
     if (TITLE_SUBTITLE_PREVIEW_MAP[name]) {
         handleTitleSubtitleInput(event);
@@ -3585,6 +4762,51 @@ form.addEventListener("input", event => {
 });
 
 form.addEventListener("change", handleBlockConceptChange);
+form.addEventListener("change", event => {
+    if (isCeremonyEventControl(event.target)) {
+        const role = event.target.closest("[data-ceremony-events-role]")?.dataset?.ceremonyEventsRole
+            || event.target.closest("[data-ceremony-event-id]")?.dataset?.ceremonyEventsRole
+            || "joint";
+        syncCeremonyEventsStateFromDom(role);
+        scheduleCeremonyEventsPreview();
+        return;
+    }
+    if (event.target?.name === "ceremonyMode") {
+        syncCeremonyModeUI();
+        // Mobile: không auto sang preview khi đổi hình thức tổ chức
+        refreshPreview(true, {
+            focusPreview: false,
+            previewState: { opened: true, scrollY: 0, target: ".timeline" }
+        });
+    }
+});
+
+// Ceremony events: thêm / xóa / sắp xếp (joint + bride + groom)
+document.querySelectorAll("[data-add-ceremony-events]").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const role = btn.getAttribute("data-add-ceremony-events");
+        if (role) addCeremonyEvent(role);
+    });
+});
+document.querySelectorAll("[data-ceremony-events-role]").forEach(list => {
+    list.addEventListener("click", event => {
+        const row = event.target.closest("[data-ceremony-event-id]");
+        if (!row) return;
+        const role = row.dataset.ceremonyEventsRole
+            || list.dataset.ceremonyEventsRole
+            || "joint";
+        const id = row.dataset.ceremonyEventId;
+        if (event.target.closest("[data-ceremony-remove]")) {
+            removeCeremonyEvent(role, id);
+            return;
+        }
+        const moveBtn = event.target.closest("[data-ceremony-move]");
+        if (moveBtn) {
+            const delta = Number(moveBtn.getAttribute("data-ceremony-move") || 0);
+            moveCeremonyEvent(role, id, delta);
+        }
+    });
+});
 
 form.addEventListener("change", event => {
     if (event.target?.name === "invitePlan") {
@@ -3611,7 +4833,7 @@ document.querySelectorAll("[data-builder-tab]").forEach(button => {
         const tab = button.dataset.builderTab;
         setBuilderMobileTab(tab);
         if (tab === "preview") {
-            // Tab preview = section vừa chỉnh (concept / title / subtitle)
+            // Logic cũ: mở preview đúng section vừa chỉnh (concept/title…)
             if (lastJumpFieldName) {
                 jumpPreviewToField(lastJumpFieldName, {
                     updateStatus: true,
@@ -3624,6 +4846,14 @@ document.querySelectorAll("[data-builder-tab]").forEach(button => {
                 });
             }
         }
+    });
+});
+
+// Nút riêng "Xem từ đầu" → cover (không đụng logic jump concept)
+// Desktop: preview-panel__head · Mobile: chrome khi đang preview
+["previewFromStartBtn", "previewFromStartBtnMobile"].forEach(id => {
+    document.getElementById(id)?.addEventListener("click", () => {
+        handlePreviewClick();
     });
 });
 setBuilderMobileTab("edit");
@@ -3653,15 +4883,30 @@ document.addEventListener("keydown", event => {
         closeQrCropModal();
     }
 });
-populateBuilderBlockSelects(form);
+populateBuilderBlockSelects(form, { ceremonyMode: getSelectedCeremonyMode() });
+// Custom select gắn sau initCustomSelects; block options đã có sẵn cho observer
 renderBuilderGalleryFields();
-syncMediaUploadVisibility();
+ceremonyEventsState.joint = createDefaultCeremonyEvents("joint");
+ceremonyEventsState.bride = createDefaultCeremonyEvents("bride");
+ceremonyEventsState.groom = createDefaultCeremonyEvents("groom");
+renderAllCeremonyEventsLists();
+syncCeremonyModeUI();
 Promise.all([
     loadPaymentSettings(),
     loadMusicLibrary()
 ]).then(() => loadConfigForEdit()).then(() => {
     populateMusicOptions(loadedWeddingConfig);
-    syncMediaUploadVisibility();
+    if (!ceremonyEventsState.joint?.length) {
+        ceremonyEventsState.joint = createDefaultCeremonyEvents("joint");
+    }
+    if (!ceremonyEventsState.bride?.length) {
+        ceremonyEventsState.bride = createDefaultCeremonyEvents("bride");
+    }
+    if (!ceremonyEventsState.groom?.length) {
+        ceremonyEventsState.groom = createDefaultCeremonyEvents("groom");
+    }
+    renderAllCeremonyEventsLists();
+    syncCeremonyModeUI();
 });
 
 if (saveModal) {
@@ -3690,7 +4935,7 @@ document.addEventListener("click", event => {
 copyPaymentOrderCodeBtn?.addEventListener("click", () => {
     const code = paymentOrderCodeText?.textContent?.trim() || getOrderCode() || "";
     if (!code || code === "—") {
-        setStatus("Chưa có mã giao dịch. Hãy Lưu Firebase trước.", "error");
+        setStatus("Chưa có mã giao dịch. Hãy Lưu thiệp trước.", "error");
         return;
     }
     copyText(code, copyPaymentOrderCodeBtn);
@@ -3727,3 +4972,731 @@ window.addEventListener("keydown", event => {
         hideSaveModal();
     }
 });
+
+/* ============================================================
+   Custom date / time pickers — native popup không đổi màu brand
+   ============================================================ */
+const MONTH_LABELS_VI = [
+    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+];
+
+const datePopover = document.getElementById("builderDatePopover");
+const dateMonthLabel = document.getElementById("builderDateMonthLabel");
+const dateGrid = document.getElementById("builderDateGrid");
+const timePopover = document.getElementById("builderTimePopover");
+const timeHoursList = document.getElementById("builderTimeHours");
+const timeMinutesList = document.getElementById("builderTimeMinutes");
+
+let activeDateInput = null;
+let activeTimeInput = null;
+let pickerViewYear = 0;
+let pickerViewMonth = 0; // 0–11
+let pendingTimeHour = 0;
+let pendingTimeMinute = 0;
+
+function pad2(n) {
+    return String(n).padStart(2, "0");
+}
+
+function parseIsoDate(value) {
+    const m = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    const dt = new Date(y, mo, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== d) return null;
+    return dt;
+}
+
+function parseTimeValue(value) {
+    const m = String(value || "").trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return { hour: 18, minute: 0 };
+    return {
+        hour: Math.min(23, Math.max(0, Number(m[1]) || 0)),
+        minute: Math.min(59, Math.max(0, Number(m[2]) || 0))
+    };
+}
+
+function positionPopover(popover, anchor) {
+    if (!popover || !anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    const gap = 8;
+    const pw = popover.offsetWidth || 292;
+    const ph = popover.offsetHeight || 320;
+    let left = rect.left;
+    let top = rect.bottom + gap;
+
+    if (left + pw > window.innerWidth - 12) {
+        left = Math.max(12, window.innerWidth - pw - 12);
+    }
+    if (left < 12) left = 12;
+
+    if (top + ph > window.innerHeight - 12) {
+        top = Math.max(12, rect.top - ph - gap);
+    }
+
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top = `${Math.round(top)}px`;
+}
+
+function closeDatePopover() {
+    if (datePopover) datePopover.hidden = true;
+    activeDateInput = null;
+}
+
+function closeTimePopover() {
+    if (timePopover) timePopover.hidden = true;
+    activeTimeInput = null;
+}
+
+function closeAllPickers() {
+    closeDatePopover();
+    closeTimePopover();
+}
+
+function renderDateGrid() {
+    if (!dateGrid || !dateMonthLabel) return;
+    dateMonthLabel.textContent = `${MONTH_LABELS_VI[pickerViewMonth]} ${pickerViewYear}`;
+
+    const selected = parseIsoDate(activeDateInput?.value || "");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const first = new Date(pickerViewYear, pickerViewMonth, 1);
+    // Monday-first: Sun=0 → 6, Mon=1 → 0, ...
+    let startPad = first.getDay() - 1;
+    if (startPad < 0) startPad = 6;
+
+    const daysInMonth = new Date(pickerViewYear, pickerViewMonth + 1, 0).getDate();
+    const prevDays = new Date(pickerViewYear, pickerViewMonth, 0).getDate();
+
+    dateGrid.textContent = "";
+
+    const totalCells = 42;
+    for (let i = 0; i < totalCells; i += 1) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "b-picker__day";
+
+        let y = pickerViewYear;
+        let m = pickerViewMonth;
+        let d;
+
+        if (i < startPad) {
+            d = prevDays - startPad + i + 1;
+            m -= 1;
+            if (m < 0) {
+                m = 11;
+                y -= 1;
+            }
+            btn.disabled = true;
+        } else if (i >= startPad + daysInMonth) {
+            d = i - startPad - daysInMonth + 1;
+            m += 1;
+            if (m > 11) {
+                m = 0;
+                y += 1;
+            }
+            btn.disabled = true;
+        } else {
+            d = i - startPad + 1;
+            const cellDate = new Date(y, m, d);
+            if (cellDate.getTime() === today.getTime()) btn.classList.add("is-today");
+            if (
+                selected
+                && selected.getFullYear() === y
+                && selected.getMonth() === m
+                && selected.getDate() === d
+            ) {
+                btn.classList.add("is-selected");
+            }
+            btn.addEventListener("click", () => {
+                if (!activeDateInput) return;
+                activeDateInput.value = `${y}-${pad2(m + 1)}-${pad2(d)}`;
+                activeDateInput.dispatchEvent(new Event("input", { bubbles: true }));
+                activeDateInput.dispatchEvent(new Event("change", { bubbles: true }));
+                closeDatePopover();
+            });
+        }
+
+        btn.textContent = String(d);
+        dateGrid.appendChild(btn);
+    }
+}
+
+function openDatePopover(input) {
+    if (!datePopover || !input) return;
+    closeTimePopover();
+    activeDateInput = input;
+
+    const parsed = parseIsoDate(input.value);
+    const base = parsed || new Date();
+    pickerViewYear = base.getFullYear();
+    pickerViewMonth = base.getMonth();
+
+    datePopover.hidden = false;
+    renderDateGrid();
+    positionPopover(datePopover, input);
+}
+
+function scrollTimeListToSelected(list) {
+    if (!list) return;
+    const selected = list.querySelector("button.is-selected");
+    if (selected) {
+        selected.scrollIntoView({ block: "center", behavior: "instant" in window ? "instant" : "auto" });
+    }
+}
+
+function renderTimeLists() {
+    if (!timeHoursList || !timeMinutesList) return;
+
+    timeHoursList.textContent = "";
+    for (let h = 0; h < 24; h += 1) {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = pad2(h);
+        if (h === pendingTimeHour) btn.classList.add("is-selected");
+        btn.addEventListener("click", () => {
+            pendingTimeHour = h;
+            renderTimeLists();
+            scrollTimeListToSelected(timeHoursList);
+            scrollTimeListToSelected(timeMinutesList);
+        });
+        li.appendChild(btn);
+        timeHoursList.appendChild(li);
+    }
+
+    timeMinutesList.textContent = "";
+    for (let m = 0; m < 60; m += 1) {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = pad2(m);
+        if (m === pendingTimeMinute) btn.classList.add("is-selected");
+        btn.addEventListener("click", () => {
+            pendingTimeMinute = m;
+            renderTimeLists();
+            scrollTimeListToSelected(timeHoursList);
+            scrollTimeListToSelected(timeMinutesList);
+        });
+        li.appendChild(btn);
+        timeMinutesList.appendChild(li);
+    }
+
+    requestAnimationFrame(() => {
+        scrollTimeListToSelected(timeHoursList);
+        scrollTimeListToSelected(timeMinutesList);
+    });
+}
+
+function applyPendingTime() {
+    if (!activeTimeInput) return;
+    activeTimeInput.value = `${pad2(pendingTimeHour)}:${pad2(pendingTimeMinute)}`;
+    activeTimeInput.dispatchEvent(new Event("input", { bubbles: true }));
+    activeTimeInput.dispatchEvent(new Event("change", { bubbles: true }));
+    closeTimePopover();
+}
+
+function openTimePopover(input) {
+    if (!timePopover || !input) return;
+    closeDatePopover();
+    activeTimeInput = input;
+    const t = parseTimeValue(input.value);
+    pendingTimeHour = t.hour;
+    pendingTimeMinute = t.minute;
+    timePopover.hidden = false;
+    renderTimeLists();
+    positionPopover(timePopover, input);
+}
+
+function blockNativePicker(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (input.type !== "date" && input.type !== "time") return;
+    if (!form?.contains(input)) return;
+
+    // Chặn native calendar / time spinner (màu xanh trình duyệt)
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof input.showPicker === "function") {
+        try {
+            input.showPicker = () => {};
+        } catch (_) {
+            /* ignore */
+        }
+    }
+
+    if (input.type === "date") openDatePopover(input);
+    else openTimePopover(input);
+}
+
+function enhanceDateTimePickers(root = form) {
+    if (!root) return;
+    root.querySelectorAll('input[type="date"], input[type="time"]').forEach(input => {
+        if (input.dataset.customPicker === "1") return;
+        input.dataset.customPicker = "1";
+        input.classList.add("is-custom-picker");
+        input.setAttribute("autocomplete", "off");
+        // capture: chặn trước khi browser mở native UI
+        input.addEventListener("mousedown", blockNativePicker, true);
+        input.addEventListener("click", blockNativePicker, true);
+        input.addEventListener("focus", event => {
+            // tránh focus mở native trên 1 số browser
+            event.preventDefault();
+            blockNativePicker(event);
+        }, true);
+        input.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
+                event.preventDefault();
+                blockNativePicker(event);
+            }
+            if (event.key === "Escape") closeAllPickers();
+        });
+    });
+}
+
+// Nav / actions
+datePopover?.addEventListener("click", event => {
+    event.stopPropagation();
+    const nav = event.target.closest("[data-date-nav]");
+    if (nav) {
+        const delta = Number(nav.getAttribute("data-date-nav") || 0);
+        pickerViewMonth += delta;
+        if (pickerViewMonth > 11) {
+            pickerViewMonth = 0;
+            pickerViewYear += 1;
+        } else if (pickerViewMonth < 0) {
+            pickerViewMonth = 11;
+            pickerViewYear -= 1;
+        }
+        renderDateGrid();
+        return;
+    }
+    if (event.target.closest("[data-date-clear]")) {
+        if (activeDateInput) {
+            activeDateInput.value = "";
+            activeDateInput.dispatchEvent(new Event("input", { bubbles: true }));
+            activeDateInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        closeDatePopover();
+        return;
+    }
+    if (event.target.closest("[data-date-today]")) {
+        const now = new Date();
+        if (activeDateInput) {
+            activeDateInput.value = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+            activeDateInput.dispatchEvent(new Event("input", { bubbles: true }));
+            activeDateInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        closeDatePopover();
+    }
+});
+
+timePopover?.addEventListener("click", event => {
+    event.stopPropagation();
+    if (event.target.closest("[data-time-cancel]")) {
+        closeTimePopover();
+        return;
+    }
+    if (event.target.closest("[data-time-apply]")) {
+        applyPendingTime();
+    }
+});
+
+document.addEventListener("mousedown", event => {
+    const t = event.target;
+    if (datePopover && !datePopover.hidden) {
+        if (!datePopover.contains(t) && t !== activeDateInput) closeDatePopover();
+    }
+    if (timePopover && !timePopover.hidden) {
+        if (!timePopover.contains(t) && t !== activeTimeInput) closeTimePopover();
+    }
+});
+
+window.addEventListener("resize", () => {
+    if (datePopover && !datePopover.hidden && activeDateInput) {
+        positionPopover(datePopover, activeDateInput);
+    }
+    if (timePopover && !timePopover.hidden && activeTimeInput) {
+        positionPopover(timePopover, activeTimeInput);
+    }
+});
+
+// Init + re-bind khi form đổi (load config không recreate inputs, đủ 1 lần)
+enhanceDateTimePickers(form);
+
+/* ============================================================
+   Wizard steps — 1 màn / bước, nav pills + Quay lại / Tiếp theo
+   ============================================================ */
+const BUILDER_STEPS = [
+    { id: 1, title: "Thông tin chính" },
+    { id: 2, title: "Cô dâu & chú rể" },
+    { id: 3, title: "Lịch và địa điểm tổ chức" },
+    { id: 4, title: "Giao diện & phông chữ" },
+    { id: 5, title: "Tiêu đề & mô tả từng phần" },
+    { id: 6, title: "Ảnh thiệp" },
+    { id: 7, title: "QR mừng cưới" },
+    { id: 8, title: "Link thiệp" }
+];
+
+let currentBuilderStep = 1;
+const maxVisitedStep = { value: 1 };
+
+function getBuilderStepSection(stepId) {
+    return document.getElementById(`builderStep${stepId}`);
+}
+
+function goToBuilderStep(stepId, options = {}) {
+    const id = Math.min(BUILDER_STEPS.length, Math.max(1, Number(stepId) || 1));
+    currentBuilderStep = id;
+    if (id > maxVisitedStep.value) maxVisitedStep.value = id;
+
+    BUILDER_STEPS.forEach(step => {
+        const section = getBuilderStepSection(step.id);
+        if (!section) return;
+        const active = step.id === id;
+        section.hidden = !active;
+        section.classList.toggle("is-active", active);
+    });
+
+    document.querySelectorAll("[data-goto-step]").forEach(btn => {
+        const sid = Number(btn.getAttribute("data-goto-step") || 0);
+        const active = sid === id;
+        const done = sid < id || sid < maxVisitedStep.value && sid !== id;
+        btn.classList.toggle("is-active", active);
+        btn.classList.toggle("is-done", done && !active);
+        btn.setAttribute("aria-current", active ? "step" : "false");
+    });
+
+    const meta = BUILDER_STEPS.find(s => s.id === id);
+    const mobileCount = document.getElementById("builderMobileStepCount");
+    const mobileTitle = document.getElementById("builderMobileStepTitle");
+    if (mobileCount) mobileCount.textContent = `${id}/${BUILDER_STEPS.length}`;
+    if (mobileTitle) mobileTitle.textContent = meta?.title || "";
+    const footerMeta = document.getElementById("stepFooterMeta");
+    if (footerMeta) footerMeta.textContent = `${id} / ${BUILDER_STEPS.length}`;
+
+    const prevBtn = document.getElementById("stepPrevBtn");
+    const nextBtn = document.getElementById("stepNextBtn");
+    if (prevBtn) prevBtn.disabled = id <= 1;
+    if (nextBtn) {
+        const last = id >= BUILDER_STEPS.length;
+        // Bước cuối: ẩn Tiếp theo — chỉ còn Lưu thiệp trên thanh dưới
+        nextBtn.hidden = last;
+        nextBtn.disabled = last;
+        nextBtn.innerHTML = `<span>Tiếp theo</span><i class="bi bi-arrow-right"></i>`;
+        nextBtn.dataset.stepAction = "next";
+    }
+    document.getElementById("builderActions")?.classList.toggle("is-last-step", id >= BUILDER_STEPS.length);
+
+    // Scroll form to top of step content
+    if (options.scroll !== false) {
+        const panel = document.querySelector("[data-builder-panel='edit']");
+        if (panel) {
+            panel.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
+        }
+        // Keep active menu item in view (sidebar dọc / chip ngang mobile)
+        document.querySelector(`[data-goto-step="${id}"]`)?.scrollIntoView({
+            behavior: options.instant ? "auto" : "smooth",
+            inline: "center",
+            block: "nearest"
+        });
+    }
+}
+
+function setBuilderSidebarOpen(open) {
+    const on = !!open && isMobileBuilderLayout();
+    document.body.classList.toggle("builder-sidebar-open", on);
+    const toggle = document.getElementById("builderSidebarToggle");
+    const backdrop = document.getElementById("builderSidebarBackdrop");
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", on ? "true" : "false");
+        toggle.setAttribute("aria-label", on ? "Đóng danh sách bước" : "Mở danh sách bước");
+        const icon = toggle.querySelector("i");
+        if (icon) icon.className = on ? "bi bi-x-lg" : "bi bi-list";
+    }
+    if (backdrop) backdrop.hidden = !on;
+}
+
+function initBuilderWizard() {
+    document.getElementById("builderStepNav")?.addEventListener("click", event => {
+        const btn = event.target.closest("[data-goto-step]");
+        if (!btn) return;
+        goToBuilderStep(btn.getAttribute("data-goto-step"));
+        setBuilderSidebarOpen(false);
+    });
+
+    document.getElementById("stepPrevBtn")?.addEventListener("click", () => {
+        goToBuilderStep(currentBuilderStep - 1);
+    });
+
+    document.getElementById("stepNextBtn")?.addEventListener("click", () => {
+        if (currentBuilderStep >= BUILDER_STEPS.length) return;
+        goToBuilderStep(currentBuilderStep + 1);
+    });
+
+    document.getElementById("builderSidebarToggle")?.addEventListener("click", () => {
+        const open = !document.body.classList.contains("builder-sidebar-open");
+        setBuilderSidebarOpen(open);
+    });
+    document.getElementById("builderSidebarClose")?.addEventListener("click", () => {
+        setBuilderSidebarOpen(false);
+    });
+    document.getElementById("builderSidebarBackdrop")?.addEventListener("click", () => {
+        setBuilderSidebarOpen(false);
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && document.body.classList.contains("builder-sidebar-open")) {
+            setBuilderSidebarOpen(false);
+        }
+    });
+    window.addEventListener("resize", () => {
+        if (!isMobileBuilderLayout()) setBuilderSidebarOpen(false);
+    });
+
+    goToBuilderStep(1, { scroll: false, instant: true });
+}
+
+/** Custom select: list brand (native <option> list do OS vẽ, CSS không đụng được). */
+let openCustomSelectWrap = null;
+
+function closeOpenCustomSelect() {
+    if (!openCustomSelectWrap) return;
+    const panel = openCustomSelectWrap.querySelector(".b-select__panel");
+    if (panel) panel.hidden = true;
+    openCustomSelectWrap.classList.remove("is-open");
+    openCustomSelectWrap.querySelector(".b-select__trigger")?.setAttribute("aria-expanded", "false");
+    openCustomSelectWrap = null;
+}
+
+function getCustomSelectLabelText(select) {
+    const selected = select.selectedOptions?.[0];
+    if (selected) return selected.textContent?.trim() || selected.value || "—";
+    if (select.options?.length) return select.options[0].textContent?.trim() || "—";
+    return "—";
+}
+
+function rebuildCustomSelectPanel(select, wrap) {
+    const panel = wrap.querySelector(".b-select__panel");
+    const labelEl = wrap.querySelector(".b-select__label");
+    const trigger = wrap.querySelector(".b-select__trigger");
+    if (!panel || !labelEl || !trigger) return;
+
+    labelEl.textContent = getCustomSelectLabelText(select);
+    wrap.classList.toggle("is-disabled", !!select.disabled);
+    trigger.disabled = !!select.disabled;
+    panel.innerHTML = "";
+
+    const nodes = Array.from(select.childNodes);
+    let hasOptions = false;
+
+    const appendOption = (option) => {
+        if (option.disabled && !option.value && !option.textContent) return;
+        hasOptions = true;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "b-select__option";
+        btn.setAttribute("role", "option");
+        btn.dataset.value = option.value;
+        btn.textContent = option.textContent?.trim() || option.value || "—";
+        if (option.disabled) btn.disabled = true;
+        if (option.selected || option.value === select.value) {
+            btn.classList.add("is-selected");
+            btn.setAttribute("aria-selected", "true");
+        } else {
+            btn.setAttribute("aria-selected", "false");
+        }
+        btn.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (select.disabled || option.disabled) return;
+            const next = option.value;
+            if (select.value !== next) {
+                select.value = next;
+                select.dispatchEvent(new Event("input", { bubbles: true }));
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+            labelEl.textContent = getCustomSelectLabelText(select);
+            panel.querySelectorAll(".b-select__option").forEach(el => {
+                const on = el.dataset.value === select.value;
+                el.classList.toggle("is-selected", on);
+                el.setAttribute("aria-selected", on ? "true" : "false");
+            });
+            closeOpenCustomSelect();
+        });
+        panel.appendChild(btn);
+    };
+
+    nodes.forEach(node => {
+        if (node.nodeName === "OPTGROUP") {
+            const group = document.createElement("div");
+            group.className = "b-select__group";
+            group.textContent = node.label || "";
+            panel.appendChild(group);
+            Array.from(node.children).forEach(child => {
+                if (child.nodeName === "OPTION") appendOption(child);
+            });
+            return;
+        }
+        if (node.nodeName === "OPTION") appendOption(node);
+    });
+
+    if (!hasOptions) {
+        const empty = document.createElement("div");
+        empty.className = "b-select__empty";
+        empty.textContent = "Không có lựa chọn";
+        panel.appendChild(empty);
+    }
+}
+
+function positionCustomSelectPanel(wrap) {
+    const panel = wrap?.querySelector(".b-select__panel");
+    const trigger = wrap?.querySelector(".b-select__trigger");
+    if (!panel || !trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const maxH = Math.min(280, window.innerHeight * 0.5);
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+    const spaceAbove = rect.top - 12;
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    const height = Math.min(maxH, openUp ? spaceAbove : spaceBelow);
+    panel.style.position = "fixed";
+    panel.style.left = `${Math.max(8, rect.left)}px`;
+    panel.style.width = `${Math.max(rect.width, 160)}px`;
+    panel.style.right = "auto";
+    panel.style.maxHeight = `${Math.max(120, height)}px`;
+    if (openUp) {
+        panel.style.top = "auto";
+        panel.style.bottom = `${window.innerHeight - rect.top + 6}px`;
+    } else {
+        panel.style.top = `${rect.bottom + 6}px`;
+        panel.style.bottom = "auto";
+    }
+}
+
+function openCustomSelect(wrap) {
+    if (!wrap || wrap.classList.contains("is-disabled")) return;
+    if (openCustomSelectWrap && openCustomSelectWrap !== wrap) {
+        closeOpenCustomSelect();
+    }
+    const panel = wrap.querySelector(".b-select__panel");
+    const trigger = wrap.querySelector(".b-select__trigger");
+    if (!panel) return;
+    panel.hidden = false;
+    wrap.classList.add("is-open");
+    trigger?.setAttribute("aria-expanded", "true");
+    openCustomSelectWrap = wrap;
+    positionCustomSelectPanel(wrap);
+    const selected = panel.querySelector(".b-select__option.is-selected");
+    selected?.scrollIntoView({ block: "nearest" });
+}
+
+function enhanceCustomSelect(select) {
+    if (!select || select.tagName !== "SELECT") return;
+    if (select.dataset.bSelect === "1") {
+        refreshCustomSelect(select);
+        return;
+    }
+
+    const wrap = document.createElement("div");
+    wrap.className = "b-select";
+    select.parentNode.insertBefore(wrap, select);
+    wrap.appendChild(select);
+    select.classList.add("b-select__native");
+    select.dataset.bSelect = "1";
+    select.tabIndex = -1;
+    select.setAttribute("aria-hidden", "true");
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "b-select__trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "b-select__label";
+    const chevron = document.createElement("i");
+    chevron.className = "bi bi-chevron-down b-select__chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    trigger.appendChild(labelEl);
+    trigger.appendChild(chevron);
+
+    const panel = document.createElement("div");
+    panel.className = "b-select__panel";
+    panel.setAttribute("role", "listbox");
+    panel.hidden = true;
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(panel);
+
+    trigger.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (select.disabled) return;
+        if (openCustomSelectWrap === wrap) {
+            closeOpenCustomSelect();
+        } else {
+            rebuildCustomSelectPanel(select, wrap);
+            openCustomSelect(wrap);
+        }
+    });
+
+    select.addEventListener("change", () => {
+        labelEl.textContent = getCustomSelectLabelText(select);
+        panel.querySelectorAll(".b-select__option").forEach(el => {
+            const on = el.dataset.value === select.value;
+            el.classList.toggle("is-selected", on);
+            el.setAttribute("aria-selected", on ? "true" : "false");
+        });
+    });
+
+    const observer = new MutationObserver(() => {
+        rebuildCustomSelectPanel(select, wrap);
+    });
+    observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
+
+    rebuildCustomSelectPanel(select, wrap);
+}
+
+function refreshCustomSelect(select) {
+    if (!select || select.dataset.bSelect !== "1") {
+        enhanceCustomSelect(select);
+        return;
+    }
+    const wrap = select.closest(".b-select");
+    if (wrap) rebuildCustomSelectPanel(select, wrap);
+}
+
+function enhanceAllCustomSelects(root = form) {
+    if (!root) return;
+    root.querySelectorAll("select").forEach(enhanceCustomSelect);
+}
+
+function initCustomSelects() {
+    enhanceAllCustomSelects(form);
+
+    document.addEventListener("click", event => {
+        if (!openCustomSelectWrap) return;
+        if (openCustomSelectWrap.contains(event.target)) return;
+        closeOpenCustomSelect();
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && openCustomSelectWrap) {
+            closeOpenCustomSelect();
+        }
+    });
+
+    // Khi scroll form / resize → đóng panel (tránh lệch vị trí absolute)
+    document.querySelector(".builder-panel")?.addEventListener("scroll", () => {
+        if (openCustomSelectWrap) closeOpenCustomSelect();
+    }, { passive: true });
+    window.addEventListener("resize", () => {
+        if (openCustomSelectWrap) closeOpenCustomSelect();
+    });
+}
+
+initBuilderWizard();
+initCustomSelects();

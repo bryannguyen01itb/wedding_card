@@ -9,6 +9,10 @@ import { initGift } from "./features/gift.js";
 import { initWish } from "./features/wish.js";
 import { initHeaderMenu } from "./features/headerMenu.js";
 import { updateLinkPreview } from "./utils/meta.js";
+import { wedding } from "./config.js";
+
+/** postMessage type từ builder — soft update preview (không reload iframe). */
+export const BUILDER_PREVIEW_SOFT_MSG = "wedding-builder-preview-soft";
 
 function isBuilderPreview() {
     return new URLSearchParams(window.location.search).get("preview") === "builder";
@@ -78,27 +82,75 @@ function showWeddingError(error) {
     `;
 }
 
-function restoreBuilderPreviewState() {
+/** Soft refresh: hiện lại màn cover (vd nút “Xem từ đầu”). */
+function showCoverForBuilderPreview() {
+    const cover = document.querySelector(".cover");
+    const invitation = document.querySelector(".invitation");
+    const header = document.querySelector(".invitation__header");
+    const musicButton = document.getElementById("musicBtn");
+    const giftButton = document.getElementById("floatingGiftBtn");
+
+    if (cover) {
+        cover.classList.remove("is-dismissed", "opening", "hide");
+        cover.removeAttribute("aria-hidden");
+        cover.hidden = false;
+        cover.style.removeProperty("display");
+        document.getElementById("openCard")?.classList.remove("open");
+        const coverClick = document.querySelector(".cover__click");
+        if (coverClick) coverClick.style.display = "";
+    }
+
+    if (invitation) {
+        invitation.style.display = "none";
+        invitation.classList.remove("show");
+    }
+
+    header?.classList.remove("scrolled");
+    musicButton?.classList.remove("show", "playing");
+    giftButton?.classList.remove("show");
+    window.scrollTo(0, 0);
+}
+
+function restoreBuilderPreviewState(options = {}) {
     const params = new URLSearchParams(window.location.search);
     if (params.get("preview") !== "builder") return;
 
     let state = null;
     try {
-        state = JSON.parse(localStorage.getItem("weddingBuilderPreviewState") || "null");
+        state = options.previewState
+            || JSON.parse(sessionStorage.getItem("weddingBuilderPreviewState") || "null");
     } catch (error) {
         state = null;
     }
 
-    // Có target section (about, gallery…) thì luôn mở thiệp, kể cả flag opened bị thiếu
-    const hasTarget = Boolean(state?.target);
-    const shouldOpen = Boolean(state?.opened || hasTarget);
-    if (!shouldOpen) return;
+    // Soft update: chỉ tin postMessage/localStorage (URL ?section= không đổi khi soft
+    // → nếu fallback URL sẽ kẹt section cũ, không “về cover” được).
+    const messageTarget = String(options.previewState?.target || "").trim();
+    const sectionParam = String(params.get("section") || "").trim().replace(/^\./, "");
+    const urlTarget = sectionParam ? `.${sectionParam}` : "";
+    const stateTarget = String(state?.target || "").trim();
+    const target = options.soft
+        ? (messageTarget || stateTarget)
+        : (messageTarget || stateTarget || urlTarget);
+    const hasTarget = Boolean(target);
+    const urlOpen = params.get("open") === "1" || Boolean(urlTarget);
+    const stateOpen = Boolean(state?.opened || hasTarget || options.previewState?.opened);
+    // Soft: localStorage/message; hard load lần đầu: URL cũng đủ
+    const shouldOpen = options.soft
+        ? stateOpen
+        : (urlOpen || stateOpen);
 
     const cover = document.querySelector(".cover");
     const invitation = document.querySelector(".invitation");
     const header = document.querySelector(".invitation__header");
     const musicButton = document.getElementById("musicBtn");
     const giftButton = document.getElementById("floatingGiftBtn");
+
+    if (!shouldOpen) {
+        // Soft “về cover” sau khi đã mở thiệp
+        if (options.soft) showCoverForBuilderPreview();
+        return;
+    }
 
     if (cover) {
         cover.classList.add("is-dismissed");
@@ -112,25 +164,26 @@ function restoreBuilderPreviewState() {
         invitation.classList.add("show");
     }
 
-    header?.classList.toggle("scrolled", Number(state.scrollY || 0) > 20 || hasTarget);
+    header?.classList.toggle("scrolled", Number(state?.scrollY || 0) > 20 || hasTarget);
     musicButton?.classList.add("show");
     giftButton?.classList.add("show");
 
-    if (hasTarget) {
+    // Soft: không auto-play lại nhạc mỗi lần gõ chữ (chỉ hard load / nhảy section lần đầu)
+    if (hasTarget && !options.soft) {
         window.setTimeout(playMusic, 120);
     }
 
     const scrollToPreviewTarget = () => {
-        const targetElement = hasTarget ? document.querySelector(state.target) : null;
-        if (targetElement) {
-            targetElement.scrollIntoView({ block: "start" });
-            return true;
+        if (target) {
+            const targetElement = document.querySelector(target);
+            if (targetElement) {
+                targetElement.scrollIntoView({ block: "start" });
+                return true;
+            }
+            return false;
         }
-        if (!hasTarget) {
-            window.scrollTo(0, Number(state.scrollY || 0));
-            return true;
-        }
-        return false;
+        window.scrollTo(0, Number(state?.scrollY || 0));
+        return true;
     };
 
     // Thử vài lần vì layout concept/skin có thể render xong sau 1 frame
@@ -140,6 +193,89 @@ function restoreBuilderPreviewState() {
             if (scrollToPreviewTarget()) return;
             window.setTimeout(scrollToPreviewTarget, 200);
         }, 80);
+    });
+}
+
+/** Cập nhật src nhạc nếu đổi — không hard-reload cả iframe. */
+function softSyncMusicSource() {
+    const audio = document.getElementById("bgMusic");
+    if (!audio) return;
+    const next = String(wedding.music || "").trim();
+    if (!next) return;
+    const current = String(audio.getAttribute("src") || audio.src || "").trim();
+    if (!current) {
+        audio.src = next;
+        audio.load();
+        return;
+    }
+    try {
+        const a = new URL(audio.currentSrc || audio.src, location.href).href;
+        const b = new URL(next, location.href).href;
+        if (a === b) return;
+    } catch {
+        if (current === next) return;
+    }
+    const wasPlaying = !audio.paused;
+    audio.src = next;
+    audio.load();
+    if (wasPlaying) {
+        audio.play().catch(() => {});
+    }
+}
+
+let softPreviewTimer = 0;
+let softPreviewInFlight = false;
+
+/**
+ * Soft refresh preview builder: đọc localStorage → re-render DOM.
+ * Ảnh/src trùng không gán lại → browser/Cloudinary không tải lại.
+ */
+async function softRefreshBuilderPreview(messageData = {}) {
+    if (!isBuilderPreview()) return;
+    if (softPreviewInFlight) {
+        // Gộp request đang chạy: schedule thêm 1 lần sau
+        window.clearTimeout(softPreviewTimer);
+        softPreviewTimer = window.setTimeout(() => {
+            softRefreshBuilderPreview(messageData);
+        }, 80);
+        return;
+    }
+
+    softPreviewInFlight = true;
+    try {
+        await loadWeddingConfig();
+        updateLinkPreview();
+        renderContent();
+        // Calendar/date UI không auto theo wedding live binding — render lại
+        initCalendar();
+        softSyncMusicSource();
+        restoreBuilderPreviewState({
+            soft: true,
+            previewState: messageData.previewState || null
+        });
+    } catch (error) {
+        console.warn("[preview] soft refresh failed:", error);
+    } finally {
+        softPreviewInFlight = false;
+    }
+}
+
+function scheduleSoftRefreshBuilderPreview(messageData = {}) {
+    window.clearTimeout(softPreviewTimer);
+    softPreviewTimer = window.setTimeout(() => {
+        softRefreshBuilderPreview(messageData);
+    }, 40);
+}
+
+function bindBuilderPreviewSoftListeners() {
+    if (!isBuilderPreview()) return;
+
+    // Chỉ postMessage từ parent cùng tab (không storage event — tránh 2 tab builder đụng preview)
+    window.addEventListener("message", event => {
+        if (event.origin && event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (!data || data.type !== BUILDER_PREVIEW_SOFT_MSG) return;
+        scheduleSoftRefreshBuilderPreview(data);
     });
 }
 
@@ -166,8 +302,19 @@ async function bootstrap() {
         initCountdown();
         initScrollReveal();
         initGift();
-        initWish();
+        // Mở đúng section preview TRƯỚC mọi thứ phụ
         restoreBuilderPreviewState();
+
+        // Preview builder: KHÔNG initWish (tránh onSnapshot Firestore → spam unavailable)
+        if (!builderPreview) {
+            initWish();
+        }
+
+        if (builderPreview) {
+            bindBuilderPreviewSoftListeners();
+            requestAnimationFrame(() => restoreBuilderPreviewState());
+            window.setTimeout(() => restoreBuilderPreviewState(), 300);
+        }
     } catch (error) {
         showWeddingError(error);
     }

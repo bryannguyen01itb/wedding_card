@@ -266,7 +266,7 @@ Neu doi anh preview cho tung thiep, sua `preview.image` trong config/Firebase.
 
 ## CSS va block concept
 
-Thu tu CSS trong `css/style.css` rat quan trong. Skin section nam o `css/blocks/*/skins.css` (import qua `blocks/index.css`).
+Thu tu CSS: `index.html` link phẳng (brand → tokens → parts → skins → unifier). Fallback: `css/style.css` (1 tầng @import). Skin section: `css/blocks/*/skins.css`.
 
 Quy uoc sua CSS:
 

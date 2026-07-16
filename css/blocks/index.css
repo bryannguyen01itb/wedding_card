@@ -1,5 +1,0 @@
-/**
- * Deprecated entry — không dùng @import lồng nữa.
- * Load CSS qua index.html (link phẳng) hoặc css/style.css (1 tầng @import).
- * Giữ file trống có comment để không gãy link cũ nếu còn ai import.
- */
