@@ -3,6 +3,14 @@ import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/acc
 import { BRAND_PRIMARY } from "../js/brand.js";
 import { isAllowedAdminEmail } from "../js/adminAllowlist.js";
 import {
+    getBuildableSections,
+    getSectionSkinIds,
+    getSkin,
+    normalizeSkinId,
+    getDefaultBlocksConfig
+} from "../js/modules/index.js";
+import { BODY_FONT_STACKS, NICKNAME_FONT_STACKS } from "../js/utils/fonts.js";
+import {
     syncWeddingTokenMaps,
     deleteTokenMap,
     deleteOrderCodeMap,
@@ -111,7 +119,6 @@ function createEmptyAdminConfig() {
             unlocked: false,
             plan: "single",
             currency: "VND",
-            /** Mã GD / nội dung CK — hiện admin list; khách thấy khi chờ TT */
             orderCode: "",
             accessToken: ""
         },
@@ -122,13 +129,19 @@ function createEmptyAdminConfig() {
         },
         theme: {
             primaryColor: DEFAULT_PRIMARY,
-            blocks: {},
-            fonts: {},
+            blocks: { ...getDefaultBlocksConfig() },
+            fonts: { body: "quicksand", nickname: "great-vibes" },
             concepts: {}
         },
         poster: { image: "" },
         preview: { image: "" },
-        aboutCard: { image: "" },
+        aboutCard: {
+            image: "",
+            script: "",
+            title: "",
+            groomLabel: "",
+            brideLabel: ""
+        },
         groom: {
             nickname: "",
             fullName: "",
@@ -144,9 +157,23 @@ function createEmptyAdminConfig() {
             avatar: ""
         },
         ceremony: {
+            mode: "separate",
             image: "",
-            bride: {
+            mapButtonLabel: "Chỉ đường",
+            joint: {
+                events: [],
                 title: "",
+                date: "",
+                time: "",
+                address: "",
+                location: "",
+                mapUrl: "",
+                meal: { title: "", time: "" }
+            },
+            bride: {
+                events: [],
+                title: "",
+                date: "",
                 time: "",
                 address: "",
                 location: "",
@@ -154,7 +181,9 @@ function createEmptyAdminConfig() {
                 meal: { title: "", time: "" }
             },
             groom: {
+                events: [],
                 title: "",
+                date: "",
                 time: "",
                 address: "",
                 location: "",
@@ -162,7 +191,10 @@ function createEmptyAdminConfig() {
                 meal: { title: "", time: "" }
             }
         },
-        gallery: { photos: [] },
+        gallery: {
+            intro: { eyebrow: "", script: "", title: "", sideText: "" },
+            photos: []
+        },
         gift: {
             groom: { qr: "", bank: "", accountName: "", accountNumber: "" },
             bride: { qr: "", bank: "", accountName: "", accountNumber: "" }
@@ -173,8 +205,11 @@ function createEmptyAdminConfig() {
             timeline: "",
             gallery: "",
             wish: "",
-            gift: { title: "" },
-            countdown: { title: "" },
+            gift: { title: "", description: "", openLabel: "" },
+            countdown: {
+                title: "",
+                labels: { days: "Ngày", hours: "Giờ", minutes: "Phút", seconds: "Giây" }
+            },
             thanks: { title: "" }
         },
         sectionSubtitles: {
@@ -187,8 +222,292 @@ function createEmptyAdminConfig() {
             countdown: "",
             thanks: []
         },
-        builder: {}
+        wish: {
+            namePlaceholder: "Họ và tên",
+            messagePlaceholder: "Gửi lời chúc đến cô dâu và chú rể...",
+            submit: "Gửi lời chúc",
+            loadMore: "Xem thêm",
+            collapse: "Thu gọn",
+            attendanceLabel: "Xác nhận tham dự",
+            validation: {
+                noName: "Vui lòng nhập tên.",
+                noMessage: "Vui lòng nhập lời chúc."
+            },
+            messages: {
+                success: "Đã gửi lời chúc!",
+                error: "Gửi thất bại."
+            }
+        }
     };
+}
+
+const EVENT_ICON_OPTIONS = [
+    { id: "cup", label: "Ly / tiệc" },
+    { id: "hearts", label: "Tim / lễ" },
+    { id: "star", label: "Sao" },
+    { id: "ring", label: "Nhẫn" },
+    { id: "cake", label: "Bánh" },
+    { id: "church", label: "Nhà thờ" },
+    { id: "champagne", label: "Champagne" }
+];
+
+const MAX_ADMIN_EVENTS = 8;
+
+/** In-memory events editor state */
+let ceremonyEventsState = {
+    bride: [],
+    groom: [],
+    joint: []
+};
+
+function uidEvent(role) {
+    return `${role}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function defaultEventsForRole(role, mainDate = "") {
+    const date = mainDate || "";
+    if (role === "joint") {
+        return [
+            { id: uidEvent("joint"), title: "TIỆC CƯỚI", date, time: "18:00", icon: "cup" },
+            { id: uidEvent("joint"), title: "LỄ THÀNH HÔN", date, time: "19:00", icon: "hearts" }
+        ];
+    }
+    if (role === "bride") {
+        return [
+            { id: uidEvent("bride"), title: "BỮA CƠM THÂN MẬT", date, time: "17:00", icon: "cup" },
+            { id: uidEvent("bride"), title: "LỄ VU QUY", date, time: "10:00", icon: "hearts" }
+        ];
+    }
+    return [
+        { id: uidEvent("groom"), title: "BỮA CƠM THÂN MẬT", date, time: "16:00", icon: "cup" },
+        { id: uidEvent("groom"), title: "LỄ THÀNH HÔN", date, time: "17:00", icon: "hearts" }
+    ];
+}
+
+function normalizeEventItem(raw, role, mainDate = "") {
+    const e = raw && typeof raw === "object" ? raw : {};
+    return {
+        id: String(e.id || uidEvent(role)),
+        title: String(e.title || "").trim(),
+        date: String(e.date || mainDate || "").trim(),
+        time: String(e.time || "").trim(),
+        icon: String(e.icon || "hearts").trim() || "hearts"
+    };
+}
+
+/** Ưu tiên events[]; fallback mirror legacy title/time/meal */
+function eventsFromHouse(house, role, mainDate = "") {
+    const h = house || {};
+    if (Array.isArray(h.events) && h.events.length) {
+        return h.events.map(ev => normalizeEventItem(ev, role, mainDate || h.date));
+    }
+    const mealTitle = h.meal?.title || "";
+    const mealTimeRaw = String(h.meal?.time || "").trim();
+    // "17:00 • 11.09.2026" → time + optional date
+    let mealTime = mealTimeRaw;
+    let mealDate = mainDate || h.date || "";
+    const bullet = mealTimeRaw.split("•").map(s => s.trim());
+    if (bullet.length >= 1 && /^\d{1,2}:\d{2}/.test(bullet[0])) {
+        mealTime = bullet[0];
+    }
+    const list = [];
+    if (mealTitle || mealTime) {
+        list.push(normalizeEventItem({
+            id: `${role}_meal`,
+            title: mealTitle,
+            date: mealDate,
+            time: mealTime,
+            icon: "cup"
+        }, role, mainDate));
+    }
+    if (h.title || h.time) {
+        list.push(normalizeEventItem({
+            id: `${role}_ceremony`,
+            title: h.title || "",
+            date: h.date || mainDate || "",
+            time: h.time || "",
+            icon: "hearts"
+        }, role, mainDate));
+    }
+    return list.length ? list : defaultEventsForRole(role, mainDate);
+}
+
+function formatMealTimeMirror(dateStr, timeStr) {
+    const t = String(timeStr || "").trim() || "18:00";
+    const d = String(dateStr || "").trim();
+    if (!d) return t;
+    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return t;
+    return `${t} • ${m[3]}.${m[2]}.${m[1]}`;
+}
+
+function buildLegacyMirrorFromEvents(events, role, mainDate) {
+    const list = (Array.isArray(events) ? events : [])
+        .map(e => normalizeEventItem(e, role, mainDate))
+        .filter(e => e.title || e.time || e.date);
+    if (!list.length) return null;
+    const first = list[0];
+    const second = list[1] || first;
+    const defaultMeal = role === "joint" ? "TIỆC CƯỚI" : "BỮA CƠM THÂN MẬT";
+    const defaultCeremony = role === "bride" ? "LỄ VU QUY" : "LỄ THÀNH HÔN";
+    return {
+        title: second.title || defaultCeremony,
+        date: second.date || mainDate || "",
+        time: second.time || (role === "bride" ? "10:00" : "17:00"),
+        meal: {
+            title: first.title || defaultMeal,
+            time: formatMealTimeMirror(first.date || mainDate, first.time || "18:00")
+        }
+    };
+}
+
+function iconOptionsHtml(selected) {
+    return EVENT_ICON_OPTIONS.map(opt =>
+        `<option value="${opt.id}" ${opt.id === selected ? "selected" : ""}>${opt.label}</option>`
+    ).join("");
+}
+
+function renderCeremonyEventsList(role) {
+    const list = document.getElementById(`${role}EventsList`);
+    if (!list) return;
+    const events = ceremonyEventsState[role] || [];
+    list.textContent = "";
+    events.forEach((ev, index) => {
+        const row = document.createElement("div");
+        row.className = "admin-event-row";
+        row.dataset.eventId = ev.id;
+        row.innerHTML = `
+            <div class="admin-event-row__head">
+                <strong>Sự kiện ${index + 1}</strong>
+                <div class="admin-event-row__actions">
+                    <button type="button" class="ghost small" data-ev-move="-1" ${index === 0 ? "disabled" : ""} title="Lên"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="ghost small" data-ev-move="1" ${index === events.length - 1 ? "disabled" : ""} title="Xuống"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="ghost small danger" data-ev-remove title="Xóa"><i class="bi bi-trash"></i></button>
+                </div>
+            </div>
+            <div class="grid two admin-event-row__fields">
+                <label>Tên sự kiện<input data-ev-field="title" value="${escapeAttr(ev.title)}"></label>
+                <label>Icon<select data-ev-field="icon">${iconOptionsHtml(ev.icon)}</select></label>
+                <label>Ngày<input data-ev-field="date" type="date" value="${escapeAttr(ev.date)}"></label>
+                <label>Giờ<input data-ev-field="time" type="time" value="${escapeAttr(normalizeTimeInput(ev.time))}"></label>
+            </div>
+        `;
+        list.appendChild(row);
+    });
+    const addBtn = document.querySelector(`[data-add-events="${role}"]`);
+    if (addBtn) {
+        const full = events.length >= MAX_ADMIN_EVENTS;
+        addBtn.disabled = full;
+        addBtn.title = full ? `Tối đa ${MAX_ADMIN_EVENTS} sự kiện` : "Thêm sự kiện";
+    }
+}
+
+function escapeAttr(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;");
+}
+
+function normalizeTimeInput(value) {
+    const s = String(value || "").trim();
+    const m = s.match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return "";
+    return `${m[1].padStart(2, "0")}:${m[2]}`;
+}
+
+function syncEventsStateFromDom(role) {
+    const list = document.getElementById(`${role}EventsList`);
+    if (!list) return;
+    const next = [];
+    list.querySelectorAll(".admin-event-row").forEach(row => {
+        const id = row.dataset.eventId || uidEvent(role);
+        const get = name => row.querySelector(`[data-ev-field="${name}"]`)?.value?.trim() || "";
+        next.push(normalizeEventItem({
+            id,
+            title: get("title"),
+            date: get("date"),
+            time: get("time"),
+            icon: get("icon")
+        }, role));
+    });
+    ceremonyEventsState[role] = next;
+}
+
+function loadCeremonyEventsFromConfig(config) {
+    const mainDate = config?.date || "";
+    const c = config?.ceremony || {};
+    ceremonyEventsState = {
+        bride: eventsFromHouse(c.bride, "bride", mainDate),
+        groom: eventsFromHouse(c.groom, "groom", mainDate),
+        joint: eventsFromHouse(c.joint, "joint", mainDate)
+    };
+    ["bride", "groom", "joint"].forEach(renderCeremonyEventsList);
+}
+
+function syncCeremonyModeUI() {
+    const mode = form?.elements?.["ceremony.mode"]?.value === "joint" ? "joint" : "separate";
+    const sep = document.getElementById("adminCeremonySeparate");
+    const joint = document.getElementById("adminCeremonyJoint");
+    if (sep) sep.hidden = mode === "joint";
+    if (joint) joint.hidden = mode !== "joint";
+    populateBlockSelects(mode);
+}
+
+function populateFontSelects() {
+    const bodySel = document.getElementById("adminFontBody");
+    const nickSel = document.getElementById("adminFontNickname");
+    if (bodySel && !bodySel.options.length) {
+        Object.keys(BODY_FONT_STACKS).forEach(id => {
+            const opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = id;
+            bodySel.appendChild(opt);
+        });
+    }
+    if (nickSel && !nickSel.options.length) {
+        Object.keys(NICKNAME_FONT_STACKS).forEach(id => {
+            const opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = id;
+            nickSel.appendChild(opt);
+        });
+    }
+}
+
+function populateBlockSelects(ceremonyMode) {
+    const mode = ceremonyMode === "joint" || form?.elements?.["ceremony.mode"]?.value === "joint"
+        ? "joint"
+        : "separate";
+    const context = { ceremonyMode: mode };
+    document.querySelectorAll("[data-block-section]").forEach(select => {
+        const sectionId = select.dataset.blockSection;
+        const current = select.value;
+        const skinIds = getSectionSkinIds(sectionId, context);
+        const section = getBuildableSections().find(s => s.id === sectionId);
+        const defaultSkin = section?.defaultSkin || "concept-1";
+        select.textContent = "";
+        if (!skinIds.length) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "—";
+            select.appendChild(opt);
+            select.disabled = true;
+            return;
+        }
+        select.disabled = false;
+        skinIds.forEach(skinId => {
+            const skin = getSkin(skinId);
+            const opt = document.createElement("option");
+            opt.value = skinId;
+            opt.textContent = skin?.label || skinId;
+            select.appendChild(opt);
+        });
+        const normalized = normalizeSkinId(current, defaultSkin);
+        select.value = skinIds.includes(normalized)
+            ? normalized
+            : (skinIds.includes(defaultSkin) ? defaultSkin : skinIds[0]);
+    });
 }
 
 function getActiveMediaConcept() {
@@ -1212,22 +1531,33 @@ async function openWeddingEditor(weddingId) {
 
 function fillForm(config) {
     currentConfig = mergeConfig(createEmptyAdminConfig(), config || {});
-    // Ưu tiên payment đúng theo config đã tải (không merge ảo)
     if (config && Object.prototype.hasOwnProperty.call(config, "payment")) {
         currentConfig.payment = { ...(config.payment || {}) };
     }
-    // Catalog nhạc không thuộc doc thiệp
     delete currentConfig.musicLibrary;
+
+    populateFontSelects();
+
+    // Blocks trước — options phụ thuộc mode
+    const mode = currentConfig.ceremony?.mode === "joint" ? "joint" : "separate";
+    if (form?.elements?.["ceremony.mode"]) {
+        form.elements["ceremony.mode"].value = mode;
+    }
+    populateBlockSelects(mode);
 
     [...form.elements].forEach(field => {
         if (!field.name || field.name === "theme.primaryColorText") return;
-        if (field.name === "guests") return; // xử lý riêng
-        if (field.name === "plan") return;
+        if (field.name === "guests" || field.name === "plan") return;
+        // Events managed separately
+        if (field.closest?.(".admin-events")) return;
         const value = getByPath(currentConfig, field.name);
-        field.value = Array.isArray(value) ? value.join("\n") : value ?? "";
+        if (value === undefined || value === null) {
+            field.value = "";
+            return;
+        }
+        field.value = Array.isArray(value) ? value.join("\n") : value;
     });
 
-    // Gói thiệp + guests
     const plan = currentConfig.payment?.plan === "multi" || currentConfig.plan === "multi"
         || (Array.isArray(currentConfig.guests) && currentConfig.guests.length)
         ? "multi"
@@ -1240,31 +1570,75 @@ function fillForm(config) {
             : "";
     }
 
+    // Fonts
+    const fonts = currentConfig.theme?.fonts || {};
+    if (form.elements["theme.fonts.body"] && fonts.body) {
+        form.elements["theme.fonts.body"].value = fonts.body;
+    }
+    if (form.elements["theme.fonts.nickname"] && fonts.nickname) {
+        form.elements["theme.fonts.nickname"].value = fonts.nickname;
+    }
+
+    // Blocks values
+    const blocks = { ...getDefaultBlocksConfig(), ...(currentConfig.theme?.blocks || {}) };
+    Object.entries(blocks).forEach(([key, skin]) => {
+        const sel = form?.elements?.[`theme.blocks.${key}`];
+        if (sel && skin) {
+            const ids = [...sel.options].map(o => o.value);
+            const n = normalizeSkinId(skin, "concept-1");
+            if (ids.includes(n)) sel.value = n;
+        }
+    });
+
+    loadCeremonyEventsFromConfig(currentConfig);
+    syncCeremonyModeUI();
+
     syncColorInputs(currentConfig.theme?.primaryColor || DEFAULT_PRIMARY);
-    // Form trống: xóa luôn ô load ID; khi đã tải: đồng bộ weddingId
     loadInput.value = currentConfig.weddingId || "";
     updatePreviewLink(currentConfig.weddingId || "", currentConfig.payment?.accessToken || "");
 }
 
 function readForm() {
+    // Sync events from DOM first
+    ["bride", "groom", "joint"].forEach(syncEventsStateFromDom);
+
     const nextConfig = mergeConfig(createEmptyAdminConfig(), currentConfig);
 
     [...form.elements].forEach(field => {
         if (!field.name || field.name === "theme.primaryColorText") return;
         if (field.name === "guests" || field.name === "plan") return;
+        if (field.closest?.(".admin-events")) return;
 
         let value = field.value.trim();
         if (field.name === "sectionSubtitles.thanks") {
             value = value.split("\n").map(line => line.trim()).filter(Boolean);
         }
-
         setByPath(nextConfig, field.name, value);
     });
 
     nextConfig.theme.primaryColor = form.elements["theme.primaryColorText"].value.trim() || DEFAULT_PRIMARY;
+
+    // Fonts
+    nextConfig.theme.fonts = {
+        body: form.elements["theme.fonts.body"]?.value?.trim() || "quicksand",
+        nickname: form.elements["theme.fonts.nickname"]?.value?.trim() || "great-vibes"
+    };
+
+    // Blocks
+    const blocks = { ...getDefaultBlocksConfig() };
+    getBuildableSections().forEach(section => {
+        const sel = form.elements[`theme.blocks.${section.id}`];
+        if (sel?.value) {
+            blocks[section.id] = normalizeSkinId(sel.value, section.defaultSkin);
+        }
+    });
+    nextConfig.theme.blocks = blocks;
+
+    // Gallery photos
+    nextConfig.gallery = nextConfig.gallery || {};
     nextConfig.gallery.photos = Array.from({ length: GALLERY_SIZE }, (_, index) => ({
-        src: form.elements[`gallery.photos.${index}.src`].value.trim(),
-        alt: form.elements[`gallery.photos.${index}.alt`].value.trim() || `Ảnh cưới ${index + 1}`
+        src: form.elements[`gallery.photos.${index}.src`]?.value?.trim() || "",
+        alt: form.elements[`gallery.photos.${index}.alt`]?.value?.trim() || `Ảnh cưới ${index + 1}`
     })).filter(photo => photo.src);
 
     // Plan + guests
@@ -1280,6 +1654,55 @@ function readForm() {
         ...(nextConfig.payment || {}),
         ...(currentConfig.payment || {}),
         plan
+    };
+
+    // Ceremony events + optional legacy mirror
+    const mainDate = nextConfig.date || "";
+    const mode = form.elements["ceremony.mode"]?.value === "joint" ? "joint" : "separate";
+    nextConfig.ceremony = nextConfig.ceremony || {};
+    nextConfig.ceremony.mode = mode;
+
+    ["bride", "groom", "joint"].forEach(role => {
+        const events = (ceremonyEventsState[role] || [])
+            .map(e => normalizeEventItem(e, role, mainDate));
+        const house = { ...(nextConfig.ceremony[role] || {}), events };
+        const mirror = buildLegacyMirrorFromEvents(events, role, mainDate);
+        if (mirror) {
+            house.title = mirror.title;
+            house.date = mirror.date;
+            house.time = mirror.time;
+            house.meal = mirror.meal;
+            // Reflect into named form fields for consistency next fill
+            if (form.elements[`ceremony.${role}.title`]) {
+                form.elements[`ceremony.${role}.title`].value = mirror.title;
+            }
+            if (form.elements[`ceremony.${role}.time`]) {
+                form.elements[`ceremony.${role}.time`].value = mirror.time;
+            }
+            if (form.elements[`ceremony.${role}.date`]) {
+                form.elements[`ceremony.${role}.date`].value = mirror.date;
+            }
+            if (form.elements[`ceremony.${role}.meal.title`]) {
+                form.elements[`ceremony.${role}.meal.title`].value = mirror.meal.title;
+            }
+            if (form.elements[`ceremony.${role}.meal.time`]) {
+                form.elements[`ceremony.${role}.meal.time`].value = mirror.meal.time;
+            }
+        }
+        nextConfig.ceremony[role] = house;
+    });
+
+    // Cover
+    nextConfig.cover = {
+        ...(nextConfig.cover || {}),
+        headline: form.elements["cover.headline"]?.value?.trim() || "TRÂN TRỌNG KÍNH MỜI",
+        guest: form.elements["cover.guest"]?.value?.trim() || "Quý khách"
+    };
+
+    // Keep builder meta
+    nextConfig.builder = {
+        ...(currentConfig.builder || {}),
+        ...(nextConfig.builder || {})
     };
 
     return nextConfig;
@@ -1653,6 +2076,64 @@ function initEvents() {
     });
 
     form?.addEventListener("submit", saveConfig);
+    form?.elements?.["ceremony.mode"]?.addEventListener("change", () => {
+        syncEventsStateFromDom("bride");
+        syncEventsStateFromDom("groom");
+        syncEventsStateFromDom("joint");
+        syncCeremonyModeUI();
+    });
+    form?.addEventListener("click", event => {
+        const addBtn = event.target.closest("[data-add-events]");
+        if (addBtn) {
+            event.preventDefault();
+            const role = addBtn.dataset.addEvents;
+            syncEventsStateFromDom(role);
+            if ((ceremonyEventsState[role] || []).length >= MAX_ADMIN_EVENTS) return;
+            const mainDate = form.elements.date?.value || "";
+            ceremonyEventsState[role] = [
+                ...(ceremonyEventsState[role] || []),
+                normalizeEventItem({
+                    id: uidEvent(role),
+                    title: "",
+                    date: mainDate,
+                    time: "10:00",
+                    icon: "hearts"
+                }, role, mainDate)
+            ];
+            renderCeremonyEventsList(role);
+            return;
+        }
+        const row = event.target.closest(".admin-event-row");
+        if (!row) return;
+        const list = row.closest(".admin-events");
+        const role = list?.dataset?.ceremonyRole;
+        if (!role) return;
+        if (event.target.closest("[data-ev-remove]")) {
+            event.preventDefault();
+            syncEventsStateFromDom(role);
+            const id = row.dataset.eventId;
+            ceremonyEventsState[role] = (ceremonyEventsState[role] || []).filter(e => e.id !== id);
+            if (!ceremonyEventsState[role].length) {
+                ceremonyEventsState[role] = defaultEventsForRole(role, form.elements.date?.value || "");
+            }
+            renderCeremonyEventsList(role);
+            return;
+        }
+        const moveBtn = event.target.closest("[data-ev-move]");
+        if (moveBtn) {
+            event.preventDefault();
+            syncEventsStateFromDom(role);
+            const delta = Number(moveBtn.dataset.evMove || 0);
+            const id = row.dataset.eventId;
+            const arr = [...(ceremonyEventsState[role] || [])];
+            const idx = arr.findIndex(e => e.id === id);
+            const j = idx + delta;
+            if (idx < 0 || j < 0 || j >= arr.length) return;
+            [arr[idx], arr[j]] = [arr[j], arr[idx]];
+            ceremonyEventsState[role] = arr;
+            renderCeremonyEventsList(role);
+        }
+    });
     musicForm?.addEventListener("submit", saveMusicItem);
     paymentSettingsForm?.addEventListener("submit", savePaymentSettings);
     paymentList?.addEventListener("click", handlePaymentListClick);
@@ -1718,6 +2199,8 @@ function initEvents() {
 
 try {
     fillGalleryFields();
+    populateFontSelects();
+    populateBlockSelects("separate");
     fillForm(createEmptyAdminConfig());
     initEvents();
 } catch (error) {

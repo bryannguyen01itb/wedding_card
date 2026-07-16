@@ -104,6 +104,127 @@ input[type=color] {
 .span-2 {
     grid-column:1/-1
 }
+
+/* Jump nav trong form sửa thiệp */
+.admin-form-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: sticky;
+    top: 8px;
+    z-index: 12;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--admin-primary-rgb), .16);
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(20, 50, 40, .08);
+}
+.admin-form-nav a {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--admin-primary-rgb), .14);
+    background: rgba(var(--admin-primary-rgb), .06);
+    color: var(--admin-ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.admin-form-nav a:hover {
+    background: var(--admin-primary);
+    border-color: transparent;
+    color: #fff;
+}
+.admin-subhead {
+    margin: 18px 0 10px;
+    color: var(--admin-primary);
+    font-size: 15px;
+    font-weight: 800;
+}
+.title-pair-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+.field-pair {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--admin-primary-rgb), .12);
+    background: rgba(255, 255, 255, .55);
+}
+.admin-ceremony-block {
+    margin-top: 14px;
+}
+.admin-events {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.admin-event-row {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--admin-primary-rgb), .14);
+    background: rgba(255, 255, 255, .72);
+}
+.admin-event-row__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.admin-event-row__head strong {
+    font-size: 13px;
+    color: var(--admin-primary);
+}
+.admin-event-row__actions {
+    display: flex;
+    gap: 4px;
+}
+.admin-event-row__fields {
+    gap: 10px !important;
+}
+.admin-events-add {
+    margin-bottom: 12px;
+    width: fit-content;
+}
+.admin-legacy-details {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(var(--admin-primary-rgb), .22);
+    background: rgba(var(--admin-primary-rgb), .04);
+}
+.admin-legacy-details summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--admin-muted, #5a6b62);
+    margin-bottom: 8px;
+}
+.admin-legacy-details[open] summary {
+    margin-bottom: 12px;
+}
+.admin-legacy-details label {
+    margin-bottom: 8px;
+}
+@media (max-width: 900px) {
+    .title-pair-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-form-nav {
+        top: 56px;
+    }
+    #weddingEditPanel:not([hidden]) .sticky-actions {
+        left: 0;
+    }
+}
+
 .gallery-fields {
     display:grid;
     gap:12px

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
     <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-3">
-    <link rel="stylesheet" href="admin.css?v=list-head2">
+    <link rel="stylesheet" href="admin.css?v=full-fields-1">
 </head>
 <body>
     <main class="admin-shell">
@@ -117,34 +117,76 @@
                     </section>
 
                     <form id="adminForm" class="admin-form">
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-stars"></i><div><h2>Thông tin chung</h2><p>Mã thiệp, ngày cưới, màu chủ đạo và nhạc.</p></div></div>
+                        <nav class="admin-form-nav" id="adminFormNav" aria-label="Nhảy tới nhóm field">
+                            <a href="#af-general">Chung</a>
+                            <a href="#af-theme">Giao diện</a>
+                            <a href="#af-media">Ảnh</a>
+                            <a href="#af-couple">Cặp đôi</a>
+                            <a href="#af-ceremony">Lịch trình</a>
+                            <a href="#af-titles">Tiêu đề</a>
+                            <a href="#af-about-card">About card</a>
+                            <a href="#af-gallery">Gallery</a>
+                            <a href="#af-gift">Mừng cưới</a>
+                            <a href="#af-wish">Lời chúc</a>
+                        </nav>
+
+                        <section class="panel" id="af-general">
+                            <div class="panel-title"><i class="bi bi-stars"></i><div><h2>1. Thông tin chung</h2><p>Mã thiệp, ngày, gói, bìa, nhạc.</p></div></div>
                             <div class="grid two">
                                 <label>Wedding ID<input name="weddingId" required></label>
                                 <label>Ngày cưới<input name="date" type="date" required></label>
-                                <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
-                                <label class="span-2">Link nhạc<input name="music" placeholder="https://...mp3 hoặc music/1_doi.mp3"></label>
                                 <label>Gói thiệp
                                     <select name="plan" id="adminInvitePlan">
                                         <option value="single">1 link (Quý khách)</option>
                                         <option value="multi">Nhiều link theo khách</option>
                                     </select>
                                 </label>
-                                <label class="span-2">Danh sách khách (mỗi dòng 1 tên — chỉ gói nhiều link)
-                                    <textarea name="guests" id="adminGuests" rows="4" placeholder="Anh A&#10;Chị B"></textarea>
+                                <label>Link nhạc<input name="music" placeholder="https://…mp3 hoặc music/1_doi.mp3"></label>
+                                <label class="span-2">Danh sách khách (mỗi dòng 1 tên — gói multi)
+                                    <textarea name="guests" id="adminGuests" rows="3" placeholder="Anh A&#10;Chị B"></textarea>
                                 </label>
+                                <label>Cover — headline<input name="cover.headline" placeholder="TRÂN TRỌNG KÍNH MỜI"></label>
+                                <label>Cover — tên khách mặc định<input name="cover.guest" placeholder="Quý khách"></label>
                             </div>
-                            <p class="hint">Đổi gói trên form rồi <strong>Lưu Firebase</strong>, hoặc dùng nút <strong>1 link / Nhiều link</strong> trên danh sách thiệp (có hỏi cập nhật giá).</p>
+                            <p class="hint">Đổi gói trên form rồi <strong>Lưu Firebase</strong>, hoặc nút trên danh sách thiệp.</p>
                         </section>
 
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-image"></i><div><h2>Ảnh chính</h2><p>Dán link Cloudinary/GitHub hoặc đường dẫn local.</p></div></div>
+                        <section class="panel" id="af-theme">
+                            <div class="panel-title"><i class="bi bi-palette-fill"></i><div><h2>2. Giao diện &amp; phông</h2><p>Màu, concept từng block, font body / nickname.</p></div></div>
                             <div class="grid two">
-                                <label>Ảnh poster<input name="poster.image"></label>
-                                <label>Ảnh preview gửi link<input name="preview.image"></label>
-                                <label>Ảnh about<input name="aboutCard.image"></label>
+                                <label>Màu chủ đạo<div class="color-row"><input name="theme.primaryColor" type="color"><input name="theme.primaryColorText" type="text"></div></label>
+                                <label>Phông thiệp (body)<select name="theme.fonts.body" id="adminFontBody"></select></label>
+                                <label>Phông nickname<select name="theme.fonts.nickname" id="adminFontNickname"></select></label>
+                            </div>
+                            <h3 class="admin-subhead">Concept từng phần thiệp</h3>
+                            <div class="grid two" id="adminBlockSelects">
+                                <label>Cover / bìa<select name="theme.blocks.cover" data-block-section="cover"></select></label>
+                                <label>Poster<select name="theme.blocks.poster" data-block-section="poster"></select></label>
+                                <label>Save the date<select name="theme.blocks.saveDate" data-block-section="saveDate"></select></label>
+                                <label>Đôi nét<select name="theme.blocks.about" data-block-section="about"></select></label>
+                                <label>Lịch trình<select name="theme.blocks.timeline" data-block-section="timeline" id="adminBlockTimeline"></select></label>
+                                <label>Album ảnh<select name="theme.blocks.gallery" data-block-section="gallery"></select></label>
+                                <label>Đếm ngược<select name="theme.blocks.countdown" data-block-section="countdown"></select></label>
+                                <label>Icon ngăn cách<select name="theme.blocks.divider" data-block-section="divider"></select></label>
+                            </div>
+                            <p class="hint">Lịch trình: concept joint-1…3 chỉ khi mode = tổ chức chung.</p>
+                        </section>
+
+                        <section class="panel" id="af-media">
+                            <div class="panel-title"><i class="bi bi-image"></i><div><h2>3. Ảnh &amp; media</h2><p>Dán link Cloudinary / local. Ảnh concept media theo slot concept-1…4.</p></div></div>
+                            <div class="grid two">
+                                <label>Ảnh poster / đầu thiệp<input name="poster.image"></label>
+                                <label>Ảnh preview gửi link (OG)<input name="preview.image"></label>
+                                <label>Ảnh about (đôi)<input name="aboutCard.image"></label>
                                 <label>Ảnh timeline<input name="ceremony.image"></label>
-                                <label>Nhóm ảnh block<select id="mediaConcept"><option value="concept-1">Concept 1</option><option value="concept-2">Concept 2</option><option value="concept-3">Concept 3</option><option value="concept-4">Concept 4</option></select></label>
+                                <label>Nhóm concept media
+                                    <select id="mediaConcept">
+                                        <option value="concept-1">Concept 1</option>
+                                        <option value="concept-2">Concept 2</option>
+                                        <option value="concept-3">Concept 3</option>
+                                        <option value="concept-4">Concept 4</option>
+                                    </select>
+                                </label>
                                 <label>Ảnh nền block<input name="theme.concepts.active.images.background"></label>
                                 <label>Ảnh cover block<input name="theme.concepts.active.images.cover"></label>
                                 <label>Ảnh countdown block<input name="theme.concepts.active.images.countdown"></label>
@@ -152,50 +194,210 @@
                             </div>
                         </section>
 
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-people-fill"></i><div><h2>Cô dâu & chú rể</h2><p>Nickname dùng cho bìa/poster, họ tên đầy đủ dùng trong about.</p></div></div>
+                        <section class="panel" id="af-couple">
+                            <div class="panel-title"><i class="bi bi-people-fill"></i><div><h2>4. Cô dâu &amp; chú rể</h2><p>Nickname trên bìa/poster; họ tên &amp; phụ huynh trong about.</p></div></div>
                             <div class="split-panels">
-                                <div class="mini-panel"><h3>Chú rể</h3><label>Nickname<input name="groom.nickname"></label><label>Họ tên<input name="groom.fullName"></label><label>Bố<input name="groom.father"></label><label>Mẹ<input name="groom.mother"></label><label>Ảnh<input name="groom.avatar"></label></div>
-                                <div class="mini-panel"><h3>Cô dâu</h3><label>Nickname<input name="bride.nickname"></label><label>Họ tên<input name="bride.fullName"></label><label>Bố<input name="bride.father"></label><label>Mẹ<input name="bride.mother"></label><label>Ảnh<input name="bride.avatar"></label></div>
+                                <div class="mini-panel">
+                                    <h3>Chú rể</h3>
+                                    <label>Nickname<input name="groom.nickname"></label>
+                                    <label>Họ tên<input name="groom.fullName"></label>
+                                    <label>Bố<input name="groom.father"></label>
+                                    <label>Mẹ<input name="groom.mother"></label>
+                                    <label>Ảnh avatar<input name="groom.avatar"></label>
+                                </div>
+                                <div class="mini-panel">
+                                    <h3>Cô dâu</h3>
+                                    <label>Nickname<input name="bride.nickname"></label>
+                                    <label>Họ tên<input name="bride.fullName"></label>
+                                    <label>Bố<input name="bride.father"></label>
+                                    <label>Mẹ<input name="bride.mother"></label>
+                                    <label>Ảnh avatar<input name="bride.avatar"></label>
+                                </div>
                             </div>
                         </section>
 
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-calendar-heart"></i><div><h2>Lịch trình</h2><p>Nhập giờ lễ, bữa cơm, địa chỉ và link chỉ đường.</p></div></div>
-                            <div class="split-panels">
-                                <div class="mini-panel"><h3>Nhà gái</h3><label>Tên lễ<input name="ceremony.bride.title"></label><label>Giờ lễ<input name="ceremony.bride.time"></label><label>Tên bữa cơm<input name="ceremony.bride.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.bride.meal.time"></label><label>Địa chỉ<textarea name="ceremony.bride.address" rows="2"></textarea></label><label>Tỉnh/TP poster<input name="ceremony.bride.location" placeholder="vd: Hà Nội"></label><label>Maps<input name="ceremony.bride.mapUrl"></label></div>
-                                <div class="mini-panel"><h3>Nhà trai</h3><label>Tên lễ<input name="ceremony.groom.title"></label><label>Giờ lễ<input name="ceremony.groom.time"></label><label>Tên bữa cơm<input name="ceremony.groom.meal.title"></label><label>Thời gian bữa cơm<input name="ceremony.groom.meal.time"></label><label>Địa chỉ<textarea name="ceremony.groom.address" rows="2"></textarea></label><label>Tỉnh/TP poster<input name="ceremony.groom.location" placeholder="vd: Hải Phòng"></label><label>Maps<input name="ceremony.groom.mapUrl"></label></div>
-                            </div>
-                        </section>
-
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-card-text"></i><div><h2>Tiêu đề & mô tả section</h2><p>Để trống subtitle nếu không muốn hiển thị.</p></div></div>
+                        <section class="panel" id="af-ceremony">
+                            <div class="panel-title"><i class="bi bi-calendar-heart"></i><div><h2>5. Lịch trình</h2><p>Mode riêng/chung, sự kiện (events), địa chỉ, maps.</p></div></div>
                             <div class="grid two">
-                                <label>About title<input name="sections.about"></label><label>About subtitle<textarea name="sectionSubtitles.about" rows="3"></textarea></label>
-                                <label>Timeline title<input name="sections.timeline"></label><label>Timeline subtitle<textarea name="sectionSubtitles.timeline" rows="3"></textarea></label>
-                                <label>Gallery title<input name="sections.gallery"></label><label>Gallery subtitle<textarea name="sectionSubtitles.gallery" rows="3"></textarea></label>
-                                <label>Wish title<input name="sections.wish"></label><label>Wish subtitle<textarea name="sectionSubtitles.wish" rows="3"></textarea></label>
-                                <label>Gift title<input name="sections.gift.title"></label><label>Gift subtitle<textarea name="sectionSubtitles.gift" rows="3"></textarea></label>
-                                <label>Thanks title<input name="sections.thanks.title"></label><label>Thanks subtitle, mỗi dòng là một đoạn<textarea name="sectionSubtitles.thanks" rows="5"></textarea></label>
+                                <label>Chế độ tổ chức
+                                    <select name="ceremony.mode" id="adminCeremonyMode">
+                                        <option value="separate">Riêng (nhà trai / nhà gái)</option>
+                                        <option value="joint">Chung (1 địa điểm)</option>
+                                    </select>
+                                </label>
+                                <label>Nhãn nút chỉ đường<input name="ceremony.mapButtonLabel" placeholder="Chỉ đường"></label>
+                            </div>
+
+                            <div id="adminCeremonySeparate" class="admin-ceremony-block">
+                                <div class="split-panels">
+                                    <div class="mini-panel">
+                                        <h3>Nhà gái</h3>
+                                        <div id="brideEventsList" class="admin-events" data-ceremony-role="bride"></div>
+                                        <button type="button" class="ghost small admin-events-add" data-add-events="bride"><i class="bi bi-plus-lg"></i> Thêm sự kiện</button>
+                                        <label>Địa chỉ<textarea name="ceremony.bride.address" rows="2"></textarea></label>
+                                        <label>Tỉnh/TP poster<input name="ceremony.bride.location" placeholder="vd: Hà Nội"></label>
+                                        <label>Maps<input name="ceremony.bride.mapUrl"></label>
+                                        <details class="admin-legacy-details">
+                                            <summary>Mirror legacy (title/time/meal)</summary>
+                                            <label>Tên lễ<input name="ceremony.bride.title"></label>
+                                            <label>Giờ lễ<input name="ceremony.bride.time"></label>
+                                            <label>Ngày lễ<input name="ceremony.bride.date" type="date"></label>
+                                            <label>Tên bữa cơm<input name="ceremony.bride.meal.title"></label>
+                                            <label>Thời gian bữa cơm<input name="ceremony.bride.meal.time"></label>
+                                        </details>
+                                    </div>
+                                    <div class="mini-panel">
+                                        <h3>Nhà trai</h3>
+                                        <div id="groomEventsList" class="admin-events" data-ceremony-role="groom"></div>
+                                        <button type="button" class="ghost small admin-events-add" data-add-events="groom"><i class="bi bi-plus-lg"></i> Thêm sự kiện</button>
+                                        <label>Địa chỉ<textarea name="ceremony.groom.address" rows="2"></textarea></label>
+                                        <label>Tỉnh/TP poster<input name="ceremony.groom.location" placeholder="vd: Hải Phòng"></label>
+                                        <label>Maps<input name="ceremony.groom.mapUrl"></label>
+                                        <details class="admin-legacy-details">
+                                            <summary>Mirror legacy (title/time/meal)</summary>
+                                            <label>Tên lễ<input name="ceremony.groom.title"></label>
+                                            <label>Giờ lễ<input name="ceremony.groom.time"></label>
+                                            <label>Ngày lễ<input name="ceremony.groom.date" type="date"></label>
+                                            <label>Tên bữa cơm<input name="ceremony.groom.meal.title"></label>
+                                            <label>Thời gian bữa cơm<input name="ceremony.groom.meal.time"></label>
+                                        </details>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="adminCeremonyJoint" class="admin-ceremony-block" hidden>
+                                <div class="mini-panel">
+                                    <h3>Tổ chức chung</h3>
+                                    <div id="jointEventsList" class="admin-events" data-ceremony-role="joint"></div>
+                                    <button type="button" class="ghost small admin-events-add" data-add-events="joint"><i class="bi bi-plus-lg"></i> Thêm sự kiện</button>
+                                    <label>Địa chỉ<textarea name="ceremony.joint.address" rows="2"></textarea></label>
+                                    <label>Tỉnh/TP poster<input name="ceremony.joint.location"></label>
+                                    <label>Maps<input name="ceremony.joint.mapUrl"></label>
+                                    <details class="admin-legacy-details">
+                                        <summary>Mirror legacy (title/time/meal)</summary>
+                                        <label>Tên lễ<input name="ceremony.joint.title"></label>
+                                        <label>Giờ lễ<input name="ceremony.joint.time"></label>
+                                        <label>Ngày lễ<input name="ceremony.joint.date" type="date"></label>
+                                        <label>Tên tiệc<input name="ceremony.joint.meal.title"></label>
+                                        <label>Thời gian tiệc<input name="ceremony.joint.meal.time"></label>
+                                    </details>
+                                </div>
+                            </div>
+                            <p class="hint">Sửa <strong>events</strong> là nguồn chính. Legacy title/time/meal tự cập nhật khi Lưu (nếu events có dữ liệu). Mirror chi tiết nằm trong mục thu gọn bên dưới mỗi nhà.</p>
+                        </section>
+
+                        <section class="panel" id="af-titles">
+                            <div class="panel-title"><i class="bi bi-card-text"></i><div><h2>6. Tiêu đề &amp; mô tả section</h2><p>Để trống subtitle nếu không muốn hiện.</p></div></div>
+                            <div class="title-pair-grid">
+                                <div class="field-pair">
+                                    <label>Save the date — title<input name="sections.saveDate"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.saveDate" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Đôi nét — title<input name="sections.about"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.about" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Lịch trình — title<input name="sections.timeline"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.timeline" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Album — title<input name="sections.gallery"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.gallery" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Lời chúc — title<input name="sections.wish"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.wish" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Mừng cưới — title<input name="sections.gift.title"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.gift" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Đếm ngược — title<input name="sections.countdown.title"></label>
+                                    <label>Subtitle<textarea name="sectionSubtitles.countdown" rows="2"></textarea></label>
+                                </div>
+                                <div class="field-pair">
+                                    <label>Cảm ơn — title<input name="sections.thanks.title"></label>
+                                    <label>Subtitle (mỗi dòng 1 đoạn)<textarea name="sectionSubtitles.thanks" rows="4"></textarea></label>
+                                </div>
+                            </div>
+                            <h3 class="admin-subhead">Nhãn đếm ngược</h3>
+                            <div class="grid two">
+                                <label>Ngày<input name="sections.countdown.labels.days" placeholder="Ngày"></label>
+                                <label>Giờ<input name="sections.countdown.labels.hours" placeholder="Giờ"></label>
+                                <label>Phút<input name="sections.countdown.labels.minutes" placeholder="Phút"></label>
+                                <label>Giây<input name="sections.countdown.labels.seconds" placeholder="Giây"></label>
+                            </div>
+                            <h3 class="admin-subhead">Gift — mô tả &amp; nút mở</h3>
+                            <div class="grid two">
+                                <label class="span-2">Mô tả hộp quà<textarea name="sections.gift.description" rows="2"></textarea></label>
+                                <label>Nhãn nút mở hộp<input name="sections.gift.openLabel" placeholder="Mở hộp quà"></label>
                             </div>
                         </section>
 
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-images"></i><div><h2>Gallery 7 ảnh</h2><p>Dán link ảnh cưới. Concept 4 dùng cố định 7 ảnh.</p></div></div>
+                        <section class="panel" id="af-about-card">
+                            <div class="panel-title"><i class="bi bi-person-hearts"></i><div><h2>7. About card (concept 1/4)</h2><p>Chữ trên ảnh đôi — script / title / nhãn nhà.</p></div></div>
+                            <div class="grid two">
+                                <label>Script<input name="aboutCard.script" placeholder="First"></label>
+                                <label>Title<input name="aboutCard.title" placeholder="Married"></label>
+                                <label>Nhãn nhà trai<input name="aboutCard.groomLabel" placeholder="NHÀ TRAI"></label>
+                                <label>Nhãn nhà gái<input name="aboutCard.brideLabel" placeholder="NHÀ GÁI"></label>
+                            </div>
+                        </section>
+
+                        <section class="panel" id="af-gallery">
+                            <div class="panel-title"><i class="bi bi-images"></i><div><h2>8. Gallery</h2><p>Intro concept gallery + tối đa 7 ảnh.</p></div></div>
+                            <h3 class="admin-subhead">Intro (concept gallery)</h3>
+                            <div class="grid two">
+                                <label>Eyebrow<input name="gallery.intro.eyebrow" placeholder="WELCOME TO OUR"></label>
+                                <label>Script<input name="gallery.intro.script" placeholder="love"></label>
+                                <label>Title<input name="gallery.intro.title" placeholder="STORY"></label>
+                                <label>Side text<input name="gallery.intro.sideText" placeholder="SAVE THE DATE"></label>
+                            </div>
+                            <h3 class="admin-subhead">7 ảnh album</h3>
                             <div id="galleryFields" class="gallery-fields"></div>
                         </section>
 
-                        <section class="panel">
-                            <div class="panel-title"><i class="bi bi-gift-fill"></i><div><h2>Hộp mừng cưới</h2><p>QR có thể là link ảnh hoặc đường dẫn local.</p></div></div>
+                        <section class="panel" id="af-gift">
+                            <div class="panel-title"><i class="bi bi-gift-fill"></i><div><h2>9. Hộp mừng cưới</h2><p>QR + thông tin tài khoản.</p></div></div>
                             <div class="split-panels">
-                                <div class="mini-panel"><h3>Chú rể</h3><label>QR<input name="gift.groom.qr"></label><label>Ngân hàng<input name="gift.groom.bank"></label><label>Tên TK<input name="gift.groom.accountName"></label><label>Số TK<input name="gift.groom.accountNumber"></label></div>
-                                <div class="mini-panel"><h3>Cô dâu</h3><label>QR<input name="gift.bride.qr"></label><label>Ngân hàng<input name="gift.bride.bank"></label><label>Tên TK<input name="gift.bride.accountName"></label><label>Số TK<input name="gift.bride.accountNumber"></label></div>
+                                <div class="mini-panel">
+                                    <h3>Chú rể</h3>
+                                    <label>QR<input name="gift.groom.qr"></label>
+                                    <label>Ngân hàng<input name="gift.groom.bank"></label>
+                                    <label>Tên TK<input name="gift.groom.accountName"></label>
+                                    <label>Số TK<input name="gift.groom.accountNumber"></label>
+                                </div>
+                                <div class="mini-panel">
+                                    <h3>Cô dâu</h3>
+                                    <label>QR<input name="gift.bride.qr"></label>
+                                    <label>Ngân hàng<input name="gift.bride.bank"></label>
+                                    <label>Tên TK<input name="gift.bride.accountName"></label>
+                                    <label>Số TK<input name="gift.bride.accountNumber"></label>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="panel" id="af-wish">
+                            <div class="panel-title"><i class="bi bi-chat-heart-fill"></i><div><h2>10. Form lời chúc (copy UI)</h2><p>Placeholder / nút / validation — ít đổi nhưng quản lý được.</p></div></div>
+                            <div class="grid two">
+                                <label>Placeholder tên<input name="wish.namePlaceholder"></label>
+                                <label>Placeholder lời chúc<input name="wish.messagePlaceholder"></label>
+                                <label>Nút gửi<input name="wish.submit"></label>
+                                <label>Nút xem thêm<input name="wish.loadMore"></label>
+                                <label>Nút thu gọn<input name="wish.collapse"></label>
+                                <label>Nhãn xác nhận tham dự<input name="wish.attendanceLabel"></label>
+                                <label>Msg thành công<input name="wish.messages.success"></label>
+                                <label>Msg lỗi<input name="wish.messages.error"></label>
+                                <label>Validate thiếu tên<input name="wish.validation.noName"></label>
+                                <label>Validate thiếu lời chúc<input name="wish.validation.noMessage"></label>
                             </div>
                         </section>
 
                         <div class="sticky-actions">
                             <button id="backToWeddingListBtn2" type="button" class="ghost"><i class="bi bi-arrow-left"></i> Về danh sách</button>
-                            <button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Nhập lại mẫu</button>
+                            <button id="resetBtn" type="button" class="ghost"><i class="bi bi-arrow-counterclockwise"></i> Xóa form</button>
                             <button id="saveBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu Firebase</button>
                         </div>
                     </form>
@@ -318,6 +520,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script type="module" src="admin.js?v=push1"></script>
+    <script type="module" src="admin.js?v=full-fields-1"></script>
 </body>
 </html>

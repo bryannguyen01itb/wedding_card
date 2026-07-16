@@ -351,7 +351,7 @@
                         <h2 class="builder-step__title">Ảnh thiệp</h2>
                     </header>
 <div class="card-body">
-                    <p class="hint">Bấm khu vực ảnh để xem trên preview · <strong>Upload</strong> / <strong>Xóa</strong> · Ảnh lên Cloudinary khi <strong>Lưu thiệp</strong>.</p>
+                    <p class="hint">Bấm khu vực ảnh (trừ ảnh preview link) để xem trên thiệp · <strong>Upload</strong> / <strong>Xóa</strong> không chuyển màn · Ảnh lên Cloudinary khi <strong>Lưu thiệp</strong>.</p>
 
                     <h3 class="card-subheading">Ảnh chính</h3>
                     <div class="media-grid">
@@ -384,16 +384,16 @@
                             <input type="hidden" name="previewImage">
                             <input type="file" accept="image/*" data-upload-target="previewImage" tabindex="-1" aria-hidden="true">
                             <div class="media-chip">
-                                <button type="button" class="media-chip__body" data-media-focus="previewImage" title="Xem khu vực này trên thiệp">
+                                <div class="media-chip__body media-chip__body--static" title="Ảnh hiển thị khi gửi link (Facebook, Zalo…) — không nằm trên thiệp">
                                     <span class="media-chip__thumb" aria-hidden="true">
                                         <i class="bi bi-image media-chip__placeholder"></i>
                                         <img alt="" data-media-thumb="previewImage" hidden>
                                     </span>
                                     <span class="media-chip__text">
                                         <strong class="media-chip__title">Ảnh preview khi gửi link</strong>
-                                        <em class="media-chip__hint" data-media-hint="previewImage">Chưa có ảnh</em>
+                                        <em class="media-chip__hint" data-media-hint="previewImage">Chưa có ảnh · không hiện trên thiệp</em>
                                     </span>
-                                </button>
+                                </div>
                                 <div class="media-chip__actions">
                                     <button type="button" class="media-chip__btn media-chip__btn--upload" data-upload-button="previewImage">
                                         <i class="bi bi-cloud-upload" aria-hidden="true"></i><span>Upload</span>
@@ -838,6 +838,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script type="module" src="builder.js?v=mobile-no-autofocus-schedule-titles-1"></script>
+    <script type="module" src="builder.js?v=no-preview-status-1"></script>
 </body>
 </html>

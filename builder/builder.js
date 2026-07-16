@@ -4052,10 +4052,10 @@ const TITLE_SUBTITLE_PREVIEW_MAP = {
     groomLocation: ".poster"
 };
 
-/** Ô upload ảnh → section preview (click body để nhảy đúng chỗ trên thiệp). */
+/** Ô upload ảnh → section preview (click body chip để nhảy đúng chỗ trên thiệp).
+ *  previewImage = ảnh OG khi gửi link — không hiện trên thiệp → không map. */
 const MEDIA_PREVIEW_MAP = {
     coverPosterImage: ".poster",
-    previewImage: ".poster",
     aboutImage: ".about",
     timelineImage: ".timeline",
     countdownImage: ".countdown",
@@ -4123,10 +4123,13 @@ function getPreviewTargetFromField(fieldName) {
     return targetMap[name] || "";
 }
 
-/** Highlight ô ảnh đang focus + nhảy preview thiệp. */
+/** Highlight ô ảnh đang focus + nhảy preview thiệp (nếu field có trên thiệp). */
 function focusMediaFieldPreview(fieldName) {
     const name = String(fieldName || "").trim();
     if (!name) return;
+    // Ảnh preview gửi link — không có section trên thiệp, không nhảy màn preview
+    if (name === "previewImage") return;
+
     document.querySelectorAll(".media-item.is-preview-focus, .qr-upload.is-preview-focus").forEach(el => {
         el.classList.remove("is-preview-focus");
     });
@@ -4345,14 +4348,7 @@ function refreshPreview(updateStatus = true, options = {}) {
 
     if (canSoft && softNotifyPreviewFrame(previewState)) {
         // Soft: không đụng frame.src → ảnh Cloudinary đã cache trong DOM không tải lại
-        if (updateStatus) {
-            const labels = {
-                poster: "Poster", "save-date": "Save the date", about: "Đôi nét",
-                timeline: "Lịch trình", gallery: "Album ảnh", wish: "Lời chúc",
-                gift: "Mừng cưới", countdown: "Đếm ngược", thanks: "Cảm ơn"
-            };
-            setStatus(`Đã cập nhật preview · ${labels[sectionId] || (sectionId || "Ảnh bìa")}`);
-        }
+        // Không toast "Đã cập nhật preview · …" — khách không cần thấy
         if (options.focusPreview) {
             scrollToPreviewPanel();
         }
@@ -4361,15 +4357,6 @@ function refreshPreview(updateStatus = true, options = {}) {
 
     hardReloadPreviewFrame(previewState);
 
-    if (updateStatus) {
-        const t = sectionId;
-        const labels = {
-            poster: "Poster", "save-date": "Save the date", about: "Đôi nét",
-            timeline: "Lịch trình", gallery: "Album ảnh", wish: "Lời chúc",
-            gift: "Mừng cưới", countdown: "Đếm ngược", thanks: "Cảm ơn"
-        };
-        setStatus(`Đã cập nhật preview · ${labels[t] || (t || "Ảnh bìa")}`);
-    }
     if (options.focusPreview) {
         scrollToPreviewPanel();
     }
@@ -4723,31 +4710,34 @@ function handleUploadClick(event) {
         event.preventDefault();
         event.stopPropagation();
         if (clearBtn.disabled) return;
+        // Xóa ảnh: chỉ clear field, không chuyển màn preview
         clearMediaField(clearBtn.dataset.mediaClear);
         return;
     }
 
-    // Click body ô ảnh → nhảy preview đúng section thiệp
+    // Upload / đổi ảnh: chỉ mở file picker — không nhảy màn preview
+    const button = event.target.closest("[data-upload-button]");
+    if (button) {
+        event.preventDefault();
+        event.stopPropagation();
+        const fieldName = button.dataset.uploadButton;
+        if (document.querySelector(`[data-qr-input="${fieldName}"]`)) {
+            pickQrFile(fieldName);
+            return;
+        }
+        if (document.querySelector(`[data-upload-target="${fieldName}"]`)) {
+            pickMediaFile(fieldName);
+        }
+        return;
+    }
+
+    // Click body ô ảnh → nhảy preview đúng section (trừ previewImage — OG link)
     const focusBtn = event.target.closest("[data-media-focus]");
     if (focusBtn) {
         event.preventDefault();
-        focusMediaFieldPreview(focusBtn.dataset.mediaFocus);
-        return;
-    }
-
-    const button = event.target.closest("[data-upload-button]");
-    if (!button) return;
-
-    const fieldName = button.dataset.uploadButton;
-    // Upload: cũng focus preview khu vực đó
-    focusMediaFieldPreview(fieldName);
-    // QR: mở file → crop modal. Media: mở file → tự stage + preview (không bấm thêm)
-    if (document.querySelector(`[data-qr-input="${fieldName}"]`)) {
-        pickQrFile(fieldName);
-        return;
-    }
-    if (document.querySelector(`[data-upload-target="${fieldName}"]`)) {
-        pickMediaFile(fieldName);
+        const fieldName = focusBtn.dataset.mediaFocus;
+        if (fieldName === "previewImage") return;
+        focusMediaFieldPreview(fieldName);
     }
 }
 

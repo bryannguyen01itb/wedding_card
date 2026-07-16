@@ -1032,7 +1032,9 @@ body > .invitation-menu.is-open {
 }
 
 .wish input,
-.wish textarea {
+.wish textarea,
+#wishName,
+#wishMessage {
     width: 100%;
     padding: .22rem .25rem;
     margin-bottom: .25rem;
@@ -1040,26 +1042,42 @@ body > .invitation-menu.is-open {
     border-radius: 12px;
     outline: none;
     /*
-     * iOS Safari auto-zoom khi focus input/textarea < 16px.
-     * Ép tối thiểu 16px để màn hình giữ im; vẫn scale theo rem khi rem > 16px.
+     * iOS Safari auto-zoom khi focus input/textarea computed < 16px.
+     * Ép cứng 16px (không dùng rem — trên mobile rem ~10–14px).
      */
-    font-size: max(16px, .28rem);
+    font-size: 16px !important;
     line-height: 1.45;
     color: #333;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
-.wish input {
+/* Màn rộng: cho phép to hơn 16px theo scale rem thiệp */
+@media (min-width: 481px) {
+    .wish input,
+    .wish textarea,
+    #wishName,
+    #wishMessage {
+        font-size: max(16px, .28rem) !important;
+    }
+}
+
+.wish input,
+#wishName {
     margin-bottom: 0;
 }
 
-.wish textarea {
+.wish textarea,
+#wishMessage {
     resize: none;
     min-height: 1.6rem;
 }
 
-/* Placeholder: không set font-size riêng < 16px — iOS vẫn zoom theo computed size của control */
+/* Placeholder kế thừa size control (≥16px) — không set nhỏ hơn */
 .wish input::placeholder,
-.wish textarea::placeholder {
+.wish textarea::placeholder,
+#wishName::placeholder,
+#wishMessage::placeholder {
     font-size: inherit;
     font-weight: 400;
     line-height: 1.4;

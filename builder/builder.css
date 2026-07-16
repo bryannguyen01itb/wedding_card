@@ -748,6 +748,15 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(90,140,95,.22);border-
     background: rgba(var(--builder-primary-rgb), .06) !important;
 }
 
+/* Ảnh preview link — không nhảy thiệp, không cursor pointer */
+.media-chip__body--static {
+    cursor: default;
+}
+
+.media-chip__body--static:hover {
+    background: transparent !important;
+}
+
 .media-chip__thumb {
     position: relative;
     flex: 0 0 auto;
