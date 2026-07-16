@@ -1,6 +1,6 @@
 /**
  * Design tokens — size / spacing chung.
- * Màu chủ đạo: load css/brand.css TRƯỚC file này (index.html / style.css).
+ * Màu chủ đạo: load css/brand.css TRƯỚC file này (index.html).
  * Không @import brand ở đây — tránh tải brand 2 lần khi HTML đã link brand.css.
  *
  * Quy ước:

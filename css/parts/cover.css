@@ -102,7 +102,7 @@
     text-transform: uppercase;
 }
 
-/* ================= Card ================= */
+/* ================= Card (bìa — ảnh nền qua CSS skins) ================= */
 
 .cover .card {
     position: relative;
@@ -110,37 +110,8 @@
     padding: 1.5rem 0;
 }
 
-.card__close {
-    transition: .42s ease;
-    transform: scale(1.15);
-    transform-origin: center center;
-}
-
-.card__open {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transform: translateY(-50px) scale(1.1);
-    transition: .55s ease;
-}
-
-.card.open .card__close {
-    opacity: 0;
-    transform: scale(1.04);
-}
-
-.card.open .card__open {
-    opacity: 1;
-    transform: translateY(-50px) scale(1.22);
-}
-
 .card.open .cover__click {
     display: none;
-}
-
-.concept-loading .card__close,
-.concept-loading .card__open {
-    opacity: 0;
 }
 
 /* ================= Click Icon ================= */

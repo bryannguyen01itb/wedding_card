@@ -151,6 +151,42 @@ const qrCropModalTitle = document.getElementById("qrCropModalTitle");
 const WEDDING_QUERY_KEY = "wedding";
 const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
 const GALLERY_SIZE = 7;
+
+/** tabId + localStorage bridge (sessionStorage parent≠iframe) */
+function getBuilderPreviewTabId() {
+    try {
+        let id = sessionStorage.getItem("weddingBuilderPreviewTabId");
+        if (!id) {
+            id = `pt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            sessionStorage.setItem("weddingBuilderPreviewTabId", id);
+        }
+        return id;
+    } catch {
+        return "default";
+    }
+}
+
+function writeBuilderPreviewConfig(config) {
+    const id = getBuilderPreviewTabId();
+    const raw = JSON.stringify(config ?? null);
+    try { sessionStorage.setItem("weddingBuilderPreview", raw); } catch { /* ignore */ }
+    try {
+        localStorage.setItem(`weddingBuilderPreview:${id}`, raw);
+        localStorage.setItem("weddingBuilderPreview", raw);
+    } catch { /* ignore */ }
+    return id;
+}
+
+function writeBuilderPreviewState(state) {
+    const id = getBuilderPreviewTabId();
+    const raw = JSON.stringify(state ?? null);
+    try { sessionStorage.setItem(PREVIEW_STATE_KEY, raw); } catch { /* ignore */ }
+    try {
+        localStorage.setItem(`weddingBuilderPreviewState:${id}`, raw);
+        localStorage.setItem(PREVIEW_STATE_KEY, raw);
+    } catch { /* ignore */ }
+    return id;
+}
 const DEFAULT_PAYMENT_SETTINGS = {
     amount: 99000,       // gói 1 link
     amountMulti: 129000, // gói nhiều link theo khách
@@ -4048,19 +4084,24 @@ function isSectionJumpField(fieldName) {
 
 function readPreviewState() {
     try {
-        // sessionStorage: mỗi tab builder độc lập (không đụng preview tab khác)
-        return JSON.parse(sessionStorage.getItem(PREVIEW_STATE_KEY) || "null") || { ...COVER_PREVIEW_STATE };
+        const id = getBuilderPreviewTabId();
+        return JSON.parse(
+            sessionStorage.getItem(PREVIEW_STATE_KEY)
+            || localStorage.getItem(`weddingBuilderPreviewState:${id}`)
+            || localStorage.getItem(PREVIEW_STATE_KEY)
+            || "null"
+        ) || { ...COVER_PREVIEW_STATE };
     } catch (error) {
         return { ...COVER_PREVIEW_STATE };
     }
 }
 
 function savePreviewState(state) {
-    sessionStorage.setItem(PREVIEW_STATE_KEY, JSON.stringify({
+    writeBuilderPreviewState({
         opened: Boolean(state?.opened),
         scrollY: Math.max(0, Math.round(Number(state?.scrollY || 0))),
         target: String(state?.target || "")
-    }));
+    });
 }
 
 function rememberJumpField(fieldName) {
@@ -4265,14 +4306,16 @@ function softNotifyPreviewFrame(previewState) {
 
 function hardReloadPreviewFrame(previewState) {
     previewLoadToken += 1;
-    // section + open trên URL: mobile đọc chắc hơn localStorage
-    // vd ?preview=builder&open=1&section=timeline
+    // section + open + ptab: iframe đọc đúng config tab này
+    // vd ?preview=builder&open=1&section=timeline&ptab=pt_xxx
     const sectionId = String(previewState.target || "").replace(/^\./, "").trim();
+    const ptab = getBuilderPreviewTabId();
     const qs = new URLSearchParams({
         preview: "builder",
         open: (previewState.opened || sectionId) ? "1" : "0",
         cb: String(Date.now()),
-        pt: String(previewLoadToken)
+        pt: String(previewLoadToken),
+        ptab
     });
     if (sectionId) qs.set("section", sectionId);
     // Xóa srcdoc lỗi (nếu có) trước khi gán src
@@ -4286,8 +4329,8 @@ function hardReloadPreviewFrame(previewState) {
 
 function refreshPreview(updateStatus = true, options = {}) {
     const config = createPreviewConfig();
-    // sessionStorage theo tab — 2 tab builder (có id / không id) không ăn preview của nhau
-    sessionStorage.setItem("weddingBuilderPreview", JSON.stringify(config));
+    // localStorage + ptab: iframe đọc được (sessionStorage parent ≠ iframe)
+    writeBuilderPreviewConfig(config);
 
     const previewState = resolvePreviewState(options);
     // Có target section → luôn opened (bỏ màn cover)
@@ -4332,13 +4375,15 @@ function refreshPreview(updateStatus = true, options = {}) {
     }
 }
 
-/** Nút "Xem preview": luôn về màn cover. */
+/** Nút "Xem preview" / "Xem từ đầu": hard-load cover — tin cậy (soft chỉ cho gõ form). */
 function handlePreviewClick() {
     lastJumpFieldName = "";
     window.clearTimeout(refreshPreview.timer);
     refreshPreview(true, {
         focusPreview: true,
-        mode: "cover"
+        mode: "cover",
+        // Hard: tránh soft kẹt cover trắng / isOpening sau nhiều lần soft
+        hard: true
     });
 }
 

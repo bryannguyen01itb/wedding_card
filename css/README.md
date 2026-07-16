@@ -12,7 +12,7 @@ css/ui-shell.css    # button, form, title, radio, sidebar-nav (dùng chung)
 builder/builder.css | admin/admin.css   # layout + feature riêng
 ```
 
-**Thiệp fallback:** `style.css` — 1 tầng `@import` (brand → tokens → parts → skins → unifier).
+**Thiệp:** chỉ load phẳng từ `index.html` (không còn `style.css` @import).
 
 ```txt
 brand.css + tokens.css
@@ -58,3 +58,4 @@ Sửa **1 chỗ** cho Builder + Admin:
 - Xóa stub rỗng `blocks/gift|wish|thanks/skins.css` và `blocks/index.css` (deprecated).
 - Gỡ lớp migration `block-concepts` hỏng selector (`.cover.block-skin-concept-2.card` thiếu khoảng cách) ở cover/about/countdown/timeline.
 - Bỏ block cover trùng trong `block-builder.css` (bản sau cùng thắng).
+- Xóa `style.css` fallback @import (production chỉ link phẳng trong `index.html`).

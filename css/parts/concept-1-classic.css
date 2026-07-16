@@ -81,15 +81,6 @@ body.concept-1 .cover .card::after {
     backdrop-filter: blur(8px);
 }
 
-body.concept-1 .card__close,
-body.concept-1 .card__open,
-body.concept-1 .card.open .card__close,
-body.concept-1 .card.open .card__open {
-    display: none;
-    opacity: 0;
-    pointer-events: none;
-}
-
 body.concept-1 .cover__click {
     bottom: 0;
     left: 50%;

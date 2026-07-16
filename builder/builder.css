@@ -488,25 +488,33 @@ input[type=color]{padding:4px}
 .guest-links[hidden]{display:none!important}
 .guest-links__head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .guest-links__title{margin:0;color:var(--builder-muted);font-size:12px;font-weight:900;letter-spacing:.02em}
-/* Copy all — gọn, không dính pill ui-shell */
+/* Copy all — gọn; modal nằm NGOÀI .builder-shell nên style global .guest-links / .save-modal */
 .builder-shell .guest-links__copy-all,
-.guest-links__copy-all{
-    height:32px!important;
-    min-height:32px!important;
-    padding:0 12px!important;
+.guest-links__copy-all,
+.save-modal .guest-links__copy-all{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    height:34px!important;
+    min-height:34px!important;
+    padding:0 14px!important;
     border-radius:999px!important;
-    border:1px solid rgba(var(--builder-primary-rgb),.28)!important;
+    border:1px solid rgba(var(--builder-primary-rgb),.3)!important;
     background:#fff!important;
     color:var(--builder-primary)!important;
     font-size:12px!important;
     font-weight:800!important;
+    line-height:1!important;
     box-shadow:none!important;
     white-space:nowrap;
     filter:none!important;
+    cursor:pointer;
 }
 .builder-shell .guest-links__copy-all:hover,
-.guest-links__copy-all:hover{
-    background:rgba(var(--builder-primary-rgb),.08)!important;
+.guest-links__copy-all:hover,
+.save-modal .guest-links__copy-all:hover{
+    background:rgba(var(--builder-primary-rgb),.1)!important;
     filter:none!important;
 }
 .guest-links__scroll{max-height:min(42vh,280px);overflow:auto;border:1px solid rgba(var(--builder-primary-rgb),.2);border-radius:12px;background:#fff;-webkit-overflow-scrolling:touch;min-width:0}
@@ -516,22 +524,23 @@ input[type=color]{padding:4px}
 .guest-links__num{color:var(--builder-primary);font-size:11px;font-weight:900;text-align:center}
 .guest-links__name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--builder-ink);font-size:13px;font-weight:700}
 .guest-links__actions{display:flex;gap:2px;align-items:center;flex-shrink:0}
-/* Icon mở/copy — trong suốt, không pill teal */
+/* Icon mở/copy — modal + list (không pill teal ui-shell) */
 .builder-shell .guest-links__icon-btn,
-.guest-links__icon-btn{
-    width:32px!important;
-    height:32px!important;
-    min-width:32px!important;
-    min-height:32px!important;
+.guest-links__icon-btn,
+.save-modal .guest-links__icon-btn{
+    width:34px!important;
+    height:34px!important;
+    min-width:34px!important;
+    min-height:34px!important;
     margin:0!important;
     padding:0!important;
     display:grid!important;
     place-items:center!important;
-    border:0!important;
-    border-radius:8px!important;
-    background:transparent!important;
-    color:var(--brand-primary-hover, var(--builder-primary))!important;
-    font-size:14px!important;
+    border:1px solid rgba(var(--builder-primary-rgb),.22)!important;
+    border-radius:10px!important;
+    background:#fff!important;
+    color:var(--builder-primary)!important;
+    font-size:15px!important;
     font-weight:700!important;
     line-height:1!important;
     box-shadow:none!important;
@@ -541,22 +550,63 @@ input[type=color]{padding:4px}
     gap:0!important;
 }
 .builder-shell .guest-links__icon-btn:hover,
-.guest-links__icon-btn:hover{
-    background:rgba(var(--builder-primary-rgb),.14)!important;
-    color:#7a5520!important;
+.guest-links__icon-btn:hover,
+.save-modal .guest-links__icon-btn:hover{
+    background:rgba(var(--builder-primary-rgb),.12)!important;
+    border-color:rgba(var(--builder-primary-rgb),.4)!important;
+    color:var(--brand-primary-hover, #0f766e)!important;
     filter:none!important;
 }
 .builder-shell .guest-links__icon-btn.is-copied,
-.guest-links__icon-btn.is-copied{
+.guest-links__icon-btn.is-copied,
+.save-modal .guest-links__icon-btn.is-copied{
     color:#248553!important;
+    border-color:rgba(36,133,83,.4)!important;
     background:rgba(36,133,83,.12)!important;
 }
 .guest-links--modal{margin:0}
-.save-modal .guest-links__scroll{background:var(--builder-surface);max-height:min(38vh,260px)}
-.save-modal__dialog{width:min(420px,100%)}
+.save-modal .guest-links__scroll{
+    background:var(--builder-surface,#fff8f0);
+    max-height:min(38vh,260px);
+    border:1px solid rgba(var(--builder-primary-rgb),.18);
+    border-radius:14px;
+}
+.save-modal__dialog{width:min(520px,100%)}
 .save-modal__link-card--slim{padding:10px 12px;gap:6px}
 .save-modal__slim-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .save-modal__slim-row a{color:var(--builder-primary);font-size:13px;font-weight:800}
+
+/* Nút Copy text trong card link (modal ngoài builder-shell) */
+.save-modal__link-card > button,
+.save-modal #copyInvitationLink,
+.save-modal #copyEditLink{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    height:38px!important;
+    min-height:38px!important;
+    padding:0 16px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(var(--builder-primary-rgb),.28)!important;
+    background:#fff!important;
+    color:var(--builder-primary)!important;
+    font-size:13px!important;
+    font-weight:800!important;
+    box-shadow:none!important;
+    cursor:pointer;
+    filter:none!important;
+}
+.save-modal__link-card > button:hover,
+.save-modal #copyInvitationLink:hover,
+.save-modal #copyEditLink:hover{
+    background:rgba(var(--builder-primary-rgb),.1)!important;
+    filter:none!important;
+}
+.save-modal__link-card--important > button{
+    border-color:rgba(36,133,83,.35)!important;
+    color:#248553!important;
+}
 /* Card link chung to — ẩn khi đã có list khách */
 #modalSingleInviteCard[hidden],
 #invitationLink[hidden]{display:none!important}

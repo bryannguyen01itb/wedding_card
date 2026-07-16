@@ -846,19 +846,27 @@ button.ghost.danger {
     padding-top: 4px;
 }
 
+/* Head: grid 2 cột — tránh flex + button width:100% bóp chữ thành 1 cột dọc */
 .payment-list-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px 20px;
+    align-items: start;
     margin-bottom: 18px;
     padding-bottom: 16px;
     border-bottom: 1px solid rgba(var(--admin-primary-rgb), .12);
 }
 
+.payment-list-head__copy {
+    min-width: 0;
+}
+
 .payment-list-head h3 {
-    margin: 0;
+    margin: 0 0 6px;
     color: var(--admin-primary);
+    font-size: clamp(17px, 2.2vw, 20px);
+    font-weight: 800;
+    line-height: 1.3;
 }
 
 .payment-list {
@@ -902,21 +910,30 @@ button.ghost.danger {
 }
 
 .payment-list-desc {
-    margin: 4px 0 0;
+    margin: 0;
+    max-width: 48ch;
     color: var(--admin-muted);
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.4;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
 }
 
 .payment-list-head__actions {
     display: flex;
+    flex-direction: column;
     flex-shrink: 0;
-    flex-wrap: wrap;
     gap: 8px;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 2px;
+    align-items: stretch;
+    justify-content: flex-start;
+    margin-top: 0;
+    min-width: 10.5rem;
+}
+
+.payment-list-head__actions button {
+    width: auto !important;
+    min-width: 10.5rem;
+    white-space: nowrap;
+    justify-content: center;
 }
 
 .load-row .ghost.danger {
@@ -978,21 +995,52 @@ button.ghost.danger {
     justify-content: flex-end;
 }
 
-@media(max-width:760px) {
-    .payment-item,
-    .payment-list-head {
+@media (max-width: 760px) {
+    .payment-item {
         grid-template-columns: 1fr;
         align-items: stretch;
     }
 
-    .payment-item__actions,
-    .payment-list-head {
+    .payment-item__actions {
         justify-content: stretch;
     }
 
-    .payment-item__actions button,
-    .payment-list-head button {
+    .payment-item__actions button {
         width: 100%;
+    }
+
+    /* Head: xếp dọc — chữ full width, nút full width bên dưới (không bóp chữ) */
+    .payment-list-head {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .payment-list-desc {
+        max-width: none;
+    }
+
+    .payment-list-head__actions {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .payment-list-head__actions button {
+        flex: 1 1 auto;
+        min-width: min(100%, 9.5rem);
+        width: auto !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .payment-list-head__actions {
+        flex-direction: column;
+    }
+
+    .payment-list-head__actions button {
+        width: 100% !important;
+        min-width: 0;
     }
 }
 

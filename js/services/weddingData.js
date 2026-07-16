@@ -221,8 +221,9 @@ export async function loadWeddingConfig() {
     // Builder iframe: luôn dùng localStorage / thiệp mẫu — không đụng Firebase / ?t=
     if (isBuilderPreviewRequest()) {
         try {
-            // sessionStorage: iframe cùng tab với builder (không dùng localStorage — tránh 2 tab đụng nhau)
-            const previewConfig = JSON.parse(sessionStorage.getItem("weddingBuilderPreview") || "null");
+            // parent ghi localStorage + ?ptab= (sessionStorage parent≠iframe)
+            const { readPreviewConfig } = await import("../utils/previewStorage.js");
+            const previewConfig = readPreviewConfig();
             return applyPreviewOrFallback(previewConfig);
         } catch (error) {
             console.warn("Không đọc được preview builder:", error);

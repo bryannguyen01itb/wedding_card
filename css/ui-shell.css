@@ -55,7 +55,7 @@
    (loại trừ icon-btn / nav / picker / chip để không bị pill 46px)
    ============================================================ */
 .ui-btn,
-.builder-shell button:not(.joint-event-btn):not(.media-chip__btn):not(.media-chip__body):not(.builder-step-nav__item):not(.admin-nav__item):not(.b-select__trigger):not(.b-select__option):not(.b-picker__nav):not(.b-picker__day):not(.b-picker__link):not(.joint-events-add):not(.builder-sidebar-toggle):not(.builder-mobile-preview-btn):not(.builder-mobile-from-start):not(.builder-mobile-back-edit):not(.builder-sidebar__close):not(.save-modal__close):not(.qr-crop-modal__close):not(.map-picker-modal__close):not(.guest-links__icon-btn):not(.guest-links__copy-all),
+.builder-shell button:not(.joint-event-btn):not(.media-chip__btn):not(.media-chip__body):not(.builder-step-nav__item):not(.admin-nav__item):not(.b-select__trigger):not(.b-select__option):not(.b-picker__nav):not(.b-picker__day):not(.b-picker__link):not(.joint-events-add):not(.builder-sidebar-toggle):not(.builder-mobile-preview-btn):not(.builder-mobile-from-start):not(.builder-mobile-back-edit):not(.builder-sidebar__close):not(.save-modal__close):not(.qr-crop-modal__close):not(.map-picker-modal__close):not(.guest-links__icon-btn):not(.guest-links__copy-all):not(#copyInvitationLink):not(#copyEditLink):not(#copyGeneralInviteLink),
 .admin-shell button:not(.admin-nav__item):not(.admin-nav__close):not(.admin-nav-toggle):not(.admin-nav__logout):not(.admin-modal__close),
 .admin-app button:not(.admin-nav__item):not(.admin-nav__close):not(.admin-nav-toggle):not(.admin-nav__logout):not(.admin-modal__close) {
     display: inline-flex;

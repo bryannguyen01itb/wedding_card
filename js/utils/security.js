@@ -101,18 +101,6 @@ export function normalizeOrderCode(value) {
     return /^WC[A-Z2-9]{6,12}$/.test(code) ? code : "";
 }
 
-/**
- * Lấy mã GD từ nội dung CK / field SePay `code` + `content`.
- * Ưu tiên chuỗi khớp WC… đúng format.
- */
-export function extractOrderCodeFromText(...parts) {
-    const blob = parts.map(part => String(part || "")).join(" ").toUpperCase();
-    const direct = normalizeOrderCode(blob.trim());
-    if (direct) return direct;
-    const match = blob.match(/\bWC[A-Z2-9]{6,12}\b/);
-    return match ? normalizeOrderCode(match[0]) : "";
-}
-
 /** editToken: link sửa khó đoán hơn weddingId (legacy không có token vẫn mở được). */
 export function generateEditToken() {
     return generateAccessToken();

@@ -1,13 +1,13 @@
 import { loadWeddingConfig, getWeddingIdFromUrl, getAccessTokenFromUrl } from "./services/weddingData.js";
 import { renderContent } from "./render/index.js";
-import { initCover } from "./features/cover.js";
+import { initCover, resetCoverOpenState } from "./features/cover.js?v=cover-reset-1";
 import { initMusic, playMusic } from "./features/music.js";
 import { initScrollReveal } from "./features/scrollReveal.js";
 import { initCalendar } from "./features/calendar.js";
 import { initCountdown } from "./features/countdown.js";
 import { initGift } from "./features/gift.js";
 import { initWish } from "./features/wish.js";
-import { initHeaderMenu } from "./features/headerMenu.js";
+import { initHeaderMenu, resetHeaderMenu } from "./features/headerMenu.js?v=menu-m3";
 import { updateLinkPreview } from "./utils/meta.js";
 import { wedding } from "./config.js";
 
@@ -82,32 +82,23 @@ function showWeddingError(error) {
     `;
 }
 
-/** Soft refresh: hiện lại màn cover (vd nút “Xem từ đầu”). */
+/** Soft refresh: hiện lại màn cover (vd nút “Xem preview” / “Xem từ đầu”). */
 function showCoverForBuilderPreview() {
-    const cover = document.querySelector(".cover");
-    const invitation = document.querySelector(".invitation");
+    // Quan trọng: reset isOpening — không reset thì bấm cover lần 2 bị chặn
+    resetCoverOpenState();
+
     const header = document.querySelector(".invitation__header");
     const musicButton = document.getElementById("musicBtn");
     const giftButton = document.getElementById("floatingGiftBtn");
+    const audio = document.getElementById("bgMusic");
 
-    if (cover) {
-        cover.classList.remove("is-dismissed", "opening", "hide");
-        cover.removeAttribute("aria-hidden");
-        cover.hidden = false;
-        cover.style.removeProperty("display");
-        document.getElementById("openCard")?.classList.remove("open");
-        const coverClick = document.querySelector(".cover__click");
-        if (coverClick) coverClick.style.display = "";
-    }
-
-    if (invitation) {
-        invitation.style.display = "none";
-        invitation.classList.remove("show");
-    }
-
-    header?.classList.remove("scrolled");
+    header?.classList.remove("scrolled", "menu-open");
     musicButton?.classList.remove("show", "playing");
     giftButton?.classList.remove("show");
+    if (audio && !audio.paused) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
     window.scrollTo(0, 0);
 }
 
@@ -117,8 +108,22 @@ function restoreBuilderPreviewState(options = {}) {
 
     let state = null;
     try {
-        state = options.previewState
-            || JSON.parse(sessionStorage.getItem("weddingBuilderPreviewState") || "null");
+        if (options.previewState) {
+            state = options.previewState;
+        } else {
+            // dynamic import tránh circular; sync fallback localStorage legacy
+            const ptab = new URLSearchParams(window.location.search).get("ptab") || "";
+            if (ptab) {
+                state = JSON.parse(localStorage.getItem(`weddingBuilderPreviewState:${ptab}`) || "null");
+            }
+            if (!state) {
+                state = JSON.parse(
+                    sessionStorage.getItem("weddingBuilderPreviewState")
+                    || localStorage.getItem("weddingBuilderPreviewState")
+                    || "null"
+                );
+            }
+        }
     } catch (error) {
         state = null;
     }
@@ -245,16 +250,27 @@ async function softRefreshBuilderPreview(messageData = {}) {
     try {
         await loadWeddingConfig();
         updateLinkPreview();
+        document.body.classList.remove("concept-loading");
+        // Gỡ panel menu gắn body (nếu đang mở) trước khi renderHeader rebuild
+        resetHeaderMenu();
         renderContent();
         // Calendar/date UI không auto theo wedding live binding — render lại
         initCalendar();
+        // renderHeader() rebuild DOM — menu dùng delegation (init 1 lần) vẫn ăn
         softSyncMusicSource();
         restoreBuilderPreviewState({
             soft: true,
             previewState: messageData.previewState || null
         });
+        // Cover phải bấm được sau soft “về bìa”
+        const ps = messageData.previewState;
+        const backToCover = ps && !ps.opened && !ps.target;
+        if (backToCover) {
+            resetCoverOpenState();
+        }
     } catch (error) {
         console.warn("[preview] soft refresh failed:", error);
+        document.body.classList.remove("concept-loading");
     } finally {
         softPreviewInFlight = false;
     }
@@ -289,7 +305,7 @@ async function bootstrap() {
             return;
         }
 
-        // preview=builder: loadWeddingConfig dùng localStorage/mẫu (không Firebase / không gate ?t=)
+        // preview=builder: loadWeddingConfig dùng storage bridge / thiệp mẫu
         await loadWeddingConfig();
 
         updateLinkPreview();
@@ -316,7 +332,11 @@ async function bootstrap() {
             window.setTimeout(() => restoreBuilderPreviewState(), 300);
         }
     } catch (error) {
+        console.error("[app] bootstrap failed:", error);
         showWeddingError(error);
+    } finally {
+        // Tránh iframe trắng vĩnh viễn nếu lỗi trước khi renderContent gỡ class
+        document.body.classList.remove("concept-loading");
     }
 }
 

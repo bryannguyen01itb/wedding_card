@@ -4,7 +4,8 @@
     display: none;
     opacity: 0;
     min-height: 100vh;
-    overflow-x: hidden;
+    /* Không overflow-x:hidden ở đây — sẽ clip menu header (dropdown absolute) */
+    overflow: visible;
     transition: opacity .72s ease;
 }
 
@@ -19,8 +20,12 @@
     justify-content: space-between;
     align-items: center;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    /* Không dùng transform để center — transform tạo containing block
+       khiến position:fixed của menu panel bị neo / clip sai trên mobile */
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     width: 100%;
     max-width: 480px;
     min-height: 1.02rem;
@@ -28,7 +33,8 @@
     color: #fff;
     background: transparent;
     transition: background .3s ease, color .3s ease, box-shadow .3s ease;
-    z-index: 1000;
+    z-index: 10050;
+    overflow: visible;
 }
 
 .invitation__header.scrolled,
@@ -48,73 +54,131 @@
 }
 
 .invitation-menu__toggle {
-    width: .72rem;
-    height: .72rem;
-    border-radius: 50%;
-    display: flex;
+    /* !important: đè base button { width:100% } — mobile hay bị full-width */
+    flex: 0 0 auto !important;
+    width: .72rem !important;
+    min-width: .72rem !important;
+    max-width: .72rem !important;
+    height: .72rem !important;
+    min-height: .72rem !important;
+    border-radius: 50% !important;
+    display: flex !important;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
     color: inherit;
     background: rgba(255, 255, 255, .16);
-    border: 1px solid rgba(255, 255, 255, .25);
+    border: 1px solid rgba(255, 255, 255, .25) !important;
     font-size: .42rem;
     line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 10061;
+    position: relative;
+}
+
+/* Vùng chạm rộng hơn nút tròn (min ~44px) */
+.invitation-menu__toggle::before {
+    content: "";
+    position: absolute;
+    inset: -.22rem;
+}
+
+@media (max-width: 480px) {
+    .invitation-menu__toggle {
+        width: .96rem !important;
+        min-width: .96rem !important;
+        max-width: .96rem !important;
+        height: .96rem !important;
+        min-height: .96rem !important;
+        font-size: .5rem;
+    }
+
+    .invitation-menu__toggle::before {
+        inset: -.18rem;
+    }
 }
 
 .invitation__header.scrolled .invitation-menu__toggle,
 .invitation__header.menu-open .invitation-menu__toggle {
     background: rgba(var(--primary-rgb), .12);
-    border-color: rgba(var(--primary-rgb), .18);
+    border-color: rgba(var(--primary-rgb), .18) !important;
+    color: #333;
 }
 
+/*
+ * Panel menu: JS mount ra body + fixed.
+ * Fallback absolute khi còn trong header (trước khi mở / restore).
+ */
 .invitation-menu {
     position: absolute;
     top: calc(100% + .12rem);
     left: .28rem;
     right: .28rem;
+    z-index: 10060;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .12rem;
     padding: .22rem;
     border-radius: 16px;
-    background: rgba(255, 255, 255, .94);
+    background: rgba(255, 255, 255, .98);
     border: 1px solid rgba(var(--primary-rgb), .16);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, .12);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .16);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
-    transition: opacity .25s ease, visibility .25s ease, transform .25s ease;
+    transition: opacity .2s ease, visibility .2s ease, transform .2s ease;
     pointer-events: none;
+    max-height: min(70vh, 8rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
 }
 
-.invitation__header.menu-open .invitation-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-    pointer-events: auto;
+/* Mở: luôn hiện (kể cả khi panel đã chuyển sang body) */
+.invitation__header.menu-open .invitation-menu,
+.invitation-menu.is-open {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+/* Khi JS gắn panel ra body (fixed) */
+body > .invitation-menu.is-open {
+    position: fixed !important;
 }
 
 .invitation-menu__item {
-    width: 100%;
+    width: 100% !important;
     min-height: .72rem;
-    padding: .12rem .14rem;
+    padding: .14rem .14rem;
     border-radius: 12px;
+    border: 0 !important;
     color: #444;
     background: rgba(var(--primary-rgb), .1);
     font-size: .23rem;
     line-height: 1.25;
     text-align: center;
     white-space: pre-line;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-.invitation-menu__item:hover {
+.invitation-menu__item:hover,
+.invitation-menu__item:active {
     color: #fff;
     background: var(--primary-color);
 }
 
 .invitation__container {
     position: relative;
+    overflow-x: hidden; /* clip ngang nội dung, không clip header menu */
     transform: translateY(18px) scale(.99);
     transition: transform .82s cubic-bezier(.22, 1, .36, 1);
     will-change: transform;
@@ -975,8 +1039,11 @@
     border: 1px solid #ddd;
     border-radius: 12px;
     outline: none;
-    /* Theo scale rem thiệp (.28rem ≈ 11px trên mobile) — không ép 16px */
-    font-size: .28rem;
+    /*
+     * iOS Safari auto-zoom khi focus input/textarea < 16px.
+     * Ép tối thiểu 16px để màn hình giữ im; vẫn scale theo rem khi rem > 16px.
+     */
+    font-size: max(16px, .28rem);
     line-height: 1.45;
     color: #333;
 }
@@ -990,10 +1057,10 @@
     min-height: 1.6rem;
 }
 
-/* Placeholder nhỏ hơn chữ gõ — đỡ “to” so với chip side/attendance */
+/* Placeholder: không set font-size riêng < 16px — iOS vẫn zoom theo computed size của control */
 .wish input::placeholder,
 .wish textarea::placeholder {
-    font-size: .24rem;
+    font-size: inherit;
     font-weight: 400;
     line-height: 1.4;
     color: #9aa0a6;
@@ -1002,14 +1069,14 @@
 
 .wish input::-webkit-input-placeholder,
 .wish textarea::-webkit-input-placeholder {
-    font-size: .24rem;
+    font-size: inherit;
     font-weight: 400;
     color: #9aa0a6;
 }
 
 .wish input::-moz-placeholder,
 .wish textarea::-moz-placeholder {
-    font-size: .24rem;
+    font-size: inherit;
     font-weight: 400;
     color: #9aa0a6;
     opacity: 1;

@@ -28,9 +28,10 @@ https://domain-cua-ban/admin/
 ├── admin/                      # Trang admin sua config Firebase
 ├── functions/                  # Cloudflare Pages Function cho link preview/meta
 ├── css/
-│   ├── style.css               # File import CSS tong
+│   ├── brand.css / tokens.css  # Token mau + bien
 │   ├── parts/                  # CSS nen, section, animation, concept goc
-│   └── blocks/                 # CSS block theo section module
+│   ├── blocks/                 # CSS block theo section module
+│   └── ui-shell.css            # Shell UI chung builder + admin
 ├── js/
 │   ├── app.js                  # Entry point cua thiep
 │   ├── config.js               # Config fallback/local
@@ -266,7 +267,7 @@ Neu doi anh preview cho tung thiep, sua `preview.image` trong config/Firebase.
 
 ## CSS va block concept
 
-Thu tu CSS: `index.html` link phẳng (brand → tokens → parts → skins → unifier). Fallback: `css/style.css` (1 tầng @import). Skin section: `css/blocks/*/skins.css`.
+Thu tu CSS: `index.html` link phẳng (brand → tokens → parts → skins → unifier). Skin section: `css/blocks/*/skins.css`.
 
 Quy uoc sua CSS:
 

@@ -20,7 +20,6 @@ Firebase Console → Firestore → **Rules** → dán toàn bộ file → **Publ
 | Upload spam | Session limit + type/size; xem `CLOUDINARY.md` |
 | Admin UI | Allowlist email (`js/adminAllowlist.js`); không nhuộm màu theo thiệp |
 | Xóa thiệp | Xóa luôn map accessTokens / editAccess |
-| Unit test | `npm run test:security` |
 
 ## Đã siết thêm (vòng 2)
 
@@ -54,14 +53,11 @@ Firebase Console → Firestore → **Rules** → dán toàn bộ file → **Publ
 
 ## Kiểm tra sau Publish rules
 
-```bash
-npm run test:security
-```
-
 1. Builder Lưu nháp → OK, URL có `?e=`  
 2. Khách `?t=` → OK (map accessTokens hoặc legacy query)  
 3. Wish trên thiệp **chưa** mở khóa → fail (đúng)  
 4. Wish trên thiệp **đã** mở → OK  
+
 5. Admin xóa thiệp → map token được dọn  
 
 ## File chính

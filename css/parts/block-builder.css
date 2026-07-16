@@ -395,13 +395,6 @@ body .cover.block-skin-concept-3 .card::after {
     box-shadow: none !important;
 }
 
-body .cover.block-skin-concept-2 .card__close,
-body .cover.block-skin-concept-2 .card__open,
-body .cover.block-skin-concept-3 .card__close,
-body .cover.block-skin-concept-3 .card__open {
-    display: none !important;
-}
-
 body .cover.block-skin-concept-2 .cover__footer,
 body .cover.block-skin-concept-3 .cover__footer {
     width: min(100%, 7rem) !important;
