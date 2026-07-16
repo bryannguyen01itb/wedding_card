@@ -211,7 +211,17 @@ body > .invitation-menu.is-open {
     z-index: 10;
 }
 
-.poster img {
+/* Khung ảnh poster — clip (concept) gắn đây; scale animate trên img con */
+.poster-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.poster img,
+.poster-photo img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -1031,35 +1041,28 @@ body > .invitation-menu.is-open {
     box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
 }
 
+/*
+ * Họ tên + lời chúc (#wishName / #wishMessage):
+ * - font-size ≥ 16px → iOS không auto-zoom (phình) khi focus
+ * - padding/line-height gọn để không trông “to” như 16px thuần
+ */
 .wish input,
 .wish textarea,
 #wishName,
 #wishMessage {
     width: 100%;
-    padding: .22rem .25rem;
+    box-sizing: border-box;
+    padding: .18rem .22rem;
     margin-bottom: .25rem;
     border: 1px solid #ddd;
     border-radius: 12px;
     outline: none;
-    /*
-     * iOS Safari auto-zoom khi focus input/textarea computed < 16px.
-     * Ép cứng 16px (không dùng rem — trên mobile rem ~10–14px).
-     */
     font-size: 16px !important;
-    line-height: 1.45;
+    line-height: 1.35;
     color: #333;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-}
-
-/* Màn rộng: cho phép to hơn 16px theo scale rem thiệp */
-@media (min-width: 481px) {
-    .wish input,
-    .wish textarea,
-    #wishName,
-    #wishMessage {
-        font-size: max(16px, .28rem) !important;
-    }
+    transform: none;
 }
 
 .wish input,
@@ -1070,17 +1073,16 @@ body > .invitation-menu.is-open {
 .wish textarea,
 #wishMessage {
     resize: none;
-    min-height: 1.6rem;
+    min-height: 1.5rem;
 }
 
-/* Placeholder kế thừa size control (≥16px) — không set nhỏ hơn */
 .wish input::placeholder,
 .wish textarea::placeholder,
 #wishName::placeholder,
 #wishMessage::placeholder {
     font-size: inherit;
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.35;
     color: #9aa0a6;
     opacity: 1;
 }
@@ -1098,6 +1100,20 @@ body > .invitation-menu.is-open {
     font-weight: 400;
     color: #9aa0a6;
     opacity: 1;
+}
+
+/*
+ * Mọi ô text trên thiệp (phòng khi thêm field sau):
+ * radio/checkbox/file/hidden không cần 16px.
+ */
+@media (max-width: 480px) {
+    .invitation input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="color"]):not([type="image"]),
+    .invitation textarea,
+    .invitation select {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
 }
 
 .wish-side {

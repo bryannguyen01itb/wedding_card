@@ -36,6 +36,7 @@ export const SKIN_DEFINITIONS = [
     },
     {
         id: "concept-5",
+        /* Poster: góc dưới phải · Gallery: journey · Timeline: ritual */
         label: "Concept 5",
         aliases: ["5", "concept5", "journey", "editorial"],
         openLabel: "Open",

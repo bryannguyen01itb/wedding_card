@@ -19,8 +19,17 @@ body.block-poster-concept-1 .poster .wave,
     display: block;
 }
 
+body.block-poster-concept-1 .poster-photo,
+.poster.block-skin-concept-1 .poster-photo {
+    inset: 0;
+    clip-path: none;
+    -webkit-clip-path: none;
+}
+
 body.block-poster-concept-1 .poster img,
-.poster.block-skin-concept-1 img {
+body.block-poster-concept-1 .poster-photo img,
+.poster.block-skin-concept-1 img,
+.poster.block-skin-concept-1 .poster-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -96,15 +105,16 @@ body.block-poster-concept-1 .info {
 }
 
 
-/* ---------- Concept 2: botanical full-bleed ----------
-   Ảnh tràn màn + overlay kem; tên căn giữa; info pill căn giữa text. */
+/* ---------- Concept 2: botanical — full-bleed, bo cong GÓC PHẢI DƯỚI ----------
+   Cong từ giữa cạnh dưới → ~1/4 cạnh phải (nông hơn); nền #fff như section khác. */
 body.block-poster-concept-2 .poster,
 .poster.block-skin-concept-2 {
     position: relative;
     height: 100vh;
     min-height: 100svh;
     padding: 0;
-    background: #1f2a25;
+    /* Khớp nền invitation / section khác */
+    background: #fff !important;
     overflow: hidden;
 }
 
@@ -113,6 +123,56 @@ body.block-poster-concept-2 .poster .wave,
     display: none !important;
 }
 
+/*
+ * Khung cong CỐ ĐỊNH trên .poster-photo (không scale).
+ * Img bên trong kenburns scale → bị clip bởi wrapper, không lòi ra ngoài.
+ */
+body.block-poster-concept-2 .poster-photo,
+.poster.block-skin-concept-2 .poster-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    /* Quarter-arc nông: cạnh phải từ 75%, cạnh dưới từ giữa (50%) */
+    -webkit-clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 75%,
+        99.4% 79%,
+        98% 83%,
+        95.5% 87%,
+        92% 90.5%,
+        87% 93.5%,
+        81% 96%,
+        74% 97.8%,
+        66% 99%,
+        58% 99.7%,
+        50% 100%,
+        0% 100%
+    );
+    clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 75%,
+        99.4% 79%,
+        98% 83%,
+        95.5% 87%,
+        92% 90.5%,
+        87% 93.5%,
+        81% 96%,
+        74% 97.8%,
+        66% 99%,
+        58% 99.7%,
+        50% 100%,
+        0% 100%
+    );
+    /* Containing block ổn định khi img con scale (không mask phụ — tránh méo khung) */
+    transform: translateZ(0);
+    isolation: isolate;
+}
+
+body.block-poster-concept-2 .poster-photo img,
+.poster.block-skin-concept-2 .poster-photo img,
 body.block-poster-concept-2 .poster img,
 .poster.block-skin-concept-2 img {
     position: absolute;
@@ -125,37 +185,82 @@ body.block-poster-concept-2 .poster img,
     object-position: center;
     filter: saturate(1.06) contrast(1.02) brightness(1.02);
     box-shadow: none;
-    animation: kenburns 10s linear forwards;
     z-index: 0;
+    /* Không clip trên img — clip ở wrapper */
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+    transform-origin: center center;
+    /* Kenburns: scale trong khung đã clip */
+    animation: posterConcept2Kenburns 6.5s linear forwards !important;
 }
 
+@keyframes posterConcept2Kenburns {
+    0% {
+        transform: scale(1.12);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Overlay tối — cùng khung cong, không scale */
 body.block-poster-concept-2 .poster::before,
 .poster.block-skin-concept-2::before {
     content: "";
+    position: absolute;
     inset: 0;
     z-index: 1;
     border: 0;
     border-radius: 0;
+    pointer-events: none;
     background:
-        linear-gradient(180deg, rgba(255, 254, 250, .12), transparent 32%),
-        linear-gradient(to top, rgba(31, 42, 37, .62) 0%, rgba(31, 42, 37, .22) 42%, transparent 72%);
+        linear-gradient(180deg, rgba(255, 254, 250, .1), transparent 28%),
+        linear-gradient(to top, rgba(31, 42, 37, .62) 0%, rgba(31, 42, 37, .22) 38%, transparent 68%);
+    -webkit-clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 75%,
+        99.4% 79%,
+        98% 83%,
+        95.5% 87%,
+        92% 90.5%,
+        87% 93.5%,
+        81% 96%,
+        74% 97.8%,
+        66% 99%,
+        58% 99.7%,
+        50% 100%,
+        0% 100%
+    );
+    clip-path: polygon(
+        0% 0%,
+        100% 0%,
+        100% 75%,
+        99.4% 79%,
+        98% 83%,
+        95.5% 87%,
+        92% 90.5%,
+        87% 93.5%,
+        81% 96%,
+        74% 97.8%,
+        66% 99%,
+        58% 99.7%,
+        50% 100%,
+        0% 100%
+    );
 }
 
+/* Tắt khung viền chữ nhật cũ */
 body.block-poster-concept-2 .poster::after,
 .poster.block-skin-concept-2::after {
-    content: "";
-    inset: .32rem;
-    z-index: 2;
-    border: 1px solid rgba(255, 255, 255, .34);
-    border-radius: .12rem;
-    background: transparent;
-    pointer-events: none;
+    content: none !important;
+    display: none !important;
 }
 
 body.block-poster-concept-2 .poster-content {
     position: absolute;
     inset: 0;
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
@@ -165,6 +270,8 @@ body.block-poster-concept-2 .poster-content {
     color: #fff;
     text-align: center;
     z-index: 5;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 body.block-poster-concept-2 .couple {
@@ -175,11 +282,25 @@ body.block-poster-concept-2 .couple {
     row-gap: .04rem;
 }
 
+/* Luôn hiện (base .text_1 { opacity:0 } chờ .show — ép hiện trên poster c2) */
+body.block-poster-concept-2 .text_1,
+body.block-poster-concept-2 .text_2,
+body.block-poster-concept-2 .heart,
+body.block-poster-concept-2 .info,
+.poster.block-skin-concept-2 .text_1,
+.poster.block-skin-concept-2 .text_2,
+.poster.block-skin-concept-2 .heart,
+.poster.block-skin-concept-2 .info {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+}
+
 body.block-poster-concept-2 .text_1,
 body.block-poster-concept-2 .text_2 {
     width: 100%;
     align-self: center;
-    color: #fffefa;
+    color: #fffefa !important;
     font-family: var(--font-nickname, "Parisienne", "Great Vibes", cursive);
     font-size: .78rem;
     line-height: 1.08;
@@ -205,27 +326,33 @@ body.block-poster-concept-2 .info {
     margin-top: .16rem;
     padding: .14rem .34rem;
     border-radius: 999px;
-    background: rgba(255, 254, 250, .88);
+    background: rgba(255, 254, 250, .9);
     border: 1px solid rgba(255, 255, 255, .55);
     box-shadow: 0 10px 24px rgba(20, 28, 24, .18);
     line-height: 1.15;
 }
 
+body.block-poster-concept-2 .date__time,
+body.block-poster-concept-2 .location,
 .poster.block-skin-concept-2 .date__time,
 .poster.block-skin-concept-2 .location {
+    display: block !important;
     margin: 0;
     padding: 0;
-    color: var(--botanical-ink, #1f2a25);
+    color: var(--botanical-ink, #1f2a25) !important;
     font-family: "Nunito Sans", "Quicksand", sans-serif;
     font-weight: 800;
     letter-spacing: .06rem;
     text-shadow: none;
     line-height: 1.2;
     text-align: center;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
+body.block-poster-concept-2 .location,
 .poster.block-skin-concept-2 .location {
-    color: var(--botanical-muted, #5a6760);
+    color: var(--botanical-muted, #5a6760) !important;
     font-weight: 700;
     letter-spacing: .03rem;
 }
@@ -248,8 +375,17 @@ body.block-poster-concept-3 .poster .wave,
     display: none !important;
 }
 
+body.block-poster-concept-3 .poster-photo,
+.poster.block-skin-concept-3 .poster-photo {
+    inset: 0;
+    clip-path: none;
+    -webkit-clip-path: none;
+}
+
 body.block-poster-concept-3 .poster img,
-.poster.block-skin-concept-3 img {
+body.block-poster-concept-3 .poster-photo img,
+.poster.block-skin-concept-3 img,
+.poster.block-skin-concept-3 .poster-photo img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -374,8 +510,17 @@ body.block-poster-concept-4 .poster .wave,
     display: none !important;
 }
 
+body.block-poster-concept-4 .poster-photo,
+.poster.block-skin-concept-4 .poster-photo {
+    inset: 0;
+    clip-path: none;
+    -webkit-clip-path: none;
+}
+
 body.block-poster-concept-4 .poster img,
-.poster.block-skin-concept-4 img {
+body.block-poster-concept-4 .poster-photo img,
+.poster.block-skin-concept-4 img,
+.poster.block-skin-concept-4 .poster-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -528,4 +673,507 @@ body.block-poster-concept-4 .info {
 
 .poster.block-skin-concept-4 .location {
     opacity: .92;
+}
+
+
+/* ---------- Concept 5: mép sóng chéo + text góc dưới TRÁI (nền trắng) ----------
+   Trái ~78% · Phải ~91.6%; chỉ nickname layout + date/location tối; không JS riêng. */
+body.block-poster-concept-5 .poster,
+.poster.block-skin-concept-5 {
+    --poster-c5-clip: polygon( 0% 0%, 100% 0%, 100% 91.6%, 98.3% 91.84%, 96.7% 91.64%, 95% 90.99%, 93.3% 90.27%, 91.7% 89.94%, 90% 90.11%, 88.3% 90.39%, 86.7% 90.33%, 85% 89.76%, 83.3% 89%, 81.7% 88.56%, 80% 88.62%, 78.3% 88.93%, 76.7% 88.98%, 75% 88.51%, 73.3% 87.76%, 71.7% 87.2%, 70% 87.16%, 68.3% 87.45%, 66.7% 87.59%, 65% 87.25%, 63.3% 86.53%, 61.7% 85.88%, 60% 85.71%, 58.3% 85.96%, 56.7% 86.18%, 55% 85.97%, 53.3% 85.3%, 51.7% 84.59%, 50% 84.29%, 48.3% 84.46%, 46.7% 84.74%, 45% 84.65%, 43.3% 84.07%, 41.7% 83.32%, 40% 82.89%, 38.3% 82.98%, 36.7% 83.28%, 35% 83.31%, 33.3% 82.83%, 31.7% 82.07%, 30% 81.53%, 28.3% 81.51%, 26.7% 81.8%, 25% 81.93%, 23.3% 81.57%, 21.7% 80.84%, 20% 80.21%, 18.3% 80.05%, 16.7% 80.31%, 15% 80.53%, 13.3% 80.29%, 11.7% 79.61%, 10% 78.91%, 8.3% 78.63%, 6.7% 78.82%, 5% 79.09%, 3.3% 78.98%, 1.7% 78.38%, 0% 78% );
+    position: relative;
+    height: 100vh;
+    min-height: 100svh;
+    padding: 0;
+    background: #fff !important;
+    overflow: hidden;
+}
+
+body.block-poster-concept-5 .poster .wave,
+.poster.block-skin-concept-5 .wave {
+    display: none !important;
+}
+
+/* Khung clip cố định — img scale bên trong, không lòi sóng */
+body.block-poster-concept-5 .poster-photo,
+.poster.block-skin-concept-5 .poster-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    transform: translateZ(0);
+    isolation: isolate;
+    filter: drop-shadow(0 1px 0 rgba(40, 34, 28, .05));
+    -webkit-clip-path: var(--poster-c5-clip);
+    clip-path: var(--poster-c5-clip);
+}
+
+body.block-poster-concept-5 .poster-photo img,
+.poster.block-skin-concept-5 .poster-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(1.04) contrast(1.03) brightness(1.01);
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+    transform-origin: center center;
+    animation: posterConcept5Kenburns 6.5s linear forwards !important;
+}
+
+@keyframes posterConcept5Kenburns {
+    0% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+body.block-poster-concept-5 .poster::before,
+.poster.block-skin-concept-5::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 50% 36% at 10% 0%, rgba(255, 255, 255, .18), transparent 60%),
+        linear-gradient(to bottom, rgba(0, 0, 0, .1) 0%, transparent 24%);
+    -webkit-clip-path: var(--poster-c5-clip);
+    clip-path: var(--poster-c5-clip);
+}
+
+body.block-poster-concept-5 .poster::after,
+.poster.block-skin-concept-5::after {
+    content: none !important;
+    display: none !important;
+}
+
+body.block-poster-concept-5 .poster-content,
+.poster.block-skin-concept-5 .poster-content {
+    position: absolute;
+    inset: 0;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0;
+    padding: 0 .5rem 1.05rem .4rem;
+    color: #2a221c;
+    text-align: left;
+    z-index: 5;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: none;
+}
+
+body.block-poster-concept-5 .poster-content > *,
+.poster.block-skin-concept-5 .poster-content > * {
+    pointer-events: auto;
+}
+
+body.block-poster-concept-5 .text_1,
+body.block-poster-concept-5 .text_2,
+body.block-poster-concept-5 .heart,
+body.block-poster-concept-5 .info,
+.poster.block-skin-concept-5 .text_1,
+.poster.block-skin-concept-5 .text_2,
+.poster.block-skin-concept-5 .heart,
+.poster.block-skin-concept-5 .info {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+}
+
+body.block-poster-concept-5 .couple,
+.poster.block-skin-concept-5 .couple {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: baseline;
+    align-self: flex-start;
+    width: auto;
+    max-width: 92%;
+    margin: 0;
+    padding: 0;
+    column-gap: .1rem;
+    row-gap: .02rem;
+}
+
+body.block-poster-concept-5 .text_1,
+body.block-poster-concept-5 .text_2,
+.poster.block-skin-concept-5 .text_1,
+.poster.block-skin-concept-5 .text_2 {
+    width: auto;
+    max-width: none;
+    align-self: auto;
+    color: #2a221c !important;
+    font-family: var(--font-nickname, "Great Vibes", "Parisienne", cursive);
+    font-size: clamp(.4rem, 5.8vw, .54rem);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: .01em;
+    text-align: left;
+    text-shadow: none;
+    padding: 0;
+}
+
+body.block-poster-concept-5 .heart,
+.poster.block-skin-concept-5 .heart {
+    align-self: center;
+    flex: 0 0 auto;
+    margin: 0 .02rem;
+    color: #3a322c;
+    font-size: .22rem;
+    line-height: 1;
+    text-shadow: none;
+}
+
+body.block-poster-concept-5 .heart i,
+.poster.block-skin-concept-5 .heart i {
+    display: none !important;
+}
+
+body.block-poster-concept-5 .heart::before,
+.poster.block-skin-concept-5 .heart::before {
+    content: "&";
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-size: .26rem;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: 0;
+    color: #3a322c;
+}
+
+body.block-poster-concept-5 .info,
+.poster.block-skin-concept-5 .info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    align-self: flex-start;
+    gap: .05rem;
+    width: auto;
+    max-width: 92%;
+    margin: .1rem 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    line-height: 1.3;
+}
+
+body.block-poster-concept-5 .date__time,
+body.block-poster-concept-5 .location,
+.poster.block-skin-concept-5 .date__time,
+.poster.block-skin-concept-5 .location {
+    display: block !important;
+    margin: 0;
+    padding: 0;
+    color: #2a221c !important;
+    font-family: "Lora", Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: none;
+    text-align: left;
+    text-shadow: none;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+body.block-poster-concept-5 .date__time,
+.poster.block-skin-concept-5 .date__time {
+    font-size: clamp(.18rem, 2.9vw, .24rem);
+    letter-spacing: .12em;
+}
+
+body.block-poster-concept-5 .location,
+.poster.block-skin-concept-5 .location {
+    font-size: clamp(.15rem, 2.5vw, .2rem);
+    font-weight: 500;
+    letter-spacing: .06em;
+    color: #5a4e46 !important;
+    opacity: .92 !important;
+}
+
+/* ---------- Concept 6: nền primary tint, tên giữa header–ảnh, ảnh chạm đáy ----------
+   Chỉ nickname (ẩn date/location). Tim viền mờ trên nền; không JS riêng. */
+body.block-poster-concept-6 .poster,
+.poster.block-skin-concept-6 {
+    position: relative;
+    height: 100vh;
+    min-height: 100svh;
+    padding: 0;
+    /* Nền theo --primary-color của thiệp (không hardcode be) */
+    background:
+        radial-gradient(
+            ellipse 88% 48% at 50% 0%,
+            color-mix(in srgb, var(--primary-color) 12%, #fffefb 88%),
+            transparent 58%
+        ),
+        radial-gradient(
+            ellipse 70% 42% at 100% 100%,
+            rgba(var(--primary-rgb), .14),
+            transparent 55%
+        ),
+        linear-gradient(
+            165deg,
+            color-mix(in srgb, var(--primary-color) 10%, #fffefb 90%) 0%,
+            color-mix(in srgb, var(--primary-color) 18%, #f7f4ef 82%) 48%,
+            color-mix(in srgb, var(--primary-color) 26%, #f0ebe4 74%) 100%
+        ) !important;
+    overflow: hidden;
+}
+
+body.block-poster-concept-6 .poster .wave,
+.poster.block-skin-concept-6 .wave {
+    display: none !important;
+}
+
+/*
+ * Ảnh: mép dưới chạm đáy; bo góc trên; cao 66% — vùng giấy 34% cho tên.
+ */
+body.block-poster-concept-6 .poster-photo,
+.poster.block-skin-concept-6 .poster-photo {
+    position: absolute;
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 0;
+    width: min(92%, 9.2rem);
+    height: 66%;
+    max-height: none;
+    transform: translateX(-50%);
+    border-radius: .28rem .28rem 0 0;
+    overflow: hidden;
+    clip-path: none;
+    -webkit-clip-path: none;
+    z-index: 1;
+    box-shadow:
+        0 -.04rem .24rem rgba(60, 40, 20, .1),
+        0 .12rem .36rem rgba(60, 40, 20, .12);
+    outline: 2px solid rgba(255, 252, 246, .92);
+    outline-offset: 0;
+}
+
+body.block-poster-concept-6 .poster img,
+body.block-poster-concept-6 .poster-photo img,
+.poster.block-skin-concept-6 img,
+.poster.block-skin-concept-6 .poster-photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 28%;
+    border-radius: 0;
+    filter: saturate(1.04) contrast(1.02);
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+    transform-origin: center center;
+    animation: posterConcept6Kenburns 7s linear forwards !important;
+}
+
+@keyframes posterConcept6Kenburns {
+    0% {
+        transform: scale(1.08);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+body.block-poster-concept-6 .poster::before,
+.poster.block-skin-concept-6::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse 100% 35% at 50% 0%,
+        color-mix(in srgb, var(--primary-color) 8%, rgba(255, 255, 255, .35)),
+        transparent 60%
+    );
+    clip-path: none;
+    -webkit-clip-path: none;
+}
+
+/*
+ * Tim viền mờ — CHỈ vùng nền trên (mint/primary), không đè ảnh.
+ * SVG stroke + opacity; vị trí rải quanh tên.
+ */
+body.block-poster-concept-6 .poster::after,
+.poster.block-skin-concept-6::after {
+    content: "" !important;
+    display: block !important;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    /* Khớp vùng giấy trên ảnh (~34%) */
+    height: 36%;
+    z-index: 3;
+    pointer-events: none;
+    border: 0;
+    opacity: .32;
+    /* Tim outline — cỡ lớn hơn để thấy trên mobile */
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a221c' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size:
+        .55rem .55rem,
+        .48rem .48rem,
+        .38rem .38rem,
+        .42rem .42rem,
+        .32rem .32rem,
+        .34rem .34rem,
+        .28rem .28rem,
+        .3rem .3rem;
+    /* Chỉ trong nền xanh mint phía trên ảnh */
+    background-position:
+        7% 16%,
+        91% 14%,
+        12% 55%,
+        88% 48%,
+        5% 78%,
+        93% 74%,
+        20% 32%,
+        80% 36%;
+    /* Pha nhẹ primary (mint) */
+    filter: opacity(1);
+    mix-blend-mode: multiply;
+}
+
+/*
+ * Tên GIỮA khoảng header ↔ đỉnh ảnh (không dính sát ảnh).
+ * Vùng content = từ dưới header (~1.1rem) đến trên khung ảnh.
+ */
+body.block-poster-concept-6 .poster-content,
+.poster.block-skin-concept-6 .poster-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* chừa header / nút menu */
+    top: 1.15rem;
+    /* đỉnh ảnh = 100% - 66% = 34% từ bottom → bottom: 66% */
+    bottom: 66%;
+    max-height: none;
+    display: flex !important;
+    flex-direction: column;
+    /* căn giữa theo chiều dọc trong khoảng trống */
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    padding: 0 .4rem;
+    color: #3d342c;
+    text-align: center;
+    z-index: 5;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+body.block-poster-concept-6 .poster-content > *,
+.poster.block-skin-concept-6 .poster-content > * {
+    pointer-events: auto;
+}
+
+body.block-poster-concept-6 .text_1,
+body.block-poster-concept-6 .text_2,
+body.block-poster-concept-6 .heart,
+.poster.block-skin-concept-6 .text_1,
+.poster.block-skin-concept-6 .text_2,
+.poster.block-skin-concept-6 .heart {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+}
+
+/* Ẩn date + location */
+body.block-poster-concept-6 .info,
+body.block-poster-concept-6 .date__time,
+body.block-poster-concept-6 .location,
+.poster.block-skin-concept-6 .info,
+.poster.block-skin-concept-6 .date__time,
+.poster.block-skin-concept-6 .location {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+}
+
+body.block-poster-concept-6 .couple,
+.poster.block-skin-concept-6 .couple {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    width: 100%;
+    max-width: 9rem;
+    margin: 0;
+    padding: 0;
+    row-gap: .08rem;
+    column-gap: 0;
+}
+
+body.block-poster-concept-6 .text_1,
+body.block-poster-concept-6 .text_2,
+.poster.block-skin-concept-6 .text_1,
+.poster.block-skin-concept-6 .text_2 {
+    width: 100%;
+    max-width: 100%;
+    align-self: center;
+    color: color-mix(in srgb, var(--primary-color) 42%, #2a221c 58%) !important;
+    font-family: var(--font-nickname, "Great Vibes", "Parisienne", cursive);
+    font-size: clamp(.62rem, 9vw, .88rem);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: .02em;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255, 252, 246, .55);
+    padding: 0 .12rem;
+}
+
+body.block-poster-concept-6 .heart,
+.poster.block-skin-concept-6 .heart {
+    display: none !important;
+}
+
+@media (max-height: 700px) {
+    body.block-poster-concept-6 .poster-photo,
+    .poster.block-skin-concept-6 .poster-photo {
+        height: 62%;
+    }
+
+    body.block-poster-concept-6 .poster-content,
+    .poster.block-skin-concept-6 .poster-content {
+        top: 1rem;
+        bottom: 62%;
+        justify-content: center;
+        padding: 0 .35rem;
+    }
+
+    body.block-poster-concept-6 .text_1,
+    body.block-poster-concept-6 .text_2,
+    .poster.block-skin-concept-6 .text_1,
+    .poster.block-skin-concept-6 .text_2 {
+        font-size: clamp(.58rem, 8.5vw, .8rem);
+    }
 }

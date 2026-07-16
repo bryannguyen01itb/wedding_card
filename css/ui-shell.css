@@ -195,6 +195,24 @@
     transition: border-color .15s ease, box-shadow .15s ease;
 }
 
+/* Mobile: ≥16px → iOS không auto-zoom khi focus builder/admin */
+@media (max-width: 900px) {
+    .ui-input,
+    .builder-form input:not([type="file"]):not([type="color"]):not([type="radio"]):not([type="checkbox"]):not([type="range"]):not([type="hidden"]),
+    .builder-form select,
+    .builder-form textarea,
+    .admin-form input:not([type="file"]):not([type="color"]):not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
+    .admin-form select,
+    .admin-form textarea,
+    .login-form input,
+    .login-form select,
+    .login-form textarea {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+}
+
 .builder-form textarea,
 .admin-form textarea,
 .login-form textarea,

@@ -28,14 +28,14 @@
     <link rel="stylesheet" href="css/tokens.css?v=20260716-css3">
     <link rel="stylesheet" href="css/parts/base.css?v=20260716-css3">
     <link rel="stylesheet" href="css/parts/cover.css?v=20260716-clean1">
-    <link rel="stylesheet" href="css/parts/sections.css?v=20260716-nozoom16">
+    <link rel="stylesheet" href="css/parts/sections.css?v=20260716-audit1">
     <link rel="stylesheet" href="css/parts/countdown-thanks.css?v=20260716-css3">
     <link rel="stylesheet" href="css/parts/animations.css?v=20260716-css3">
     <link rel="stylesheet" href="css/parts/concept-1-classic.css?v=20260716-clean1">
     <link rel="stylesheet" href="css/parts/gift-polish.css?v=20260716-css3">
     <link rel="stylesheet" href="css/parts/block-builder.css?v=20260716-clean1">
     <link rel="stylesheet" href="css/blocks/cover/skins.css?v=20260716-clean1">
-    <link rel="stylesheet" href="css/blocks/poster/skins.css?v=20260716-css3">
+    <link rel="stylesheet" href="css/blocks/poster/skins.css?v=20260716-poster-audit1">
     <link rel="stylesheet" href="css/blocks/save-date/skins.css?v=20260716-css3">
     <link rel="stylesheet" href="css/blocks/about/skins.css?v=20260716-css3">
     <link rel="stylesheet" href="css/blocks/timeline/skins.css?v=20260716-tl-mid">
@@ -88,7 +88,10 @@
             <div class="invitation__header" id="invitationHeader"></div>
             <div class="invitation__container">
                 <div class="poster">
-                    <img id="posterImage" alt="">
+                    <!-- Wrapper clip cố định; img animate scale bên trong → không lòi khỏi khung cong -->
+                    <div class="poster-photo">
+                        <img id="posterImage" alt="">
+                    </div>
                     <svg class="wave" viewBox="0 0 1440 200" preserveAspectRatio="none">
                         <path fill="#ffffff"
                             d="M0,96L80,112C160,128,320,160,480,160C640,160,800,128,960,122.7C1120,117,1280,139,1360,149.3L1440,160L1440,320L0,320Z">
