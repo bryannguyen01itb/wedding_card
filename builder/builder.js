@@ -147,6 +147,7 @@ const qrCropX = document.getElementById("qrCropX");
 const qrCropY = document.getElementById("qrCropY");
 const qrCropSaveBtn = document.getElementById("qrCropSaveBtn");
 const qrCropModalTitle = document.getElementById("qrCropModalTitle");
+const qrCropHint = document.querySelector(".qr-crop-modal__hint");
 
 const WEDDING_QUERY_KEY = "wedding";
 const PREVIEW_STATE_KEY = "weddingBuilderPreviewState";
@@ -229,6 +230,11 @@ const QR_FIELD_LABELS = {
     giftGroomQr: "QR chú rể",
     giftBrideQr: "QR cô dâu"
 };
+
+const PREVIEW_CROP_FIELD = "previewImage";
+const PREVIEW_CROP_WIDTH = 1200;
+const PREVIEW_CROP_HEIGHT = 630;
+const QR_CROP_SIZE = 280;
 
 const QR_PENDING_FIELDS = ["giftGroomQr", "giftBrideQr"];
 
@@ -2663,10 +2669,44 @@ function assertNoBlobMediaUrls() {
     }
 }
 
+function isPreviewCropField(fieldName) {
+    return fieldName === PREVIEW_CROP_FIELD;
+}
+
+function getCropCanvasSize(fieldName) {
+    return isPreviewCropField(fieldName)
+        ? { width: PREVIEW_CROP_WIDTH, height: PREVIEW_CROP_HEIGHT }
+        : { width: QR_CROP_SIZE, height: QR_CROP_SIZE };
+}
+
 function resetQrCropControls() {
     if (qrCropZoom) qrCropZoom.value = "1";
     if (qrCropX) qrCropX.value = "0";
     if (qrCropY) qrCropY.value = "0";
+}
+
+function configureCropModal(fieldName) {
+    if (!qrCropCanvas) return;
+    const size = getCropCanvasSize(fieldName);
+    qrCropCanvas.width = size.width;
+    qrCropCanvas.height = size.height;
+    qrCropCanvas.classList.toggle("is-preview-crop", isPreviewCropField(fieldName));
+
+    if (qrCropModalTitle) {
+        qrCropModalTitle.textContent = isPreviewCropField(fieldName)
+            ? "Cắt ảnh preview theo khung ngang"
+            : `Căn ${QR_FIELD_LABELS[fieldName] || "QR"} vào khung vuông`;
+    }
+    if (qrCropHint) {
+        qrCropHint.innerHTML = isPreviewCropField(fieldName)
+            ? 'Kéo <strong>Zoom</strong> / <strong>Dịch ngang/dọc</strong> để chọn vùng ảnh đẹp khi gửi Zalo, Facebook, Messenger. Khung này là tỉ lệ ngang <strong>1200x630</strong>.'
+            : 'Kéo <strong>Zoom</strong> / <strong>Dịch ngang/dọc</strong> để QR gọn trong khung, rồi bấm <strong>Áp dụng QR</strong>.';
+    }
+    if (qrCropSaveBtn) {
+        qrCropSaveBtn.innerHTML = isPreviewCropField(fieldName)
+            ? '<i class="bi bi-check2"></i> Áp dụng ảnh preview'
+            : '<i class="bi bi-check2"></i> Áp dụng QR';
+    }
 }
 
 function renderQrCrop() {
@@ -2676,21 +2716,22 @@ function renderQrCrop() {
     if (!state || !canvas) return;
 
     const context = canvas.getContext("2d");
-    const size = canvas.width;
+    const width = canvas.width;
+    const height = canvas.height;
     const zoom = Number(qrCropZoom?.value || 1);
     const shiftX = Number(qrCropX?.value || 0) / 100;
     const shiftY = Number(qrCropY?.value || 0) / 100;
     const image = state.image;
-    const baseScale = Math.max(size / image.naturalWidth, size / image.naturalHeight);
+    const baseScale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
     const drawWidth = image.naturalWidth * baseScale * zoom;
     const drawHeight = image.naturalHeight * baseScale * zoom;
-    const maxMoveX = Math.max(0, (drawWidth - size) / 2);
-    const maxMoveY = Math.max(0, (drawHeight - size) / 2);
-    const x = (size - drawWidth) / 2 + maxMoveX * shiftX;
-    const y = (size - drawHeight) / 2 + maxMoveY * shiftY;
+    const maxMoveX = Math.max(0, (drawWidth - width) / 2);
+    const maxMoveY = Math.max(0, (drawHeight - height) / 2);
+    const x = (width - drawWidth) / 2 + maxMoveX * shiftX;
+    const y = (height - drawHeight) / 2 + maxMoveY * shiftY;
 
     context.fillStyle = "#fff";
-    context.fillRect(0, 0, size, size);
+    context.fillRect(0, 0, width, height);
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(image, x, y, drawWidth, drawHeight);
@@ -2790,9 +2831,7 @@ async function flushPendingQrUploads() {
 function openQrCropModal(fieldName) {
     if (!qrCropModal || !fieldName || !qrCropStates.has(fieldName)) return;
     activeQrField = fieldName;
-    if (qrCropModalTitle) {
-        qrCropModalTitle.textContent = `Căn ${QR_FIELD_LABELS[fieldName] || "QR"} vào khung vuông`;
-    }
+    configureCropModal(fieldName);
     resetQrCropControls();
     qrCropModal.hidden = false;
     document.body.classList.add("modal-open");
@@ -2806,7 +2845,7 @@ function closeQrCropModal() {
     document.body.classList.remove("modal-open");
 }
 
-async function loadQrFile(fieldName, file) {
+async function loadCropFile(fieldName, file) {
     if (!file || !fieldName) return;
     try {
         const image = await loadImageFromFile(file);
@@ -2815,8 +2854,21 @@ async function loadQrFile(fieldName, file) {
         setStatus("");
     } catch (error) {
         console.error(error);
-        setStatus("Không đọc được ảnh QR. Thử file khác.", "error");
+        setStatus(
+            isPreviewCropField(fieldName)
+                ? "Không đọc được ảnh preview. Thử file khác."
+                : "Không đọc được ảnh QR. Thử file khác.",
+            "error"
+        );
     }
+}
+
+function loadQrFile(fieldName, file) {
+    return loadCropFile(fieldName, file);
+}
+
+function loadPreviewCropFile(fieldName, file) {
+    return loadCropFile(fieldName, file);
 }
 
 function pickQrFile(fieldName) {
@@ -2829,7 +2881,7 @@ function pickQrFile(fieldName) {
 async function saveQrFromModal() {
     const fieldName = activeQrField;
     if (!fieldName || !qrCropStates.has(fieldName) || !qrCropCanvas) {
-        setStatus("Chọn file QR trước khi lưu.", "error");
+        setStatus("Chọn file trước khi lưu.", "error");
         return;
     }
 
@@ -2840,12 +2892,13 @@ async function saveQrFromModal() {
             qrCropSaveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang áp dụng…';
         }
         renderQrCrop();
-        const blob = await canvasToBlob(qrCropCanvas, "image/png", 0.95);
-        if (!blob) throw new Error("Không tạo được ảnh QR đã cắt.");
+        const isPreview = isPreviewCropField(fieldName);
+        const blob = await canvasToBlob(qrCropCanvas, isPreview ? "image/jpeg" : "image/png", isPreview ? 0.88 : 0.95);
+        if (!blob) throw new Error(isPreview ? "Không tạo được ảnh preview đã cắt." : "Không tạo được ảnh QR đã cắt.");
 
         const state = qrCropStates.get(fieldName);
         const sourceFileHash = state?.file ? await hashSourceFile(state.file) : await hashSourceFile(blob);
-        const cropSig = `${qrCropZoom?.value || 1}|${qrCropX?.value || 0}|${qrCropY?.value || 0}`;
+        const cropSig = `${qrCropZoom?.value || 1}|${qrCropX?.value || 0}|${qrCropY?.value || 0}|${isPreview ? "preview-1200x630" : "qr-square"}`;
         const sourceHash = `${sourceFileHash}#${cropSig}`;
         const previousRemoteUrl = getPreviousRemoteUrl(fieldName);
         const previousPublicId = getPreviousRemotePublicId(fieldName)
@@ -2860,9 +2913,11 @@ async function saveQrFromModal() {
             knownFp === sourceHash &&
             await remoteMediaUrlAlive(previousRemoteUrl)
         ) {
-            clearPendingQr(fieldName);
+            if (isPreview) clearPendingMedia(fieldName);
+            else clearPendingQr(fieldName);
             setField(fieldName, previousRemoteUrl);
-            showQrReady(fieldName, previousRemoteUrl);
+            if (isPreview) showMediaReady(fieldName, previousRemoteUrl, { fileName: "Ảnh preview đã cắt" });
+            else showQrReady(fieldName, previousRemoteUrl);
             rememberRemoteMediaUrl(fieldName, previousRemoteUrl, previousPublicId);
             closeQrCropModal();
             setStatus("");
@@ -2870,25 +2925,26 @@ async function saveQrFromModal() {
             return;
         }
 
-        // QR mới / crop khác — pending, Lưu Firebase mới upload
-        const objectUrl = setPendingQrBlob(fieldName, blob, {
-            sourceHash,
-            previousRemoteUrl,
-            previousPublicId
-        });
+        // Ảnh mới / crop khác — pending, Lưu Firebase mới upload
+        const objectUrl = isPreview
+            ? setPendingMediaBlob(fieldName, blob, { sourceHash, previousRemoteUrl, previousPublicId })
+            : setPendingQrBlob(fieldName, blob, { sourceHash, previousRemoteUrl, previousPublicId });
         setField(fieldName, objectUrl);
-        showQrReady(fieldName, objectUrl);
+        if (isPreview) showMediaReady(fieldName, objectUrl, { fileName: "Ảnh preview đã cắt", fileSize: blob.size });
+        else showQrReady(fieldName, objectUrl);
         closeQrCropModal();
         setStatus("");
         refreshPreview(false);
     } catch (error) {
         console.error(error);
-        const message = String(error?.message || "Áp dụng QR thất bại.").slice(0, 180);
+        const message = String(error?.message || (isPreviewCropField(fieldName) ? "Áp dụng ảnh preview thất bại." : "Áp dụng QR thất bại.")).slice(0, 180);
         setStatus(message, "error");
     } finally {
         if (qrCropSaveBtn) {
             qrCropSaveBtn.disabled = false;
-            qrCropSaveBtn.innerHTML = oldLabel || '<i class="bi bi-check2"></i> Áp dụng QR';
+            qrCropSaveBtn.innerHTML = oldLabel || (isPreviewCropField(fieldName)
+                ? '<i class="bi bi-check2"></i> Áp dụng ảnh preview'
+                : '<i class="bi bi-check2"></i> Áp dụng QR');
         }
     }
 }
@@ -4753,6 +4809,10 @@ function handleMediaInputChange(event) {
     const fieldName = input.dataset.uploadTarget;
     const file = input.files?.[0];
     if (!fieldName || !file) return;
+    if (isPreviewCropField(fieldName)) {
+        loadPreviewCropFile(fieldName, file);
+        return;
+    }
     stageImageForField(fieldName, file);
 }
 

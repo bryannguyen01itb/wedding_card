@@ -170,6 +170,35 @@ function toAbsoluteUrl(path, requestUrl) {
     }
 }
 
+function toPreviewImageUrl(path, requestUrl) {
+    const absoluteUrl = toAbsoluteUrl(path, requestUrl);
+
+    try {
+        const url = new URL(absoluteUrl);
+        if (!url.hostname.includes("res.cloudinary.com")) {
+            return url.href;
+        }
+
+        url.search = "";
+        const uploadMarker = "/image/upload/";
+        const markerIndex = url.pathname.indexOf(uploadMarker);
+        if (markerIndex === -1) {
+            return url.href;
+        }
+
+        const beforeUpload = url.pathname.slice(0, markerIndex + uploadMarker.length);
+        const afterUpload = url.pathname.slice(markerIndex + uploadMarker.length);
+        if (afterUpload.startsWith("c_fill,")) {
+            return url.href;
+        }
+
+        url.pathname = `${beforeUpload}c_fill,g_auto,w_1200,h_630,q_auto:good,f_jpg/${afterUpload}`;
+        return url.href;
+    } catch (_error) {
+        return absoluteUrl;
+    }
+}
+
 function escapeHtmlAttribute(value) {
     return String(value || "")
         .replace(/&/g, "&amp;")
@@ -217,7 +246,7 @@ function injectPreviewMeta(html, meta, requestUrl) {
     const groom = String(meta.groomNickname || "CHÚ RỂ").trim().toLocaleUpperCase("vi-VN");
     const bride = String(meta.brideNickname || "CÔ DÂU").trim().toLocaleUpperCase("vi-VN");
     const title = `THƯ MỜI CƯỚI ${groom} & ${bride}`;
-    const imageUrl = toAbsoluteUrl(meta.previewImage, requestUrl);
+    const imageUrl = toPreviewImageUrl(meta.previewImage, requestUrl);
     const pageUrl = new URL(requestUrl).href;
 
     let output = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtmlAttribute(title)}</title>`);
@@ -230,6 +259,7 @@ function injectPreviewMeta(html, meta, requestUrl) {
     output = upsertMeta(output, "og:image:secure_url", imageUrl);
     output = upsertMeta(output, "og:image:width", "1200");
     output = upsertMeta(output, "og:image:height", "630");
+    output = upsertMeta(output, "og:image:type", "image/jpeg");
     output = upsertMeta(output, "og:url", pageUrl);
     output = upsertMeta(output, "twitter:card", "summary_large_image");
     output = upsertMeta(output, "twitter:title", title);

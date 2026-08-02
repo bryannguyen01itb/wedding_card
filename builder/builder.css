@@ -1264,6 +1264,11 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(90,140,95,.22);border-
     touch-action: none;
 }
 
+.qr-crop-modal__stage canvas.is-preview-crop {
+    width: min(360px, 82vw);
+    aspect-ratio: 1200 / 630;
+}
+
 .qr-crop-modal__controls {
     display: grid;
     gap: 12px;
@@ -1334,6 +1339,10 @@ textarea{width:100%;min-height:76px;border:1px solid rgba(90,140,95,.22);border-
 
     .qr-crop-modal__stage canvas {
         width: min(260px, 78vw);
+    }
+
+    .qr-crop-modal__stage canvas.is-preview-crop {
+        width: min(360px, 88vw);
     }
 
     .qr-crop-modal__actions {
