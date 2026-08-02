@@ -111,12 +111,13 @@ input[type=color] {
     flex-wrap: wrap;
     gap: 8px;
     position: sticky;
-    top: 8px;
+    top: 0;
     z-index: 12;
+    margin: 0 0 18px;
     padding: 10px 12px;
     border-radius: 14px;
     border: 1px solid rgba(var(--admin-primary-rgb), .16);
-    background: rgba(255, 255, 255, .94);
+    background: rgba(255, 255, 255, .96);
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 24px rgba(20, 50, 40, .08);
 }
@@ -143,6 +144,16 @@ input[type=color] {
     color: var(--admin-primary);
     font-size: 15px;
     font-weight: 800;
+}
+
+.admin-form > .panel {
+    scroll-margin-top: 132px;
+}
+
+@media (max-width: 900px) {
+    .admin-form > .panel {
+        scroll-margin-top: 188px;
+    }
 }
 .title-pair-grid {
     display: grid;

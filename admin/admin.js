@@ -1517,7 +1517,37 @@ function showWeddingEditMode() {
     const editPanel = document.getElementById("weddingEditPanel");
     if (listPanel) listPanel.hidden = true;
     if (editPanel) editPanel.hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function getAdminFormNavOffset() {
+    const mobileChrome = document.getElementById("adminMobileChrome");
+    const nav = document.getElementById("adminFormNav");
+    const mobileHeight = window.matchMedia("(max-width: 900px)").matches
+        ? Math.ceil(mobileChrome?.getBoundingClientRect().height || 56)
+        : 0;
+    const navHeight = Math.ceil(nav?.getBoundingClientRect().height || 0);
+    return mobileHeight + navHeight + 20;
+}
+
+function scrollAdminTargetIntoView(target, behavior = "smooth") {
+    if (!target) return;
+    const top = target.getBoundingClientRect().top + window.scrollY - getAdminFormNavOffset();
+    window.scrollTo({ top: Math.max(0, top), behavior });
+}
+
+function scrollAdminEditorToTop() {
+    const hero = document.getElementById("adminHero");
+    window.requestAnimationFrame(() => scrollAdminTargetIntoView(hero, "smooth"));
+}
+
+function handleAdminFormNavClick(event) {
+    const link = event.target.closest(".admin-form-nav a[href^='#']");
+    if (!link) return;
+    const id = decodeURIComponent(link.getAttribute("href").slice(1));
+    const target = document.getElementById(id);
+    if (!target) return;
+    event.preventDefault();
+    scrollAdminTargetIntoView(target);
 }
 
 async function openWeddingEditor(weddingId) {
@@ -1526,7 +1556,11 @@ async function openWeddingEditor(weddingId) {
     setAdminView("weddings", { keepEditor: true });
     showWeddingEditMode();
     const ok = await loadConfigById(id);
-    if (!ok) showWeddingListMode();
+    if (!ok) {
+        showWeddingListMode();
+        return;
+    }
+    scrollAdminEditorToTop();
 }
 
 function fillForm(config) {
@@ -1947,11 +1981,14 @@ function setAdminNavOpen(open) {
     if (backdrop) backdrop.hidden = !on;
 }
 
-function setAdminView(viewId, { keepEditor = false } = {}) {
+function normalizeAdminViewId(viewId) {
     let next = String(viewId || "weddings").trim();
-    // Tương thích hash cũ
     if (next === "wedding") next = "weddings";
-    if (!["weddings", "music", "payment"].includes(next)) next = "weddings";
+    return ["weddings", "music", "payment"].includes(next) ? next : "";
+}
+
+function setAdminView(viewId, { keepEditor = false } = {}) {
+    const next = normalizeAdminViewId(viewId) || "weddings";
 
     document.querySelectorAll("[data-admin-view]").forEach(panel => {
         panel.classList.toggle("is-active", panel.dataset.adminView === next);
@@ -2021,7 +2058,7 @@ async function showLoggedIn(user) {
         showToast("Không tải được cấu hình thanh toán.", "error");
     }
 
-    const hashView = (window.location.hash || "").replace("#", "").trim();
+    const hashView = normalizeAdminViewId((window.location.hash || "").replace("#", "").trim());
     setAdminView(hashView || "weddings");
 
     if (!hasLoadedInitialConfig) {
@@ -2054,7 +2091,8 @@ function initEvents() {
         button.addEventListener("click", () => setAdminView(button.dataset.adminNav));
     });
     window.addEventListener("hashchange", () => {
-        setAdminView(window.location.hash.replace("#", "") || "weddings");
+        const viewId = normalizeAdminViewId(window.location.hash.replace("#", ""));
+        if (viewId) setAdminView(viewId);
     });
 
     document.getElementById("adminNavToggle")?.addEventListener("click", () => {
