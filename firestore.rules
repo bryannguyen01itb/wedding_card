@@ -94,7 +94,7 @@ service cloud.firestore {
         );
     }
 
-    function isValidWishCreate() {
+    function isValidWishCreate(weddingId) {
       return request.resource.data.keys().hasOnly([
           'name', 'side', 'attendance', 'message', 'createdAt'
         ])
@@ -146,7 +146,7 @@ service cloud.firestore {
 
       match /wishes/{wishId} {
         allow read: if true;
-        allow create: if isValidWishCreate();
+        allow create: if isValidWishCreate(weddingId);
         allow update, delete: if isAdmin();
       }
     }
