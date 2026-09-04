@@ -1084,6 +1084,7 @@ async function confirmPlanChangeFromModal() {
         }
 
         await db.collection("weddings").doc(id).set(payload, { merge: true });
+        await upsertPaymentStatus(db, id, payload.payment);
 
         if (currentConfig.weddingId === id || loadInput?.value === id) {
             currentConfig = mergeConfig(currentConfig, payload);

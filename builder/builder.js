@@ -1093,9 +1093,12 @@ function isInvitePlanLocked(config = loadedWeddingConfig) {
  * Không đọc radio form khi đã khóa.
  */
 function getLockedInvitePlan(config = loadedWeddingConfig) {
+    const hasSavedGuests = normalizeGuestNames(config?.guests).length > 0;
+    const hasFormGuests = readGuestNamesFromForm().length > 0;
+    if (config?.plan === "multi" || hasSavedGuests || hasFormGuests) return "multi";
     const paidPlan = config?.payment?.plan;
     if (paidPlan === "multi" || paidPlan === "single") return paidPlan;
-    if (config?.plan === "multi" || config?.plan === "single") return config.plan;
+    if (config?.plan === "single") return "single";
     return getSelectedInvitePlan();
 }
 
@@ -1526,10 +1529,15 @@ let paymentUnlockPopupShown = false;
 
 function applyPaymentSnapshot(payment = {}, weddingId = "") {
     if (!payment || typeof payment !== "object") return;
+    const hasGuests = normalizeGuestNames(loadedWeddingConfig.guests).length > 0
+        || readGuestNamesFromForm().length > 0;
+    const nextPlan = payment.plan === "multi" || loadedWeddingConfig.plan === "multi" || hasGuests
+        ? "multi"
+        : (payment.plan || loadedWeddingConfig.plan);
     loadedWeddingConfig = {
         ...loadedWeddingConfig,
-        payment: { ...(loadedWeddingConfig.payment || {}), ...payment },
-        plan: payment.plan || loadedWeddingConfig.plan
+        payment: { ...(loadedWeddingConfig.payment || {}), ...payment, plan: nextPlan },
+        plan: nextPlan
     };
     syncInvitePlanUI();
     const paid = payment.unlocked === true || payment.status === "paid";
@@ -4608,7 +4616,7 @@ async function saveConfig(event) {
         // Payment: build rồi sanitize — client không bao giờ leo thang unlocked/paid
         let paymentDraft = buildPendingPayment(payload.weddingId);
         if (isInvitePlanLocked()) {
-            const lockedPlan = getLockedInvitePlan();
+            const lockedPlan = getLockedInvitePlan(payload);
             payload.plan = lockedPlan;
             paymentDraft = { ...paymentDraft, plan: lockedPlan };
             if (lockedPlan !== "multi") {
