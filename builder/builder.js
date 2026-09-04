@@ -1051,9 +1051,11 @@ function getWeddingAccessToken(config = loadedWeddingConfig) {
     return String(config?.payment?.accessToken || "").trim();
 }
 
-function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), guest = null) {
+function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), guest = null, fallbackIndex = null) {
     const guestId = guest && typeof guest === "object" ? guest.id : "";
-    const guestIndex = guest && typeof guest === "object" ? guest.legacyIndex : guest;
+    const guestIndex = guest && typeof guest === "object"
+        ? (Number.isInteger(guest.legacyIndex) ? guest.legacyIndex : fallbackIndex)
+        : guest;
     return buildInvitationUrlFromBase(new URL("../", window.location.href).href, {
         accessToken,
         weddingId,
@@ -1254,7 +1256,7 @@ function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
     copyAllBtn.className = "guest-links__copy-all";
     copyAllBtn.innerHTML = '<i class="bi bi-clipboard-check"></i> Copy all';
     const allText = list
-        .map((guest, index) => `${guest.name}\t${buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index)}`)
+        .map((guest, index) => `${guest.name}\t${buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index, index)}`)
         .join("\n");
     copyAllBtn.dataset.copyUrl = allText;
     head.append(title, copyAllBtn);
@@ -1266,7 +1268,7 @@ function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
 
     list.forEach((guest, index) => {
         const name = guest.name;
-        const url = buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index);
+        const url = buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index, index);
         const row = document.createElement("div");
         row.className = "guest-links__row";
 

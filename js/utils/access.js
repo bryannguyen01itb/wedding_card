@@ -73,7 +73,8 @@ export function buildInvitationUrlFromBase(baseUrl, {
     const normalizedGuestId = normalizeGuestId(guestId);
     if (normalizedGuestId) {
         url.searchParams.set(GUEST_ID_QUERY_KEY, normalizedGuestId);
-    } else if (guestIndex !== null && guestIndex !== undefined && guestIndex !== "") {
+    }
+    if (guestIndex !== null && guestIndex !== undefined && guestIndex !== "") {
         const index = Number(guestIndex);
         if (Number.isInteger(index) && index >= 0) {
             url.searchParams.set(GUEST_QUERY_KEY, String(index));
