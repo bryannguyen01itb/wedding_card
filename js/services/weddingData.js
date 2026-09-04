@@ -170,7 +170,7 @@ async function fetchWeddingByAccessToken(token) {
     return mergeWeddingWithFallback(doc.data() || {}, doc.id);
 }
 
-/** Gán cover.guest theo ?g= (index trong guests[]) trước khi render. */
+/** Gán cover.guest theo ?guest= mới hoặc ?g= legacy trước khi render. */
 function applyCoverGuestFromUrl(config) {
     const guestName = resolveCoverGuestName(config);
     const next = {

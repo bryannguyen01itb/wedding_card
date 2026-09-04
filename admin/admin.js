@@ -1,5 +1,10 @@
 import { db } from "../js/firebase.js";
-import { generateAccessToken, buildInvitationUrlFromBase } from "../js/utils/access.js";
+import {
+    generateAccessToken,
+    buildInvitationUrlFromBase,
+    normalizeGuestNames,
+    reconcileGuestEntries
+} from "../js/utils/access.js";
 import { BRAND_PRIMARY } from "../js/brand.js";
 import { isAllowedAdminEmail } from "../js/adminAllowlist.js";
 import {
@@ -970,7 +975,7 @@ function openPlanChangeModal(state) {
     if (warnBox && warnText) {
         if (state.plan === "single" && guestCount > 0) {
             warnBox.hidden = false;
-            warnText.textContent = `Thiệp đang có ${guestCount} tên khách. Chuyển 1 link sẽ xóa danh sách guests — link ?g= không còn hiệu lực.`;
+            warnText.textContent = `Thiệp đang có ${guestCount} tên khách. Chuyển 1 link sẽ xóa danh sách khách mời riêng.`;
         } else if (state.plan === "multi") {
             warnBox.hidden = false;
             warnText.textContent = "Gói nhiều link: khách có thể nhập danh sách tên trên builder để tạo link riêng.";
@@ -1088,7 +1093,7 @@ async function confirmPlanChangeFromModal() {
             const guestsField = form?.elements?.guests;
             if (guestsField && plan === "single") guestsField.value = "";
             else if (guestsField && Array.isArray(currentConfig.guests)) {
-                guestsField.value = currentConfig.guests.join("\n");
+                guestsField.value = normalizeGuestNames(currentConfig.guests).join("\n");
             }
         }
 
@@ -1599,9 +1604,7 @@ function fillForm(config) {
     currentConfig.plan = plan;
     if (form.elements.plan) form.elements.plan.value = plan;
     if (form.elements.guests) {
-        form.elements.guests.value = Array.isArray(currentConfig.guests)
-            ? currentConfig.guests.filter(Boolean).join("\n")
-            : "";
+        form.elements.guests.value = normalizeGuestNames(currentConfig.guests).join("\n");
     }
 
     // Fonts
@@ -1679,10 +1682,7 @@ function readForm() {
     const plan = form.elements.plan?.value === "multi" ? "multi" : "single";
     nextConfig.plan = plan;
     nextConfig.guests = plan === "multi"
-        ? String(form.elements.guests?.value || "")
-            .split(/\r?\n/)
-            .map(line => line.trim())
-            .filter(Boolean)
+        ? reconcileGuestEntries(form.elements.guests?.value || "", currentConfig.guests)
         : [];
     nextConfig.payment = {
         ...(nextConfig.payment || {}),

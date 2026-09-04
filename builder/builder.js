@@ -13,7 +13,9 @@ import {
     generateAccessToken,
     isWeddingPaymentUnlocked,
     buildInvitationUrlFromBase,
-    normalizeGuestNames
+    normalizeGuestEntries,
+    normalizeGuestNames,
+    reconcileGuestEntries
 } from "../js/utils/access.js";
 import {
     extractProvinceFromAddress,
@@ -1049,10 +1051,13 @@ function getWeddingAccessToken(config = loadedWeddingConfig) {
     return String(config?.payment?.accessToken || "").trim();
 }
 
-function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), guestIndex = null) {
+function buildInvitationUrl(weddingId, accessToken = getWeddingAccessToken(), guest = null) {
+    const guestId = guest && typeof guest === "object" ? guest.id : "";
+    const guestIndex = guest && typeof guest === "object" ? guest.legacyIndex : guest;
     return buildInvitationUrlFromBase(new URL("../", window.location.href).href, {
         accessToken,
         weddingId,
+        guestId,
         guestIndex
     });
 }
@@ -1190,8 +1195,8 @@ function getGuestsForLinks(config = loadedWeddingConfig) {
     const plan = getEffectiveInvitePlan(config);
     if (plan !== "multi") return [];
     const fromForm = readGuestNamesFromForm();
-    if (fromForm.length) return fromForm;
-    return normalizeGuestNames(config?.guests);
+    if (fromForm.length) return reconcileGuestEntries(fromForm, config?.guests);
+    return normalizeGuestEntries(config?.guests);
 }
 
 function getLoadedEditToken(config = loadedWeddingConfig) {
@@ -1229,7 +1234,7 @@ function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
     if (!container) return;
     container.textContent = "";
 
-    const list = normalizeGuestNames(guests);
+    const list = normalizeGuestEntries(guests);
     if (!list.length) {
         container.hidden = true;
         return;
@@ -1249,7 +1254,7 @@ function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
     copyAllBtn.className = "guest-links__copy-all";
     copyAllBtn.innerHTML = '<i class="bi bi-clipboard-check"></i> Copy all';
     const allText = list
-        .map((name, index) => `${name}\t${buildInvitationUrl(weddingId, accessToken, index)}`)
+        .map((guest, index) => `${guest.name}\t${buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index)}`)
         .join("\n");
     copyAllBtn.dataset.copyUrl = allText;
     head.append(title, copyAllBtn);
@@ -1259,8 +1264,9 @@ function renderGuestInvitationLinks(container, weddingId, accessToken, guests) {
     const scroller = document.createElement("div");
     scroller.className = "guest-links__scroll";
 
-    list.forEach((name, index) => {
-        const url = buildInvitationUrl(weddingId, accessToken, index);
+    list.forEach((guest, index) => {
+        const name = guest.name;
+        const url = buildInvitationUrl(weddingId, accessToken, guest.id ? guest : index);
         const row = document.createElement("div");
         row.className = "guest-links__row";
 
@@ -1313,7 +1319,7 @@ function updateResultLinks(weddingId, accessToken = getWeddingAccessToken()) {
         guests.length ? 0 : null
     );
 
-    // Link chung (không ?g=) = Quý khách
+    // Link chung (không ?guest/?g) = Quý khách
     const generalUrl = buildInvitationUrl(weddingId, accessToken, null);
     applyLink(invitationLink, generalUrl);
     applyLink(editLink, editUrl);
@@ -3263,7 +3269,7 @@ function createCustomerConfig() {
         date: builderTheme.date,
         music: readText(data, "music") || loadedWeddingConfig.music || fallbackWedding.music,
         plan: invitePlan,
-        guests: guestNames,
+        guests: reconcileGuestEntries(guestNames, loadedWeddingConfig.guests),
         cover: {
             ...(loadedWeddingConfig.cover || fallbackWedding.cover || {}),
             guest: "Quý khách"

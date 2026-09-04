@@ -33,8 +33,8 @@
  *    - plan: "single" | "multi"
  *        single = 1 link chung (cover "Quý khách")
  *        multi  = link theo từng tên trong guests[]
- *    - guests: string[]  — chỉ dùng khi plan === "multi" (vd ["Anh A","Chị B"])
- *    - cover.guest: mặc định "Quý khách"; link ?g=<index> ghi đè = guests[index]
+ *    - guests: ({ id, name, legacyIndex? } | string)[] — chỉ dùng khi plan === "multi"
+ *    - cover.guest: mặc định "Quý khách"; link mới ?guest=<id> ghi đè theo guests[].id
  *
  * 3) Thanh toán + link thiệp
  *    - payment.orderCode        — mã GD (nội dung CK), format WC + 8 ký tự dễ đọc
@@ -43,7 +43,7 @@
  *    - payment.amount, payment.currency — snapshot lúc Lưu Firebase
  *    - payment.plan — "single" | "multi"
  *    Link 1 khách: /?t=<accessToken>
- *    Link multi:   /?t=<accessToken>&g=0
+ *    Link multi:   /?t=<accessToken>&guest=<guestId>  (?g=<index> chỉ là legacy)
  *    Link sửa:     /builder/?wedding=<weddingId>&e=<builder.editToken>
  *                  (editToken ẩn với khách; chỉ có trên link sau khi Lưu)
  *
@@ -189,20 +189,21 @@ export let wedding = {
     // --- Bìa (logo header tự sinh từ nickname, không cấu hình tay) ---
     cover: {
         headline: "TRÂN TRỌNG KÍNH MỜI",
-        /** Dòng dưới headline — mọi concept cover; link ?g=index ghi đè bằng guests[i] */
+        /** Dòng dưới headline — mọi concept cover; link ?guest=id ghi đè theo khách mời */
         guest: "Quý khách"
     },
 
     /**
-     * plan: "single" = 1 link (Quý khách); "multi" = link theo guests[]
+     * plan: "single" = 1 link (Quý khách); "multi" = link theo guests[].id
      * Giá snapshot: payment.amount (admin: amount / amountMulti)
      */
     plan: "single",
 
     /**
      * Danh sách khách mời (chỉ dùng khi plan === "multi").
-     * Firebase: guests: ["Anh A", "Chị B"]
-     * Link: /?t=<token>&g=0  → cover.guest = "Anh A"
+     * Firebase mới: guests: [{ id: "g...", name: "Anh A" }]
+     * Link: /?t=<token>&guest=g...  → cover.guest = "Anh A"
+     * Link cũ /?t=<token>&g=0 vẫn được đọc theo legacyIndex/index
      */
     guests: [],
 
