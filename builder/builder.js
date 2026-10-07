@@ -4997,6 +4997,8 @@ document.addEventListener("keydown", event => {
 populateBuilderBlockSelects(form, { ceremonyMode: getSelectedCeremonyMode() });
 // Custom select gắn sau initCustomSelects; block options đã có sẵn cho observer
 renderBuilderGalleryFields();
+const builderToday = new Date();
+form.elements.date.value = `${builderToday.getFullYear()}-${pad2(builderToday.getMonth() + 1)}-${pad2(builderToday.getDate())}`;
 ceremonyEventsState.joint = createDefaultCeremonyEvents("joint");
 ceremonyEventsState.bride = createDefaultCeremonyEvents("bride");
 ceremonyEventsState.groom = createDefaultCeremonyEvents("groom");
