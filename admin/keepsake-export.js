@@ -150,7 +150,7 @@ async function createRenderFrame(template, input) {
                 win.__keepsakeDone = finish;
                 const script = win.document.createElement("script");
                 script.type = "module";
-                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js?v=mobile-4", import.meta.url).href)})
+                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js?v=export-ui-5", import.meta.url).href)})
                     .then(module => { module.renderKeepsake(window.__keepsakeInput); window.__keepsakeDone(); })
                     .catch(error => window.__keepsakeDone(error));`;
                 win.document.body.appendChild(script);

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
     <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-5-nozoom">
-    <link rel="stylesheet" href="admin.css?v=keepsake-1">
+    <link rel="stylesheet" href="admin.css?v=keepsake-ui-5">
 </head>
 <body>
     <main class="admin-shell">
@@ -70,7 +70,6 @@
             <div class="admin-main">
                 <!-- 1) Danh sách thiệp + màn sửa (ẩn list khi sửa) -->
                 <section class="admin-view is-active" data-admin-view="weddings" id="weddingsView">
-                    <p id="keepsakeExportStatus" class="hint" role="status" aria-live="polite" hidden></p>
                     <div id="weddingListPanel">
                         <section class="admin-hero">
                             <div>
@@ -118,6 +117,7 @@
                             </div>
                             <p>Link thiệp: <a id="previewLink" href="#" target="_blank" rel="noopener noreferrer">chưa có weddingId</a></p>
                             <p>Link sửa builder: <a id="builderEditLink" href="#" target="_blank" rel="noopener noreferrer" hidden>chưa có</a></p>
+                            <p class="hint keepsake-export-status" data-keepsake-status role="status" aria-live="polite" hidden></p>
                         </div>
                     </section>
 
@@ -525,6 +525,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script type="module" src="admin.js?v=keepsake-mobile-4"></script>
+    <script type="module" src="admin.js?v=keepsake-ui-5"></script>
 </body>
 </html>

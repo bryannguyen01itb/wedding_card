@@ -839,6 +839,7 @@ function renderPaymentList(items) {
                     <i class="bi bi-trash3-fill"></i> Xóa
                 </button>
             </div>
+            <p class="hint keepsake-export-status" data-keepsake-status role="status" aria-live="polite" hidden></p>
         `;
         paymentList.appendChild(row);
     });
@@ -1487,7 +1488,7 @@ async function exportWeddingKeepsake(weddingId, button) {
     }
     keepsakeExportBusy = true;
     const oldLabel = button?.innerHTML;
-    const status = document.getElementById("keepsakeExportStatus");
+    const status = button?.closest(".payment-item, .hero-card")?.querySelector("[data-keepsake-status]");
     const updateProgress = message => {
         if (status) {
             status.hidden = false;
@@ -1518,7 +1519,7 @@ async function exportWeddingKeepsake(weddingId, button) {
                 createdAt: data.createdAt?.toDate?.().toLocaleString("vi-VN") || ""
             };
         });
-        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js?v=mobile-4");
+        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js?v=export-ui-5");
         const { html } = await buildKeepsakeHTML({ config, wishes, onProgress: updateProgress });
         downloadKeepsake(html, doc.id);
         updateProgress(`Đã xuất ${doc.id}-ky-niem.html. Gửi file này cho khách; mở bằng trình duyệt để xem. Bản xuất dùng dữ liệu đã lưu trên Firebase.`);

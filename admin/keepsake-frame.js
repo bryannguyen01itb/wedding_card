@@ -4,7 +4,7 @@ import { initCalendar } from "../js/features/calendar.js";
 import { initCountdown } from "../js/features/countdown.js";
 
 /** Render the saved invitation without starting Firebase or public-page listeners. */
-export function renderKeepsake({ config, wishes, exportedAt }) {
+export function renderKeepsake({ config, wishes }) {
     setWeddingConfig(config);
     renderContent();
     initCalendar();
@@ -39,8 +39,4 @@ export function renderKeepsake({ config, wishes, exportedAt }) {
         }
         if (!wishes.length) list.textContent = "Chưa có lời chúc tại thời điểm lưu thiệp.";
     }
-    const note = document.createElement("p");
-    note.className = "section-subtitle";
-    note.textContent = `Bản kỷ niệm lưu ngày ${exportedAt}. Lời chúc được lưu tại thời điểm xuất; bản này không nhận lời chúc mới. Liên kết bản đồ cần Internet.`;
-    document.getElementById("wishSection")?.appendChild(note);
 }
