@@ -1518,7 +1518,7 @@ async function exportWeddingKeepsake(weddingId, button) {
                 createdAt: data.createdAt?.toDate?.().toLocaleString("vi-VN") || ""
             };
         });
-        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js");
+        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js?v=font-mime-2");
         const { html } = await buildKeepsakeHTML({ config, wishes, onProgress: updateProgress });
         downloadKeepsake(html, doc.id);
         updateProgress(`Đã xuất ${doc.id}-ky-niem.html. Gửi file này cho khách; mở bằng trình duyệt để xem. Bản xuất dùng dữ liệu đã lưu trên Firebase.`);

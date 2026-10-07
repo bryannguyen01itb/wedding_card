@@ -29,6 +29,30 @@ function blobAsDataURL(blob) {
     });
 }
 
+async function normalizeAssetBlob(blob, url) {
+    if (!blob.size) throw new Error(`Tài nguyên ảnh/nhạc/font rỗng: ${url}`);
+    // Font endpoints can label binary responses as text/html for fetch requests.
+    // Recognize the bytes before rejecting the advertised MIME type, and use a
+    // font MIME type in the embedded data URL so offline browsers can load it.
+    const header = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+    const signature = String.fromCharCode(...header);
+    let fontType = {
+        wOFF: "font/woff",
+        wOF2: "font/woff2",
+        OTTO: "font/otf",
+        true: "font/ttf",
+        ttcf: "font/collection"
+    }[signature];
+    if (header.length === 4 && header[0] === 0 && header[1] === 1 && header[2] === 0 && header[3] === 0) {
+        fontType = "font/ttf";
+    }
+    if (fontType) return new Blob([blob], { type: fontType });
+    if (/^(text\/html|application\/json)\b/i.test(blob.type)) {
+        throw new Error(`Tài nguyên ảnh/nhạc/font không hợp lệ (${blob.type}): ${url}`);
+    }
+    return blob;
+}
+
 function createAssetStore(onProgress) {
     const cache = new Map();
     let completed = 0;
@@ -44,10 +68,7 @@ function createAssetStore(onProgress) {
         if (!cache.has(url)) {
             cache.set(url, (async () => {
                 const { blob } = await fetchResource(url);
-                if (!blob.size || /^(text\/html|application\/json)\b/i.test(blob.type)) {
-                    throw new Error(`Tài nguyên ảnh/nhạc/font không hợp lệ: ${url}`);
-                }
-                const data = await blobAsDataURL(blob);
+                const data = await blobAsDataURL(await normalizeAssetBlob(blob, url));
                 completed++;
                 onProgress(`Đã đóng gói ${completed} tài nguyên…`);
                 return data;
