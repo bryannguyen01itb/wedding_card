@@ -1,4 +1,6 @@
 import { db } from "../js/firebase.js";
+import { wedding as fallbackWedding } from "../js/config.js";
+import { normalizeCeremonyAfterMerge } from "../js/services/weddingData.js";
 import {
     generateAccessToken,
     buildInvitationUrlFromBase,
@@ -82,6 +84,7 @@ let cachedWeddingList = [];
 let weddingListMeta = { at: 0, inflight: null };
 let paymentSettingsLoaded = false;
 let musicLibraryLoaded = false;
+let keepsakeExportBusy = false;
 
 let currentConfig = createEmptyAdminConfig();
 let hasLoadedInitialConfig = false;
@@ -820,6 +823,9 @@ function renderPaymentList(items) {
                 <button type="button" class="small" data-wedding-edit="${item.id}" title="Sửa thông tin thiệp">
                     <i class="bi bi-pencil-square"></i> Sửa
                 </button>
+                <button type="button" class="ghost small" data-wedding-keepsake="${item.id}" title="Tải bản thiệp độc lập từ dữ liệu đã lưu">
+                    <i class="bi bi-download"></i> Xuất thiệp kỷ niệm
+                </button>
                 ${paid
                     ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${item.id}"><i class="bi bi-lock-fill"></i> Khóa</button>`
                     : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${item.id}"><i class="bi bi-check2-circle"></i> Đã trả</button>`}
@@ -1468,7 +1474,74 @@ async function updateWeddingPaymentById(weddingId, status) {
     }
 }
 
+async function exportWeddingKeepsake(weddingId, button) {
+    if (keepsakeExportBusy) return;
+    if (!auth.currentUser || !isAllowedAdminEmail(auth.currentUser.email)) {
+        showToast("Chỉ admin đã đăng nhập mới được xuất thiệp kỷ niệm.", "error");
+        return;
+    }
+    const id = String(weddingId || "").trim();
+    if (!id) {
+        showToast("Chưa chọn thiệp để xuất.", "error");
+        return;
+    }
+    keepsakeExportBusy = true;
+    const oldLabel = button?.innerHTML;
+    const status = document.getElementById("keepsakeExportStatus");
+    const updateProgress = message => {
+        if (status) {
+            status.hidden = false;
+            status.textContent = message;
+        }
+    };
+    document.querySelectorAll("[data-wedding-keepsake], #exportLoadedWeddingBtn").forEach(el => { el.disabled = true; });
+    if (button) button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xuất…';
+    try {
+        updateProgress(`Đang tải thiệp ${id} và lời chúc đã lưu…`);
+        const ref = db.collection("weddings").doc(id);
+        const doc = await ref.get({ source: "server" });
+        if (!doc.exists) throw new Error("Thiệp này không còn tồn tại.");
+        const snapshot = await ref.collection("wishes").get({ source: "server" });
+        const raw = doc.data() || {};
+        const config = normalizeCeremonyAfterMerge(mergeConfig(fallbackWedding, { ...raw, weddingId: doc.id }), raw);
+        // Keepsake belongs to the couple; use the general cover, not one guest's link.
+        config.cover = { ...config.cover, guest: "Quý khách" };
+        const wishes = [...snapshot.docs].sort((a, b) => {
+            return (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0);
+        }).map(item => {
+            const data = item.data();
+            return {
+                name: data.name || "",
+                side: data.side || "",
+                attendance: data.attendance || "",
+                message: data.message || "",
+                createdAt: data.createdAt?.toDate?.().toLocaleString("vi-VN") || ""
+            };
+        });
+        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js");
+        const { html } = await buildKeepsakeHTML({ config, wishes, onProgress: updateProgress });
+        downloadKeepsake(html, doc.id);
+        updateProgress(`Đã xuất ${doc.id}-ky-niem.html. Gửi file này cho khách; mở bằng trình duyệt để xem. Bản xuất dùng dữ liệu đã lưu trên Firebase.`);
+        showToast("Đã tải file thiệp kỷ niệm.");
+    } catch (error) {
+        console.error("Keepsake export failed:", error);
+        updateProgress(`Xuất thiệp thất bại: ${error.message || "Không tải được dữ liệu."}`);
+        showToast("Chưa xuất được thiệp. Xem chi tiết ở trạng thái xuất.", "error");
+    } finally {
+        keepsakeExportBusy = false;
+        document.querySelectorAll("[data-wedding-keepsake], #exportLoadedWeddingBtn").forEach(el => { el.disabled = false; });
+        if (button) button.innerHTML = oldLabel;
+    }
+}
+
 async function handlePaymentListClick(event) {
+    const exportBtn = event.target.closest("button[data-wedding-keepsake]");
+    if (exportBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        await exportWeddingKeepsake(exportBtn.dataset.weddingKeepsake, exportBtn);
+        return;
+    }
     const editBtn = event.target.closest("button[data-wedding-edit]");
     if (editBtn) {
         event.preventDefault();
@@ -2097,6 +2170,9 @@ function initEvents() {
     };
     document.getElementById("backToWeddingListBtn")?.addEventListener("click", goList);
     document.getElementById("backToWeddingListBtn2")?.addEventListener("click", goList);
+    document.getElementById("exportLoadedWeddingBtn")?.addEventListener("click", event => {
+        void exportWeddingKeepsake(loadInput?.value, event.currentTarget);
+    });
 
     document.querySelectorAll("[data-admin-nav]").forEach(button => {
         button.addEventListener("click", () => setAdminView(button.dataset.adminNav));

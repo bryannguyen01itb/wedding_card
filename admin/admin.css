@@ -880,6 +880,13 @@ button.danger {
     min-width: 0;
 }
 
+#keepsakeExportStatus {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--admin-surface, #fff);
+    overflow-wrap: anywhere;
+}
+
 .load-row input {
     flex: 1 1 160px;
     min-width: 0 !important;

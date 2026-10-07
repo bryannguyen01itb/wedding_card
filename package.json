@@ -3,7 +3,7 @@
     "upload:config": "node scripts/upload-wedding-config.mjs",
     "sync:brand": "node scripts/sync-brand-css.mjs",
     "dev:cloudinary": "node scripts/local-cloudinary-api.mjs",
-    "check:js": "node --check js/app.js && node --check js/modules/index.js && node --check js/modules/render-all.js && node --check builder/builder.js && node --check admin/admin.js && node --check scripts/upload-wedding-config.mjs"
+    "check:js": "node --check js/app.js && node --check js/modules/index.js && node --check js/modules/render-all.js && node --check builder/builder.js && node --check admin/admin.js && node --check admin/keepsake-export.js && node --check admin/keepsake-frame.js && node --check admin/keepsake-playback.js && node --check scripts/upload-wedding-config.mjs"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0"

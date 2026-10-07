@@ -300,6 +300,16 @@ gallery: {
 
 Admin cung chi tao 7 o anh theo `GALLERY_SIZE = 7` trong `admin/admin.js`.
 
+## Xuất thiệp kỷ niệm (chỉ admin)
+
+Trong danh sách thiệp, bấm **Xuất thiệp kỷ niệm** trên thiệp cần bàn giao. Màn sửa thiệp cũng có nút này. Xuất dùng dữ liệu đã lưu trên Firebase; cần lưu thay đổi trước khi xuất.
+
+Admin tải một file `<weddingId>-ky-niem.html` gồm giao diện, ảnh, nhạc, font và toàn bộ lời chúc hiện có. Gửi file này cho khách để lưu và mở bằng trình duyệt hiện đại, kể cả khi không có mạng. Không có nút xuất ở thiệp public hay builder. File không chứa token sửa thiệp, token truy cập, danh sách khách mời hoặc dữ liệu thanh toán.
+
+Bản kỷ niệm không nhận lời chúc mới; liên kết bản đồ vẫn cần Internet. Trình xem file trong ứng dụng nhắn tin có thể không chạy JavaScript: tải file về và mở bằng trình duyệt; cần kiểm tra riêng trên điện thoại. Khách nên sao lưu file ở nhiều nơi.
+
+Khi xuất, admin cần mạng và quyền đọc Firebase. Tài nguyên ảnh/nhạc/font phải còn tải được và cho phép CORS; nếu có tài nguyên tải lỗi, hệ thống báo chi tiết và không tạo bản thiếu. Ảnh/nhạc lớn sẽ làm file HTML lớn và xuất lâu hơn. Chức năng xuất chỉ đọc dữ liệu, không cập nhật hay xóa dữ liệu Firebase/Cloudinary.
+
 ## Chay local
 
 Nen chay qua HTTP server, khong mo truc tiep `file://` neu can test Firebase/module on dinh.
