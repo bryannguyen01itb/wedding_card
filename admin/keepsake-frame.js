@@ -1,12 +1,14 @@
 import { setWeddingConfig } from "../js/config.js";
 import { renderContent } from "../js/render/index.js";
 import { initCalendar } from "../js/features/calendar.js";
+import { initCountdown } from "../js/features/countdown.js";
 
 /** Render the saved invitation without starting Firebase or public-page listeners. */
 export function renderKeepsake({ config, wishes, exportedAt }) {
     setWeddingConfig(config);
     renderContent();
     initCalendar();
+    initCountdown();
     document.body.classList.remove("concept-loading");
     document.title = `Thiệp kỷ niệm — ${config.groom?.nickname || "Chú rể"} & ${config.bride?.nickname || "Cô dâu"}`;
     const audio = document.getElementById("bgMusic");

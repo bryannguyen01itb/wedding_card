@@ -306,7 +306,7 @@ Trong danh sách thiệp, bấm **Xuất thiệp kỷ niệm** trên thiệp c�
 
 Admin tải một file `<weddingId>-ky-niem.html` gồm giao diện, ảnh, nhạc, font và toàn bộ lời chúc hiện có. Gửi file này cho khách để lưu và mở bằng trình duyệt hiện đại, kể cả khi không có mạng. Không có nút xuất ở thiệp public hay builder. File không chứa token sửa thiệp, token truy cập, danh sách khách mời hoặc dữ liệu thanh toán.
 
-Bản kỷ niệm không nhận lời chúc mới; liên kết bản đồ vẫn cần Internet. Trình xem file trong ứng dụng nhắn tin có thể không chạy JavaScript: tải file về và mở bằng trình duyệt; cần kiểm tra riêng trên điện thoại. Khách nên sao lưu file ở nhiều nơi.
+Bản kỷ niệm không nhận lời chúc mới; liên kết bản đồ vẫn cần Internet. Bản xuất dùng JavaScript thường, không cần module/import map để mở thiệp. Nếu trình xem file không chạy JavaScript, nội dung vẫn hiện dưới bìa để cuộn xem, bấm bìa dùng liên kết nội bộ để đến nội dung; QR mừng cưới hiện trực tiếp và nhạc có điều khiển audio của trình xem. Hiệu ứng, menu và phát nhạc tùy vào khả năng của trình xem; cần kiểm tra riêng trên điện thoại. Khách nên sao lưu file ở nhiều nơi và xuất lại sau khi cập nhật tính năng này.
 
 Khi xuất, admin cần mạng và quyền đọc Firebase. Tài nguyên ảnh/nhạc/font phải còn tải được và cho phép CORS; nếu có tài nguyên tải lỗi, hệ thống báo chi tiết và không tạo bản thiếu. Ảnh/nhạc lớn sẽ làm file HTML lớn và xuất lâu hơn. Chức năng xuất chỉ đọc dữ liệu, không cập nhật hay xóa dữ liệu Firebase/Cloudinary.
 

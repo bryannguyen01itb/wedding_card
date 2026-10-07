@@ -150,7 +150,7 @@ async function createRenderFrame(template, input) {
                 win.__keepsakeDone = finish;
                 const script = win.document.createElement("script");
                 script.type = "module";
-                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js?v=media-3", import.meta.url).href)})
+                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js?v=mobile-4", import.meta.url).href)})
                     .then(module => { module.renderKeepsake(window.__keepsakeInput); window.__keepsakeDone(); })
                     .catch(error => window.__keepsakeDone(error));`;
                 win.document.body.appendChild(script);
@@ -165,9 +165,9 @@ async function createRenderFrame(template, input) {
     }
 }
 
-/** Embed the existing interaction modules as data URLs, preserving module scopes. */
+/** Bundle the small interaction graph into a classic script for local-file viewers. */
 async function packagePlayback(config) {
-    const imports = {};
+    const factories = {};
     const sources = new Map();
     const key = url => `keepsake:${new URL(url).pathname}`;
     const moduleURL = path => new URL(path, SITE_ROOT).href;
@@ -187,20 +187,106 @@ async function packagePlayback(config) {
     async function visit(url) {
         if (visited.has(url)) return;
         visited.add(url);
-        const source = sources.has(url) ? sources.get(url) : await (await fetchResource(url)).blob.text();
+        const requestURL = new URL(url);
+        requestURL.searchParams.set("keepsake", "mobile-4");
+        const source = sources.has(url) ? sources.get(url) : await (await fetchResource(requestURL.href)).blob.text();
         const dependencies = [];
-        const rewritten = source.replace(importPattern, (statement, quote, specifier) => {
+        let rewritten = source.replace(importPattern, (statement, quote, specifier) => {
             if (!specifier.startsWith(".")) throw new Error(`Module chưa hỗ trợ: ${specifier}`);
             const dependency = new URL(specifier, url).href;
             dependencies.push(dependency);
-            return statement.replace(`${quote}${specifier}${quote}`, JSON.stringify(key(dependency)));
+            const named = statement.match(/^import\s*\{([^}]*)\}/)?.[1];
+            if (named !== undefined) {
+                const bindings = named.replace(/\b([\w$]+)\s+as\s+([\w$]+)\b/g, "$1: $2");
+                return `const {${bindings}} = __require(${safeJSON(key(dependency))});`;
+            }
+            if (/^import\s*["']/.test(statement)) return `__require(${safeJSON(key(dependency))});`;
+            throw new Error(`Kiểu import chưa hỗ trợ khi xuất thiệp: ${specifier}`);
         });
-        imports[key(url)] = await blobAsDataURL(new Blob([rewritten], { type: "text/javascript" }));
+        const exports = [];
+        rewritten = rewritten.replace(/^[ \t]*export\s+((?:async\s+)?(?:function|const|let|class)\s+([\w$]+))/gm, (_, declaration, name) => {
+            exports.push(name);
+            return declaration;
+        });
+        if (/^\s*(?:import|export)\s/m.test(rewritten)) {
+            throw new Error(`Module chưa đóng gói đầy đủ: ${url}`);
+        }
+        factories[key(url)] = `function(__require) {\n${rewritten}\nreturn {${exports.join(",")}};\n}`;
         for (const dependency of dependencies) await visit(dependency);
     }
     const entry = moduleURL("admin/keepsake-playback.js");
     await visit(entry);
-    return { imports, entry: key(entry) };
+    const registry = Object.entries(factories).map(([id, factory]) => `${safeJSON(id)}: ${factory}`).join(",\n");
+    return `(function() { "use strict";
+        const factories = {${registry}};
+        const cache = Object.create(null);
+        function __require(id) {
+            if (!Object.prototype.hasOwnProperty.call(cache, id)) {
+                cache[id] = factories[id](__require);
+            }
+            return cache[id];
+        }
+        try { __require(${safeJSON(key(entry))}); }
+        catch (error) {
+            document.body.classList.remove("keepsake-enhanced");
+            console.warn("Không chạy được tương tác thiệp; dùng bản xem đơn giản.", error);
+        }
+    })();`;
+}
+
+/** A readable, scrollable invitation and fragment link when scripts are disabled. */
+function addReaderFallback(doc) {
+    const card = doc.getElementById("openCard");
+    const invitation = doc.querySelector(".invitation");
+    if (!card || !invitation) throw new Error("Thiệp thiếu phần bìa hoặc nội dung.");
+    invitation.id = "keepsake-open";
+    const link = doc.createElement("a");
+    for (const attr of [...card.attributes]) link.setAttribute(attr.name, attr.value);
+    link.href = "#keepsake-open";
+    link.setAttribute("aria-label", "Mở thiệp kỷ niệm");
+    while (card.firstChild) link.appendChild(card.firstChild);
+    card.replaceWith(link);
+    const tools = doc.createElement("div");
+    tools.className = "keepsake-reader-tools";
+    const note = doc.createElement("p");
+    note.textContent = "Thiệp kỷ niệm — cuộn xuống để xem ảnh và lời chúc.";
+    tools.appendChild(note);
+    const audio = doc.getElementById("bgMusic");
+    if (audio?.hasAttribute("src")) {
+        audio.setAttribute("controls", "");
+        tools.appendChild(audio);
+    }
+    invitation.prepend(tools);
+    doc.getElementById("giftModal")?.removeAttribute("aria-hidden");
+    doc.querySelector(".gift-modal__content")?.removeAttribute("aria-modal");
+    const style = doc.createElement("style");
+    const fallback = "body:not(.keepsake-enhanced)";
+    const reveal = [".animate-item", ".scroll-reveal", ".gallery-reveal", ".text_1", ".text_2", ".heart", ".info"]
+        .map(selector => `${fallback} .invitation ${selector}`).join(",\n");
+    const inactive = ["#openGiftBox", "#closeGiftBox", "#closeGiftBackdrop", "#invitationMenuToggle"]
+        .map(selector => `${fallback} ${selector}`).join(",\n");
+    style.textContent = `
+        .cover .card { display: block; color: inherit; text-decoration: none; }
+        .keepsake-reader-tools { padding: 16px; text-align: center; }
+        .keepsake-reader-tools audio { width: 100%; }
+        .keepsake-enhanced .keepsake-reader-tools { display: none !important; }
+        ${fallback} .invitation,
+        ${fallback} .invitation__container {
+            display: block !important; opacity: 1 !important; visibility: visible !important; transform: none !important;
+        }
+        ${reveal} {
+            opacity: 1 !important; visibility: visible !important; transform: none !important;
+        }
+        ${fallback} #giftModal {
+            position: static !important; display: block !important; opacity: 1 !important; visibility: visible !important;
+            pointer-events: auto !important; padding: 0 !important;
+        }
+        ${fallback} .gift-modal__content {
+            position: static !important; width: 100% !important; max-height: none !important; transform: none !important;
+        }
+        ${inactive} { display: none !important; }
+    `;
+    doc.head.appendChild(style);
 }
 
 function sanitizeDocument(doc) {
@@ -264,18 +350,14 @@ export async function buildKeepsakeHTML({ config, wishes = [], onProgress = () =
         onProgress("Đang hoàn tất file thiệp kỷ niệm…");
         const playback = await packagePlayback(config);
         sanitizeDocument(doc);
+        addReaderFallback(doc);
         // Runtime is allowed to use embedded resources only, even when hosted later.
         const policy = doc.createElement("meta");
         policy.httpEquiv = "Content-Security-Policy";
         policy.content = "default-src 'none'; img-src data:; media-src data:; font-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline' data:; connect-src 'none'; base-uri 'none'; form-action 'none'";
         doc.head.prepend(policy);
-        const importMap = doc.createElement("script");
-        importMap.type = "importmap";
-        importMap.textContent = safeJSON({ imports: playback.imports });
-        doc.body.appendChild(importMap);
         const script = doc.createElement("script");
-        script.type = "module";
-        script.textContent = `import ${safeJSON(playback.entry)};`;
+        script.textContent = playback.replace(/<\/script/gi, "<\\/script");
         doc.body.appendChild(script);
         // Prevent user content/CSS from terminating inline raw-text elements.
         doc.querySelectorAll("style").forEach(style => {

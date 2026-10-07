@@ -6,9 +6,11 @@ import { initGift } from "../js/features/gift.js";
 import { initCountdown } from "../js/features/countdown.js";
 import { initScrollReveal } from "../js/features/scrollReveal.js";
 
-initCover();
+document.body.classList.add("keepsake-enhanced");
+document.getElementById("giftModal")?.setAttribute("aria-hidden", "true");
 initHeaderMenu();
 initMusic();
 initGift();
 initCountdown();
 initScrollReveal();
+initCover();
