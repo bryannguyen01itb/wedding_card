@@ -118,6 +118,14 @@ async function createRenderFrame(template, input) {
     const base = parsed.createElement("base");
     base.href = SITE_ROOT.href;
     parsed.head.prepend(base);
+    // Keep public renderers, but replace their fallback helper in this frame only.
+    // Empty/failed images must not turn into img/<weddingId>/groom.jpg, etc.
+    const mediaMap = parsed.createElement("script");
+    mediaMap.type = "importmap";
+    mediaMap.textContent = safeJSON({ imports: {
+        [new URL("js/utils/mediaFallback.js", SITE_ROOT).href]: new URL("keepsake-media.js?v=1", import.meta.url).href
+    } });
+    parsed.head.appendChild(mediaMap);
     // External font CSS is packaged later; do not wait on it to render the frame.
     parsed.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
         if (new URL(link.getAttribute("href"), SITE_ROOT).origin !== SITE_ROOT.origin) {
@@ -142,7 +150,7 @@ async function createRenderFrame(template, input) {
                 win.__keepsakeDone = finish;
                 const script = win.document.createElement("script");
                 script.type = "module";
-                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js", import.meta.url).href)})
+                script.textContent = `import(${safeJSON(new URL("keepsake-frame.js?v=media-3", import.meta.url).href)})
                     .then(module => { module.renderKeepsake(window.__keepsakeInput); window.__keepsakeDone(); })
                     .catch(error => window.__keepsakeDone(error));`;
                 win.document.body.appendChild(script);
