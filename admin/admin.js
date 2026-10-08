@@ -1790,12 +1790,21 @@ function showWeddingEditMode() {
 
 function scrollAdminTargetIntoView(target, behavior = "smooth") {
     if (!target || !form) return;
-    const top = target.getBoundingClientRect().top - form.getBoundingClientRect().top + form.scrollTop;
-    form.scrollTo({ top: Math.max(0, top), behavior });
+    const mobile = window.matchMedia("(max-width: 900px)").matches;
+    const scroller = mobile ? document.querySelector(".admin-main") : form;
+    if (!scroller) return;
+    const nav = document.getElementById("adminFormNav");
+    const chrome = document.getElementById("adminMobileChrome");
+    const offset = mobile ? (chrome?.getBoundingClientRect().bottom || 60) + (nav?.getBoundingClientRect().height || 0) + 12 - scroller.getBoundingClientRect().top : 0;
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - offset;
+    scroller.scrollTo({ top: Math.max(0, top), behavior });
 }
 
 function scrollAdminEditorToTop() {
-    window.requestAnimationFrame(() => form?.scrollTo({ top: 0, behavior: "smooth" }));
+    window.requestAnimationFrame(() => {
+        const scroller = window.matchMedia("(max-width: 900px)").matches ? document.querySelector(".admin-main") : form;
+        scroller?.scrollTo({ top: 0, behavior: "smooth" });
+    });
 }
 
 async function openWeddingEditor(weddingId) {

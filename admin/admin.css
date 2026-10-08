@@ -1849,3 +1849,38 @@ body.admin-logged-in .admin-shell {
     #adminHero .hero-card { padding: 10px; }
     #weddingEditPanel > .admin-form-nav { flex-wrap: nowrap; overflow-x: auto; padding: 8px; }
 }
+
+/* Phones use one scrolling page so fixed sections cannot consume the viewport. */
+@media (max-width: 900px) {
+    .admin-main:has(#weddingsView.is-active #weddingListPanel:not([hidden])),
+    .admin-main:has(#weddingsView.is-active #weddingEditPanel:not([hidden])),
+    .admin-main:has(#musicView.is-active) { overflow-y: auto; overflow-x: hidden; }
+    #weddingsView.is-active:has(#weddingListPanel:not([hidden])),
+    #weddingsView.is-active:has(#weddingEditPanel:not([hidden])),
+    #musicView.is-active { height: auto; }
+    #weddingListPanel:not([hidden]),
+    #weddingEditPanel:not([hidden]),
+    #musicView.is-active #musicPanel { height: auto; display: block; }
+    #weddingListPanel > .panel { display: block; }
+    #paymentList,
+    #musicList { flex: none; overflow: visible; scrollbar-gutter: auto; }
+    #weddingEditPanel > .admin-form { flex: none; overflow: visible; }
+    #weddingEditPanel:not([hidden]) .admin-form { padding-bottom: 0; }
+    #weddingEditPanel > .admin-form-nav {
+        position: sticky;
+        top: calc(60px + env(safe-area-inset-top, 0px));
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+    #weddingEditPanel:not([hidden]) .sticky-actions {
+        position: static;
+        flex-direction: row;
+        padding: 12px 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+    #weddingEditPanel:not([hidden]) .sticky-actions button { flex: 1 1 140px; width: auto; }
+    #adminHero .load-row button { width: auto; }
+    #adminHero .load-row input { flex: 1 1 100%; max-width: none; }
+}
