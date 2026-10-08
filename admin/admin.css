@@ -1866,9 +1866,19 @@ body.admin-logged-in .admin-shell {
     #musicList { flex: none; overflow: visible; scrollbar-gutter: auto; }
     #weddingEditPanel > .admin-form { flex: none; overflow: visible; }
     #weddingEditPanel:not([hidden]) .admin-form { padding-bottom: 0; }
+    #weddingEditPanel:not([hidden]) { padding-top: var(--admin-editor-tabs-height, 50px); }
     #weddingEditPanel > .admin-form-nav {
-        position: sticky;
-        top: calc(60px + env(safe-area-inset-top, 0px));
+        position: fixed;
+        top: var(--admin-mobile-header-height, calc(52px + env(safe-area-inset-top, 0px)));
+        left: 0;
+        right: 0;
+        z-index: 39;
+        margin: 0;
+        padding: 8px 14px;
+        border-radius: 0;
+        border: 0;
+        border-bottom: 1px solid var(--admin-line);
+        background: #fff;
         flex-wrap: nowrap;
         overflow-x: auto;
     }
@@ -1883,4 +1893,12 @@ body.admin-logged-in .admin-shell {
     #weddingEditPanel:not([hidden]) .sticky-actions button { flex: 1 1 140px; width: auto; }
     #adminHero .load-row button { width: auto; }
     #adminHero .load-row input { flex: 1 1 100%; max-width: none; }
+}
+
+.admin-form-nav a.is-active,
+.admin-form-nav a[aria-current="location"] {
+    background: var(--admin-primary);
+    border-color: var(--admin-primary);
+    color: #fff;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .12);
 }

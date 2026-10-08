@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "check:admin-navigation": "node scripts/check-admin-navigation.mjs",
     "check:admin-bulk": "node scripts/check-admin-bulk.mjs",
     "check:admin-lists": "node scripts/check-admin-lists.mjs",
     "upload:config": "node scripts/upload-wedding-config.mjs",

@@ -1786,6 +1786,69 @@ function showWeddingEditMode() {
     const editPanel = document.getElementById("weddingEditPanel");
     if (listPanel) listPanel.hidden = true;
     if (editPanel) editPanel.hidden = false;
+    window.requestAnimationFrame(updateAdminEditorNavigation);
+}
+
+function setAdminEditorActiveTab(id) {
+    const nav = document.getElementById("adminFormNav");
+    if (!nav) return;
+    nav.querySelectorAll("a[href^='#']").forEach(link => {
+        const active = link.getAttribute("href") === `#${id}`;
+        const changed = link.classList.contains("is-active") !== active;
+        link.classList.toggle("is-active", active);
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+        if (active && changed && window.matchMedia("(max-width: 900px)").matches) {
+            const left = link.offsetLeft;
+            if (left < nav.scrollLeft || left + link.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+                nav.scrollTo({ left: Math.max(0, left - 12), behavior: "auto" });
+            }
+        }
+    });
+}
+
+function updateAdminEditorNavigation() {
+    const panel = document.getElementById("weddingEditPanel");
+    const view = document.getElementById("weddingsView");
+    const nav = document.getElementById("adminFormNav");
+    if (!panel || panel.hidden || !view?.classList.contains("is-active") || !nav || !form) return;
+    const mobile = window.matchMedia("(max-width: 900px)").matches;
+    const chrome = document.getElementById("adminMobileChrome");
+    if (mobile) {
+        panel.style.setProperty("--admin-mobile-header-height", `${chrome?.getBoundingClientRect().height || 52}px`);
+        panel.style.setProperty("--admin-editor-tabs-height", `${nav.getBoundingClientRect().height}px`);
+    }
+    const scroller = mobile ? document.querySelector(".admin-main") : form;
+    const line = (mobile ? nav.getBoundingClientRect().bottom : form.getBoundingClientRect().top) + 12;
+    const sections = [...nav.querySelectorAll("a[href^='#']")]
+        .map(link => document.getElementById(link.getAttribute("href").slice(1)))
+        .filter(section => section && section.getClientRects().length);
+    let active = sections[0];
+    for (const section of sections) {
+        if (section.getBoundingClientRect().top <= line) active = section;
+    }
+    if (scroller && scroller.scrollTop > 0 && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) active = sections.at(-1);
+    if (active) setAdminEditorActiveTab(active.id);
+}
+
+function initAdminEditorNavigation() {
+    let queued = false;
+    const refresh = () => {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(() => { queued = false; updateAdminEditorNavigation(); });
+    };
+    form?.addEventListener("scroll", refresh, { passive: true });
+    document.querySelector(".admin-main")?.addEventListener("scroll", refresh, { passive: true });
+    window.addEventListener("resize", refresh);
+    if (typeof ResizeObserver !== "undefined") {
+        const observer = new ResizeObserver(refresh);
+        for (const id of ["adminMobileChrome", "adminFormNav"]) {
+            const element = document.getElementById(id);
+            if (element) observer.observe(element);
+        }
+    }
+    refresh();
 }
 
 function scrollAdminTargetIntoView(target, behavior = "smooth") {
@@ -2370,6 +2433,7 @@ async function showLoggedIn(user) {
 function initEvents() {
     initAdminListControls();
     initSelectionControls();
+    initAdminEditorNavigation();
     loginForm.addEventListener("submit", login);
     logoutBtn.addEventListener("click", () => auth.signOut());
 
@@ -2412,6 +2476,7 @@ function initEvents() {
         const target = document.getElementById(link.getAttribute("href").slice(1));
         if (!target) return;
         event.preventDefault();
+        setAdminEditorActiveTab(target.id);
         scrollAdminTargetIntoView(target);
     });
     form?.addEventListener("submit", saveConfig);
