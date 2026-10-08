@@ -1084,10 +1084,10 @@ function renderWeddingListPage() {
             <div class="payment-item__actions admin-icon-actions">
                 <button type="button" class="ghost small" data-wedding-edit="${escapeAttr(item.id)}" title="Sửa thiệp" aria-label="Sửa thiệp"><i class="bi bi-pencil-square"></i></button>
                 ${paid
-                    ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${escapeAttr(item.id)}" title="Khóa thiệp" aria-label="Khóa thiệp"><i class="bi bi-lock-fill"></i></button>`
-                    : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${escapeAttr(item.id)}" title="Đánh dấu đã thanh toán" aria-label="Đánh dấu đã thanh toán"><i class="bi bi-check2-circle"></i></button>`}
-                <button type="button" class="ghost small${(payment.plan || item.plan) === "single" ? " is-plan-active" : ""}" data-plan-action="single" data-id="${escapeAttr(item.id)}" title="Gói 1 link" aria-label="Gói 1 link"><i class="bi bi-link-45deg"></i></button>
-                <button type="button" class="ghost small${(payment.plan || item.plan) === "multi" ? " is-plan-active" : ""}" data-plan-action="multi" data-id="${escapeAttr(item.id)}" title="Gói nhiều link" aria-label="Gói nhiều link"><i class="bi bi-people"></i></button>
+                    ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${escapeAttr(item.id)}" title="Khóa thiệp" aria-label="Khóa thiệp"><i class="bi bi-lock-fill"></i><span>Khóa</span></button>`
+                    : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${escapeAttr(item.id)}" title="Đánh dấu đã thanh toán" aria-label="Đánh dấu đã thanh toán"><i class="bi bi-check2-circle"></i><span>Đã trả</span></button>`}
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "single" ? " is-plan-active" : ""}" data-plan-action="single" data-id="${escapeAttr(item.id)}" title="Gói 1 link" aria-label="Gói 1 link"><i class="bi bi-link-45deg"></i><span>1 link</span></button>
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "multi" ? " is-plan-active" : ""}" data-plan-action="multi" data-id="${escapeAttr(item.id)}" title="Gói nhiều link" aria-label="Gói nhiều link"><i class="bi bi-people"></i><span>Nhiều link</span></button>
             </div>
         `;
         row.querySelectorAll("input, button").forEach(el => { el.disabled = bulkBusy || keepsakeExportBusy; });
@@ -1788,25 +1788,14 @@ function showWeddingEditMode() {
     if (editPanel) editPanel.hidden = false;
 }
 
-function getAdminFormNavOffset() {
-    const mobileChrome = document.getElementById("adminMobileChrome");
-    const nav = document.getElementById("adminFormNav");
-    const mobileHeight = window.matchMedia("(max-width: 900px)").matches
-        ? Math.ceil(mobileChrome?.getBoundingClientRect().height || 56)
-        : 0;
-    const navHeight = Math.ceil(nav?.getBoundingClientRect().height || 0);
-    return mobileHeight + navHeight + 20;
-}
-
 function scrollAdminTargetIntoView(target, behavior = "smooth") {
-    if (!target) return;
-    const top = target.getBoundingClientRect().top + window.scrollY - getAdminFormNavOffset();
-    window.scrollTo({ top: Math.max(0, top), behavior });
+    if (!target || !form) return;
+    const top = target.getBoundingClientRect().top - form.getBoundingClientRect().top + form.scrollTop;
+    form.scrollTo({ top: Math.max(0, top), behavior });
 }
 
 function scrollAdminEditorToTop() {
-    const hero = document.getElementById("adminHero");
-    window.requestAnimationFrame(() => scrollAdminTargetIntoView(hero, "smooth"));
+    window.requestAnimationFrame(() => form?.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
 async function openWeddingEditor(weddingId) {
@@ -2408,6 +2397,14 @@ function initEvents() {
         if (!isMobileAdminLayout()) setAdminNavOpen(false);
     });
 
+    document.getElementById("adminFormNav")?.addEventListener("click", event => {
+        const link = event.target.closest("a[href^='#']");
+        if (!link) return;
+        const target = document.getElementById(link.getAttribute("href").slice(1));
+        if (!target) return;
+        event.preventDefault();
+        scrollAdminTargetIntoView(target);
+    });
     form?.addEventListener("submit", saveConfig);
     form?.elements?.["ceremony.mode"]?.addEventListener("change", () => {
         syncEventsStateFromDom("bride");
