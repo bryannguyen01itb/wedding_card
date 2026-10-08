@@ -744,6 +744,9 @@ button.small {
     color: var(--admin-muted);
     font-size: 13px;
     overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .music-item__info em {
@@ -1733,4 +1736,85 @@ body.admin-logged-in .admin-shell {
     height: 100%;
     height: 100dvh;
     overflow: hidden;
+}
+
+/* Search and pagination for admin collections. */
+.admin-list-tools {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(150px, .4fr) 100px auto;
+    gap: 12px;
+    align-items: end;
+    margin-top: 18px;
+}
+.admin-list-tools label {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--admin-muted);
+}
+.admin-list-tools input,
+.admin-list-tools select {
+    width: 100%;
+    min-width: 0;
+}
+.admin-list-tools button {
+    width: auto;
+    min-height: 44px;
+}
+.admin-list-summary {
+    margin: 12px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--admin-muted);
+}
+.admin-list-pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+}
+.admin-list-pager[hidden] { display: none; }
+.admin-list-pager button { width: auto; min-width: 86px; }
+.admin-list-pager label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.admin-list-pager select { width: auto; min-width: 64px; }
+.admin-list-actions { width: 120px; align-self: start; }
+.admin-list-actions[open] { width: 300px; max-width: 100%; }
+.admin-list-actions summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--admin-line);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--admin-ink);
+    background: rgba(255, 255, 255, .8);
+    list-style: none;
+}
+.admin-list-actions summary::-webkit-details-marker { display: none; }
+.admin-list-actions summary::after { content: "▾"; }
+.admin-list-actions[open] summary::after { content: "▴"; }
+.admin-list-actions summary:focus-visible { outline: 2px solid var(--admin-primary); outline-offset: 3px; }
+.admin-list-actions .payment-item__actions,
+.admin-list-actions .music-item__actions { margin-top: 10px; }
+@media (max-width: 1000px) {
+    .admin-list-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .admin-list-search { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+    .music-item .admin-list-actions,
+    .music-item .admin-list-actions[open] { width: 100%; }
+}
+@media (max-width: 760px) {
+    .payment-item .admin-list-actions,
+    .payment-item .admin-list-actions[open] { width: 100%; }
+    .admin-list-pager { gap: 8px; }
+    .admin-list-pager button { min-width: 72px; }
 }

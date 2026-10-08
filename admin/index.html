@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
     <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-5-nozoom">
-    <link rel="stylesheet" href="admin.css?v=keepsake-ui-5">
+    <link rel="stylesheet" href="admin.css?v=admin-lists-6">
 </head>
 <body>
     <main class="admin-shell">
@@ -82,7 +82,7 @@
                             <div class="payment-list-head">
                                 <div class="payment-list-head__copy">
                                     <h3>Tất cả thiệp Firebase</h3>
-                                    <p class="payment-list-desc">Thiệp quá 30 ngày được đánh dấu để dọn. Bấm <strong>Sửa</strong> để chỉnh config. List chỉ text Firebase — không tải ảnh Cloudinary.</p>
+                                    <p class="payment-list-desc">Tìm thiệp theo tên cô dâu/chú rể, mã giao dịch hoặc ID. Thiệp quá 30 ngày được đánh dấu để dọn.</p>
                                     <p class="payment-list-desc"><strong>Xuất thiệp kỷ niệm</strong> tải file HTML gồm ảnh, nhạc và lời chúc để admin gửi cho khách. Chỉ dùng dữ liệu đã lưu Firebase.</p>
                                 </div>
                                 <div class="payment-list-head__actions">
@@ -92,7 +92,27 @@
                                     <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
                                 </div>
                             </div>
+                            <div class="admin-list-tools" data-admin-list-tools="weddings">
+                                <label class="admin-list-search">Tìm thiệp
+                                    <input type="search" data-list-search placeholder="Tên cô dâu/chú rể, mã GD, ID thiệp…" aria-controls="paymentList">
+                                </label>
+                                <label>Trạng thái
+                                    <select data-list-filter aria-controls="paymentList">
+                                        <option value="all">Tất cả thiệp</option>
+                                        <option value="paid">Đã thanh toán</option>
+                                        <option value="pending">Chưa thanh toán</option>
+                                        <option value="locked">Đã khóa</option>
+                                        <option value="stale">Quá 30 ngày</option>
+                                    </select>
+                                </label>
+                                <label>Mỗi trang
+                                    <select data-list-size aria-controls="paymentList"><option>10</option><option>20</option><option>50</option></select>
+                                </label>
+                                <button type="button" class="ghost small" data-list-reset>Đặt lại</button>
+                            </div>
+                            <p id="weddingsListSummary" class="admin-list-summary" role="status" aria-live="polite">Đang tải danh sách…</p>
                             <div id="paymentList" class="payment-list"></div>
+                            <nav id="weddingsListPager" class="admin-list-pager" aria-label="Phân trang danh sách thiệp" hidden></nav>
                         </section>
                     </div>
 
@@ -442,7 +462,21 @@
                                 <div class="music-actions"><button id="resetMusicBtn" type="button" class="ghost"><i class="bi bi-plus-circle"></i> Bài mới</button><button id="saveMusicBtn" type="submit"><i class="bi bi-cloud-upload-fill"></i> Lưu nhạc</button></div>
                             </div>
                         </form>
+                        <div class="admin-list-tools" data-admin-list-tools="music">
+                            <label class="admin-list-search">Tìm bài nhạc
+                                <input type="search" data-list-search placeholder="Tên bài hát, ID hoặc link nhạc…" aria-controls="musicList">
+                            </label>
+                            <label>Trạng thái
+                                <select data-list-filter aria-controls="musicList"><option value="all">Tất cả bài nhạc</option><option value="active">Đang hiện</option><option value="inactive">Đang ẩn</option></select>
+                            </label>
+                            <label>Mỗi trang
+                                <select data-list-size aria-controls="musicList"><option>10</option><option>20</option><option>50</option></select>
+                            </label>
+                            <button type="button" class="ghost small" data-list-reset>Đặt lại</button>
+                        </div>
+                        <p id="musicListSummary" class="admin-list-summary" role="status" aria-live="polite">Chưa tải thư viện nhạc.</p>
                         <div id="musicList" class="music-list"></div>
+                        <nav id="musicListPager" class="admin-list-pager" aria-label="Phân trang thư viện nhạc" hidden></nav>
                     </section>
                 </section>
             </div>
@@ -525,6 +559,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script type="module" src="admin.js?v=keepsake-ui-5"></script>
+    <script type="module" src="admin.js?v=admin-lists-6"></script>
 </body>
 </html>
