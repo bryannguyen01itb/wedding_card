@@ -39,18 +39,15 @@ const loginForm = document.getElementById("loginForm");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const adminApp = document.getElementById("adminApp");
-const adminHero = document.getElementById("adminHero");
 const accountEmail = document.getElementById("accountEmail");
 const logoutBtn = document.getElementById("logoutBtn");
 const form = document.getElementById("adminForm");
 const loadInput = document.getElementById("loadWeddingId");
-const loadBtn = document.getElementById("loadBtn");
 const resetBtn = document.getElementById("resetBtn");
 const saveBtn = document.getElementById("saveBtn");
 const toast = document.getElementById("toast");
 const previewLink = document.getElementById("previewLink");
 const galleryFields = document.getElementById("galleryFields");
-const musicPanel = document.getElementById("musicPanel");
 const musicForm = document.getElementById("musicForm");
 const musicDocId = document.getElementById("musicDocId");
 const musicTitle = document.getElementById("musicTitle");
@@ -59,7 +56,6 @@ const musicActive = document.getElementById("musicActive");
 const musicList = document.getElementById("musicList");
 const resetMusicBtn = document.getElementById("resetMusicBtn");
 const saveMusicBtn = document.getElementById("saveMusicBtn");
-const paymentPanel = document.getElementById("paymentPanel");
 const paymentSettingsForm = document.getElementById("paymentSettingsForm");
 const paymentAmount = document.getElementById("paymentAmount");
 const paymentAmountMulti = document.getElementById("paymentAmountMulti");
@@ -70,7 +66,6 @@ const paymentReceiver = document.getElementById("paymentReceiver");
 const paymentMessage = document.getElementById("paymentMessage");
 const paymentList = document.getElementById("paymentList");
 const refreshPaymentListBtn = document.getElementById("refreshPaymentListBtn");
-const deleteOldWeddingsBtn = document.getElementById("deleteOldWeddingsBtn");
 
 const WEDDING_STALE_DAYS = 30;
 /** TTL cache list thiệp — tránh get full collection mỗi lần đổi tab */
@@ -91,14 +86,15 @@ let weddingListMeta = { at: 0, inflight: null };
 let paymentSettingsLoaded = false;
 let musicLibraryLoaded = false;
 let keepsakeExportBusy = false;
+let bulkBusy = false;
+const listSelection = {
+    weddings: { selected: new Set(), matchingIds: [] },
+    music: { selected: new Set(), matchingIds: [] }
+};
 
 let currentConfig = createEmptyAdminConfig();
 let hasLoadedInitialConfig = false;
 let activeMediaConcept = DEFAULT_MEDIA_CONCEPT;
-
-function clone(value) {
-    return JSON.parse(JSON.stringify(value));
-}
 
 function isPlainObject(value) {
     return Object.prototype.toString.call(value) === "[object Object]";
@@ -780,6 +776,188 @@ function getPaymentStatusLabel(payment = {}) {
     return "Chưa thanh toán";
 }
 
+function pruneSelection(kind, items) {
+    const available = new Set(items.map(item => item.id));
+    for (const id of listSelection[kind].selected) {
+        if (!available.has(id)) listSelection[kind].selected.delete(id);
+    }
+}
+
+function updateSelectionTools(kind) {
+    const tools = document.querySelector(`[data-bulk-tools="${kind}"]`);
+    if (!tools) return;
+    const { selected, matchingIds } = listSelection[kind];
+    const checked = matchingIds.filter(id => selected.has(id)).length;
+    const all = tools.querySelector("[data-select-all]");
+    all.checked = matchingIds.length > 0 && checked === matchingIds.length;
+    all.indeterminate = checked > 0 && checked < matchingIds.length;
+    all.disabled = !matchingIds.length || bulkBusy || keepsakeExportBusy;
+    tools.querySelector("[data-selection-count]").textContent = `Đã chọn ${selected.size}`;
+    tools.querySelectorAll("button").forEach(button => {
+        button.disabled = !selected.size || bulkBusy || keepsakeExportBusy;
+    });
+    const list = kind === "weddings" ? paymentList : musicList;
+    list?.querySelectorAll("[data-select-item]").forEach(input => {
+        input.checked = selected.has(input.dataset.id);
+    });
+}
+
+function initSelectionControls() {
+    for (const kind of ["weddings", "music"]) {
+        const tools = document.querySelector(`[data-bulk-tools="${kind}"]`);
+        const list = kind === "weddings" ? paymentList : musicList;
+        tools.addEventListener("change", event => {
+            if (!event.target.matches("[data-select-all]") || bulkBusy || keepsakeExportBusy) return;
+            const { selected, matchingIds } = listSelection[kind];
+            for (const id of matchingIds) {
+                if (event.target.checked) selected.add(id);
+                else selected.delete(id);
+            }
+            updateSelectionTools(kind);
+        });
+        list.addEventListener("change", event => {
+            const input = event.target.closest("[data-select-item]");
+            if (!input || bulkBusy || keepsakeExportBusy) return;
+            const selected = listSelection[kind].selected;
+            if (input.checked) selected.add(input.dataset.id);
+            else selected.delete(input.dataset.id);
+            updateSelectionTools(kind);
+        });
+        tools.addEventListener("click", event => {
+            const button = event.target.closest("button");
+            if (!button || button.disabled || bulkBusy || keepsakeExportBusy) return;
+            if (button.matches("[data-clear-selection]")) {
+                listSelection[kind].selected.clear();
+                updateSelectionTools(kind);
+            } else if (button.matches("[data-bulk-delete]")) {
+                void runSelectedAction(kind, "delete");
+            } else if (button.matches("[data-bulk-export]")) {
+                void runSelectedAction(kind, "export");
+            }
+        });
+    }
+}
+
+function createBulkStatus(kind, action, ids) {
+    const status = document.querySelector(`[data-bulk-status="${kind}"]`);
+    const summary = status.querySelector("[data-bulk-progress]");
+    const details = status.querySelector("[data-bulk-details]");
+    const results = status.querySelector("[data-bulk-results]");
+    results.textContent = "";
+    details.open = false;
+    const rows = new Map();
+    const items = kind === "weddings" ? cachedWeddingList : cachedMusicList;
+    const names = new Map(items.map(item => [item.id, kind === "weddings"
+        ? [item.groom?.nickname || item.groom?.fullName, item.bride?.nickname || item.bride?.fullName].filter(Boolean).join(" & ")
+        : item.title]));
+    for (const id of ids) {
+        const row = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = `${names.get(id) || id}${names.get(id) ? ` · ${id}` : ""}`;
+        const message = document.createElement("span");
+        message.textContent = "Chờ xử lý";
+        row.append(name, message);
+        results.appendChild(row);
+        rows.set(id, { row, message });
+    }
+    status.hidden = false;
+    summary.className = "";
+    return {
+        progress(message, error = false) {
+            summary.textContent = message;
+            summary.className = error ? "is-error" : "";
+        },
+        item(id, state, message) {
+            const entry = rows.get(id);
+            if (!entry) return;
+            entry.row.className = `is-${state}`;
+            entry.message.textContent = message;
+            if (state === "error") details.open = true;
+        }
+    };
+}
+
+async function runSelectedAction(kind, action) {
+    if (bulkBusy || keepsakeExportBusy) return;
+    if (!auth.currentUser || !isAllowedAdminEmail(auth.currentUser.email)) {
+        showToast("Cần đăng nhập admin.", "error");
+        return;
+    }
+    const ids = [...listSelection[kind].selected];
+    if (!ids.length) return;
+    bulkBusy = true;
+    const panel = document.getElementById(kind === "weddings" ? "weddingListPanel" : "musicPanel");
+    const controls = [...panel.querySelectorAll("input, select, button")].map(el => [el, el.disabled]);
+    controls.forEach(([el]) => { el.disabled = true; });
+    let report;
+    const progress = (message, error = false) => report?.progress(message, error);
+    const failed = [];
+    let done = 0;
+    try {
+        if (action === "delete") {
+            const ok = await showAdminConfirm({
+                title: `Xóa ${ids.length} ${kind === "weddings" ? "thiệp" : "bài nhạc"} đã chọn?`,
+                message: ids.slice(0, 8).join("\n") + (ids.length > 8 ? `\n… và ${ids.length - 8} mục khác` : ""),
+                warning: kind === "weddings" ? "Xóa vĩnh viễn thiệp và lời chúc; dọn tài nguyên theo luồng xóa hiện tại. Không hoàn tác được." : "Xóa bài nhạc khỏi thư viện dùng chung. Không hoàn tác được.",
+                confirmLabel: "Xóa đã chọn", confirmIcon: "bi-trash3", variant: "danger"
+            });
+            if (!ok) return;
+        }
+        report = createBulkStatus(kind, action, ids);
+        const zipModule = action === "export" && ids.length > 1 ? await import("./keepsake-zip.js") : null;
+        const zip = zipModule?.createKeepsakeZip();
+        for (const [index, id] of ids.entries()) {
+            progress(`${action === "export" ? "Đang xuất" : "Đang xóa"} ${index + 1}/${ids.length}: ${id} · Thành công ${done} · Lỗi ${failed.length}`);
+            report.item(id, "running", action === "export" ? "Đang tải dữ liệu thiệp…" : "Đang xóa…");
+            try {
+                if (action === "export") {
+                    const result = await buildSavedKeepsake(id, message => {
+                        report.item(id, "running", message);
+                        progress(`Đang xuất ${index + 1}/${ids.length}: ${id} · Thành công ${done} · Lỗi ${failed.length}`);
+                    });
+                    if (zip) zip.add(`${index + 1}-${id.replace(/[^\p{L}\p{N}_-]/gu, "-")}-ky-niem.html`, result.html);
+                    else result.downloadKeepsake(result.html, id);
+                } else if (kind === "weddings") {
+                    if (!await deleteWeddingById(id, { confirm: false })) throw new Error("Xóa thất bại");
+                    listSelection[kind].selected.delete(id);
+                } else {
+                    await db.collection("musicLibrary").doc(id).delete();
+                    if (musicDocId.value === id) resetMusicForm();
+                    listSelection[kind].selected.delete(id);
+                }
+                done++;
+                report.item(id, "success", action === "export" ? (zip ? "Đã đóng gói vào ZIP" : "Đã tạo file HTML và bắt đầu tải xuống") : "Đã xóa");
+            } catch (error) {
+                console.error(error);
+                const reason = error.message || "Thao tác thất bại";
+                failed.push(`${id}: ${reason}`);
+                report.item(id, "error", `Thất bại: ${reason}`);
+            }
+        }
+        if (zip && done) {
+            if (failed.length) zip.add("cac-thiep-xuat-loi.txt", failed.join("\n"));
+            zipModule.downloadKeepsakeZip(zip);
+        }
+        if (action === "delete") {
+            if (kind === "weddings") await loadPaymentList({ force: true });
+            else await loadMusicLibraryAdmin({ force: true });
+        }
+        progress(`Đã ${action === "export" ? "xuất" : "xóa"} ${done}/${ids.length} mục.${zip && done ? " Giải nén file ZIP để lấy từng thiệp HTML." : ""}${failed.length ? ` Có ${failed.length} mục lỗi — xem chi tiết bên dưới.` : ""}`, failed.length > 0);
+    } catch (error) {
+        console.error(error);
+        if (!report) report = createBulkStatus(kind, action, ids);
+        progress(`Thao tác thất bại: ${error.message}. Chưa hoàn tất tải xuống nếu gói ZIP chưa được tạo.`, true);
+    } finally {
+        bulkBusy = false;
+        controls.forEach(([el, disabled]) => { el.disabled = disabled; });
+        // Refresh creates new rows/pager controls, so also restore those controls.
+        for (const listKind of ["weddings", "music"]) {
+            renderAdminListPage(listKind);
+            updateSelectionTools(listKind);
+        }
+    }
+}
+
 function renderAdminListPage(kind) {
     if (kind === "weddings") renderWeddingListPage();
     else renderMusicListPage();
@@ -829,6 +1007,8 @@ function initAdminListControls() {
 
 function renderListPager(kind, result) {
     const state = adminListState[kind];
+    listSelection[kind].matchingIds = result.matchingIds;
+    updateSelectionTools(kind);
     state.page = result.page;
     const summary = document.getElementById(`${kind}ListSummary`);
     const noun = kind === "weddings" ? "thiệp" : "bài nhạc";
@@ -843,9 +1023,11 @@ function renderListPager(kind, result) {
         <label>Trang <select data-list-page data-admin-list-control="${kind}" aria-label="Chọn trang ${noun}">${Array.from({ length: result.pageCount }, (_, i) => `<option value="${i + 1}" ${i + 1 === result.page ? "selected" : ""}>${i + 1}</option>`).join("")}</select> / ${result.pageCount}</label>
         <button type="button" class="ghost small" data-list-delta="1" data-admin-list-control="${kind}" ${result.page === result.pageCount ? "disabled" : ""}>Sau <i class="bi bi-chevron-right"></i></button>
     `;
+    if (bulkBusy || keepsakeExportBusy) pager.querySelectorAll("select, button").forEach(el => { el.disabled = true; });
 }
 
 function renderPaymentList(items) {
+    pruneSelection("weddings", items);
     cachedWeddingList = items;
     adminListState.weddings.loaded = true;
     renderWeddingListPage();
@@ -855,13 +1037,6 @@ function renderWeddingListPage() {
     if (!paymentList) return;
     if (!adminListState.weddings.loaded) return;
     paymentList.textContent = "";
-    const staleCount = cachedWeddingList.filter(item => isWeddingStale(item)).length;
-    if (staleCount && deleteOldWeddingsBtn) {
-        deleteOldWeddingsBtn.innerHTML = `<i class="bi bi-trash3"></i> Xóa &gt; 30 ngày (${staleCount})`;
-    } else if (deleteOldWeddingsBtn) {
-        deleteOldWeddingsBtn.innerHTML = '<i class="bi bi-trash3"></i> Xóa &gt; 30 ngày';
-    }
-
     const result = getListPage(cachedWeddingList, adminListState.weddings, item => [
         item.groom?.nickname, item.groom?.fullName, item.bride?.nickname, item.bride?.fullName,
         item.payment?.orderCode, item.id, item.weddingId
@@ -899,37 +1074,23 @@ function renderWeddingListPage() {
             : `<span class="payment-item__order-code is-muted">Chưa có mã GD</span>`;
 
         row.innerHTML = `
+            <input type="checkbox" class="admin-row-select" data-select-item="weddings" data-id="${escapeAttr(item.id)}" aria-label="Chọn thiệp ${escapeAttr(id)}" ${listSelection.weddings.selected.has(item.id) ? "checked" : ""}>
             <div class="payment-item__info">
                 <strong>${escapeAttr(item.groom?.nickname || item.groom?.fullName || "Chú rể")} &amp; ${escapeAttr(item.bride?.nickname || item.bride?.fullName || "Cô dâu")}${stale ? ' <span class="payment-item__badge">&gt;30 ngày</span>' : ""}</strong>
                 <span class="payment-item__doc-id">ID: ${escapeAttr(id)}</span>
                 ${orderLine}
                 <em>${getPaymentStatusLabel(payment)}${planLabel ? ` · ${planLabel}` : ""} · ${money} · ${ageLabel}</em>
             </div>
-            <details class="admin-list-actions">
-                <summary><i class="bi bi-three-dots"></i> Thao tác</summary>
-                <div class="payment-item__actions">
-                <button type="button" class="small" data-wedding-edit="${escapeAttr(item.id)}" title="Sửa thông tin thiệp">
-                    <i class="bi bi-pencil-square"></i> Sửa
-                </button>
-                <button type="button" class="ghost small" data-wedding-keepsake="${escapeAttr(item.id)}" title="Tải bản thiệp độc lập từ dữ liệu đã lưu">
-                    <i class="bi bi-download"></i> Xuất thiệp kỷ niệm
-                </button>
+            <div class="payment-item__actions admin-icon-actions">
+                <button type="button" class="ghost small" data-wedding-edit="${escapeAttr(item.id)}" title="Sửa thiệp" aria-label="Sửa thiệp"><i class="bi bi-pencil-square"></i></button>
                 ${paid
-                    ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${escapeAttr(item.id)}"><i class="bi bi-lock-fill"></i> Khóa</button>`
-                    : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${escapeAttr(item.id)}"><i class="bi bi-check2-circle"></i> Đã trả</button>`}
-                <button type="button" class="ghost small${(payment.plan || item.plan) === "single" ? " is-plan-active" : ""}" data-plan-action="single" data-id="${escapeAttr(item.id)}" title="Đổi sang gói 1 link">
-                    <i class="bi bi-link-45deg"></i> 1 link
-                </button>
-                <button type="button" class="ghost small${(payment.plan || item.plan) === "multi" ? " is-plan-active" : ""}" data-plan-action="multi" data-id="${escapeAttr(item.id)}" title="Đổi sang gói nhiều link theo khách">
-                    <i class="bi bi-people"></i> Nhiều link
-                </button>
-                <button type="button" class="ghost small danger" data-wedding-delete="${escapeAttr(item.id)}" title="Xóa vĩnh viễn thiệp + lời chúc">
-                    <i class="bi bi-trash3-fill"></i> Xóa
-                </button>
-                </div>
-            </details>
-            <p class="hint keepsake-export-status" data-keepsake-status role="status" aria-live="polite" hidden></p>
+                    ? `<button type="button" class="ghost small danger" data-payment-action="locked" data-id="${escapeAttr(item.id)}" title="Khóa thiệp" aria-label="Khóa thiệp"><i class="bi bi-lock-fill"></i></button>`
+                    : `<button type="button" class="ghost small" data-payment-action="paid" data-id="${escapeAttr(item.id)}" title="Đánh dấu đã thanh toán" aria-label="Đánh dấu đã thanh toán"><i class="bi bi-check2-circle"></i></button>`}
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "single" ? " is-plan-active" : ""}" data-plan-action="single" data-id="${escapeAttr(item.id)}" title="Gói 1 link" aria-label="Gói 1 link"><i class="bi bi-link-45deg"></i></button>
+                <button type="button" class="ghost small${(payment.plan || item.plan) === "multi" ? " is-plan-active" : ""}" data-plan-action="multi" data-id="${escapeAttr(item.id)}" title="Gói nhiều link" aria-label="Gói nhiều link"><i class="bi bi-people"></i></button>
+            </div>
         `;
+        row.querySelectorAll("input, button").forEach(el => { el.disabled = bulkBusy || keepsakeExportBusy; });
         paymentList.appendChild(row);
     });
 }
@@ -1324,58 +1485,6 @@ async function deleteWeddingById(weddingId, { confirm: needConfirm = true } = {}
     }
 }
 
-async function deleteStaleWeddings() {
-    if (!auth.currentUser) {
-        showToast("Cần đăng nhập admin.", "error");
-        return;
-    }
-
-    const stale = cachedWeddingList.filter(item => isWeddingStale(item));
-    if (!stale.length) {
-        showToast(`Không có thiệp nào quá ${WEDDING_STALE_DAYS} ngày trong danh sách hiện tại.`);
-        return;
-    }
-
-    const preview = stale.slice(0, 8).map(item => item.weddingId || item.id).join("\n");
-    const more = stale.length > 8 ? `\n… và ${stale.length - 8} thiệp khác` : "";
-    const ok = await showAdminConfirm({
-        eyebrow: "Dọn thiệp cũ",
-        title: `Xóa ${stale.length} thiệp quá ${WEDDING_STALE_DAYS} ngày?`,
-        message: `${preview}${more}`,
-        warning: "Xóa vĩnh viễn config + lời chúc. Ảnh Cloudinary không tự xóa. Không hoàn tác được.",
-        confirmLabel: `Xóa ${stale.length} thiệp`,
-        confirmIcon: "bi-trash3-fill",
-        variant: "danger"
-    });
-    if (!ok) return;
-
-    if (deleteOldWeddingsBtn) {
-        deleteOldWeddingsBtn.disabled = true;
-        deleteOldWeddingsBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xóa…';
-    }
-
-    let done = 0;
-    let failed = 0;
-    for (const item of stale) {
-        const id = item.id || item.weddingId;
-        const success = await deleteWeddingById(id, { confirm: false });
-        if (success) done += 1;
-        else failed += 1;
-    }
-
-    await loadPaymentList({ force: true });
-    showToast(
-        failed
-            ? `Đã xóa ${done} thiệp, lỗi ${failed}.`
-            : `Đã xóa ${done} thiệp quá ${WEDDING_STALE_DAYS} ngày.`,
-        failed ? "error" : ""
-    );
-
-    if (deleteOldWeddingsBtn) {
-        deleteOldWeddingsBtn.disabled = false;
-    }
-}
-
 /**
  * Chỉ giữ field cần cho list / stale / đổi gói / xóa.
  * Không giữ gallery, theme.concepts, guests full text dài (chỉ length) — nhẹ RAM.
@@ -1567,8 +1676,34 @@ async function updateWeddingPaymentById(weddingId, status) {
     }
 }
 
+async function buildSavedKeepsake(id, updateProgress) {
+    const ref = db.collection("weddings").doc(id);
+    const doc = await ref.get({ source: "server" });
+    if (!doc.exists) throw new Error("Thiệp này không còn tồn tại.");
+    const snapshot = await ref.collection("wishes").get({ source: "server" });
+    const raw = doc.data() || {};
+    const config = normalizeCeremonyAfterMerge(mergeConfig(fallbackWedding, { ...raw, weddingId: doc.id }), raw);
+    // Keepsake belongs to the couple; use the general cover, not one guest's link.
+    config.cover = { ...config.cover, guest: "Quý khách" };
+    const wishes = [...snapshot.docs].sort((a, b) => {
+        return (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0);
+    }).map(item => {
+        const data = item.data();
+        return {
+            name: data.name || "",
+            side: data.side || "",
+            attendance: data.attendance || "",
+            message: data.message || "",
+            createdAt: data.createdAt?.toDate?.().toLocaleString("vi-VN") || ""
+        };
+    });
+    const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js?v=export-ui-5");
+    const { html } = await buildKeepsakeHTML({ config, wishes, onProgress: updateProgress });
+    return { html, id: doc.id, downloadKeepsake };
+}
+
 async function exportWeddingKeepsake(weddingId, button) {
-    if (keepsakeExportBusy) return;
+    if (keepsakeExportBusy || bulkBusy) return;
     if (!auth.currentUser || !isAllowedAdminEmail(auth.currentUser.email)) {
         showToast("Chỉ admin đã đăng nhập mới được xuất thiệp kỷ niệm.", "error");
         return;
@@ -1587,34 +1722,14 @@ async function exportWeddingKeepsake(weddingId, button) {
             status.textContent = message;
         }
     };
-    document.querySelectorAll('[data-wedding-keepsake], #exportLoadedWeddingBtn, [data-admin-list-control="weddings"], #refreshPaymentListBtn').forEach(el => { el.disabled = true; });
+    const controls = [...document.querySelectorAll('#exportLoadedWeddingBtn, #weddingListPanel input, #weddingListPanel select, #weddingListPanel button')].map(el => [el, el.disabled]);
+    controls.forEach(([el]) => { el.disabled = true; });
     if (button) button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xuất…';
     try {
         updateProgress(`Đang tải thiệp ${id} và lời chúc đã lưu…`);
-        const ref = db.collection("weddings").doc(id);
-        const doc = await ref.get({ source: "server" });
-        if (!doc.exists) throw new Error("Thiệp này không còn tồn tại.");
-        const snapshot = await ref.collection("wishes").get({ source: "server" });
-        const raw = doc.data() || {};
-        const config = normalizeCeremonyAfterMerge(mergeConfig(fallbackWedding, { ...raw, weddingId: doc.id }), raw);
-        // Keepsake belongs to the couple; use the general cover, not one guest's link.
-        config.cover = { ...config.cover, guest: "Quý khách" };
-        const wishes = [...snapshot.docs].sort((a, b) => {
-            return (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0);
-        }).map(item => {
-            const data = item.data();
-            return {
-                name: data.name || "",
-                side: data.side || "",
-                attendance: data.attendance || "",
-                message: data.message || "",
-                createdAt: data.createdAt?.toDate?.().toLocaleString("vi-VN") || ""
-            };
-        });
-        const { buildKeepsakeHTML, downloadKeepsake } = await import("./keepsake-export.js?v=export-ui-5");
-        const { html } = await buildKeepsakeHTML({ config, wishes, onProgress: updateProgress });
-        downloadKeepsake(html, doc.id);
-        updateProgress(`Đã xuất ${doc.id}-ky-niem.html. Gửi file này cho khách; mở bằng trình duyệt để xem. Bản xuất dùng dữ liệu đã lưu trên Firebase.`);
+        const { html, downloadKeepsake } = await buildSavedKeepsake(id, updateProgress);
+        downloadKeepsake(html, id);
+        updateProgress(`Đã xuất ${id}-ky-niem.html. Gửi file này cho khách; mở bằng trình duyệt để xem. Bản xuất dùng dữ liệu đã lưu trên Firebase.`);
         showToast("Đã tải file thiệp kỷ niệm.");
     } catch (error) {
         console.error("Keepsake export failed:", error);
@@ -1622,47 +1737,20 @@ async function exportWeddingKeepsake(weddingId, button) {
         showToast("Chưa xuất được thiệp. Xem chi tiết ở trạng thái xuất.", "error");
     } finally {
         keepsakeExportBusy = false;
-        document.querySelectorAll("[data-wedding-keepsake], #exportLoadedWeddingBtn").forEach(el => { el.disabled = false; });
-        document.querySelectorAll('[data-admin-list-control="weddings"], #refreshPaymentListBtn').forEach(el => { el.disabled = false; });
-        // Restore previous/next disabled states without rebuilding the active row.
-        const pager = document.getElementById("weddingsListPager");
-        const page = adminListState.weddings.page;
-        const lastPage = pager?.querySelector("[data-list-page]")?.options.length || 1;
-        const prev = pager?.querySelector('[data-list-delta="-1"]');
-        const next = pager?.querySelector('[data-list-delta="1"]');
-        if (prev) prev.disabled = page === 1;
-        if (next) next.disabled = page === lastPage;
+        controls.forEach(([el, disabled]) => { el.disabled = disabled; });
+        renderWeddingListPage();
+        updateSelectionTools("weddings");
         if (button) button.innerHTML = oldLabel;
     }
 }
 
 async function handlePaymentListClick(event) {
-    const exportBtn = event.target.closest("button[data-wedding-keepsake]");
-    if (exportBtn) {
-        event.preventDefault();
-        event.stopPropagation();
-        await exportWeddingKeepsake(exportBtn.dataset.weddingKeepsake, exportBtn);
-        return;
-    }
+    if (bulkBusy || keepsakeExportBusy) return;
     const editBtn = event.target.closest("button[data-wedding-edit]");
     if (editBtn) {
         event.preventDefault();
         event.stopPropagation();
         await openWeddingEditor(editBtn.dataset.weddingEdit);
-        return;
-    }
-
-    const deleteBtn = event.target.closest("button[data-wedding-delete]");
-    if (deleteBtn) {
-        event.preventDefault();
-        event.stopPropagation();
-        const id = deleteBtn.dataset.weddingDelete;
-        deleteBtn.disabled = true;
-        const ok = await deleteWeddingById(id, { confirm: true });
-        if (ok) {
-            showWeddingListMode();
-            await loadPaymentList({ force: true });
-        } else deleteBtn.disabled = false;
         return;
     }
 
@@ -1719,16 +1807,6 @@ function scrollAdminTargetIntoView(target, behavior = "smooth") {
 function scrollAdminEditorToTop() {
     const hero = document.getElementById("adminHero");
     window.requestAnimationFrame(() => scrollAdminTargetIntoView(hero, "smooth"));
-}
-
-function handleAdminFormNavClick(event) {
-    const link = event.target.closest(".admin-form-nav a[href^='#']");
-    if (!link) return;
-    const id = decodeURIComponent(link.getAttribute("href").slice(1));
-    const target = document.getElementById(id);
-    if (!target) return;
-    event.preventDefault();
-    scrollAdminTargetIntoView(target);
 }
 
 async function openWeddingEditor(weddingId) {
@@ -1937,6 +2015,7 @@ function resetMusicForm() {
 }
 
 function renderMusicList(items) {
+    pruneSelection("music", items);
     cachedMusicList = items;
     adminListState.music.loaded = true;
     renderMusicListPage();
@@ -1959,20 +2038,18 @@ function renderMusicListPage() {
         const row = document.createElement("article");
         row.className = `music-item${item.active === false ? " is-inactive" : ""}`;
         row.innerHTML = `
+            <input type="checkbox" class="admin-row-select" data-select-item="music" data-id="${escapeAttr(item.id)}" aria-label="Chọn bài ${escapeAttr(item.title || item.id)}" ${listSelection.music.selected.has(item.id) ? "checked" : ""}>
             <div class="music-item__info">
                 <strong>${escapeAttr(item.title || item.id)}</strong>
                 <span title="${escapeAttr(item.url || "")}">${escapeAttr(item.url || "")}</span>
                 <em>${item.active === false ? "Đang ẩn" : "Đang hiện"}</em>
             </div>
-            <details class="admin-list-actions">
-                <summary><i class="bi bi-three-dots"></i> Thao tác</summary>
-                <div class="music-item__actions">
-                <button type="button" class="ghost small" data-action="edit" data-id="${escapeAttr(item.id)}"><i class="bi bi-pencil-square"></i> Sửa</button>
-                <button type="button" class="ghost small ${item.active === false ? "is-hidden-state" : "is-visible-state"}" data-action="toggle" data-id="${escapeAttr(item.id)}" title="${item.active === false ? "Đang ẩn — bấm để hiện" : "Đang hiện — bấm để ẩn"}">${item.active === false ? '<i class="bi bi-eye-slash-fill"></i> Đang ẩn' : '<i class="bi bi-eye-fill"></i> Đang hiện'}</button>
-                <button type="button" class="ghost small danger" data-action="delete" data-id="${escapeAttr(item.id)}"><i class="bi bi-trash3-fill"></i> Xóa</button>
-                </div>
-            </details>
+            <div class="music-item__actions admin-icon-actions">
+                <button type="button" class="ghost small" data-action="edit" data-id="${escapeAttr(item.id)}" title="Sửa bài nhạc" aria-label="Sửa bài nhạc"><i class="bi bi-pencil-square"></i></button>
+                <button type="button" class="ghost small ${item.active === false ? "is-hidden-state" : "is-visible-state"}" data-action="toggle" data-id="${escapeAttr(item.id)}" title="${item.active === false ? "Hiện bài nhạc" : "Ẩn bài nhạc"}" aria-label="${item.active === false ? "Hiện bài nhạc" : "Ẩn bài nhạc"}">${item.active === false ? '<i class="bi bi-eye-slash-fill"></i>' : '<i class="bi bi-eye-fill"></i>'}</button>
+            </div>
         `;
+        row.querySelectorAll("input, button").forEach(el => { el.disabled = bulkBusy || keepsakeExportBusy; });
         musicList.appendChild(row);
     });
 }
@@ -2043,6 +2120,7 @@ async function saveMusicItem(event) {
 }
 
 async function handleMusicListClick(event) {
+    if (bulkBusy || keepsakeExportBusy) return;
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
@@ -2072,13 +2150,6 @@ async function handleMusicListClick(event) {
             return;
         }
 
-        if (action === "delete") {
-            if (!window.confirm("Xóa bài nhạc này khỏi thư viện builder?")) return;
-            await ref.delete();
-            if (musicDocId.value === id) resetMusicForm();
-            await loadMusicLibraryAdmin({ force: true });
-            showToast("Đã xóa bài nhạc.");
-        }
     } catch (error) {
         console.error(error);
         showToast("Không thao tác được với bài nhạc. Kiểm tra Firestore Rules.", "error");
@@ -2235,6 +2306,11 @@ function showLoggedOut() {
     cachedWeddingList = [];
     cachedMusicList = [];
     for (const kind of ["weddings", "music"]) {
+        listSelection[kind].selected.clear();
+        listSelection[kind].matchingIds = [];
+        const status = document.querySelector(`[data-bulk-status="${kind}"]`);
+        if (status) status.hidden = true;
+        updateSelectionTools(kind);
         Object.assign(adminListState[kind], { query: "", filter: "all", page: 1, pageSize: 10, loaded: false });
         const tools = document.querySelector(`[data-admin-list-tools="${kind}"]`);
         if (tools) {
@@ -2295,14 +2371,11 @@ async function showLoggedIn(user) {
 
 function initEvents() {
     initAdminListControls();
+    initSelectionControls();
     loginForm.addEventListener("submit", login);
     logoutBtn.addEventListener("click", () => auth.signOut());
 
-    const goList = () => {
-        showWeddingListMode();
-        setAdminView("weddings");
-        void loadPaymentList({ force: false });
-    };
+    const goList = () => setAdminView("weddings");
     document.getElementById("backToWeddingListBtn")?.addEventListener("click", goList);
     document.getElementById("backToWeddingListBtn2")?.addEventListener("click", goList);
     document.getElementById("exportLoadedWeddingBtn")?.addEventListener("click", event => {
@@ -2398,9 +2471,6 @@ function initEvents() {
     paymentSettingsForm?.addEventListener("submit", savePaymentSettings);
     paymentList?.addEventListener("click", handlePaymentListClick);
     refreshPaymentListBtn?.addEventListener("click", () => loadPaymentList({ force: true }));
-    deleteOldWeddingsBtn?.addEventListener("click", () => {
-        deleteStaleWeddings();
-    });
 
     document.getElementById("planChangeConfirmBtn")?.addEventListener("click", () => {
         confirmPlanChangeFromModal();

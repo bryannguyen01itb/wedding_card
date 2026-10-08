@@ -21,6 +21,7 @@ export function getListPage(items, state, searchText, matchesFilter = () => true
     const offset = (page - 1) * pageSize;
     return {
         items: matches.slice(offset, offset + pageSize),
+        matchingIds: matches.map(item => item.id),
         total: items.length,
         matching: matches.length,
         page,

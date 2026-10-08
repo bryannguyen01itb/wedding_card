@@ -650,16 +650,6 @@ body.admin-modal-open {
     margin-top: 22px;
 }
 
-.account-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-    color: var(--admin-muted);
-    font-weight: 700;
-}
-
 button.small {
     width: auto; /* size → ui-shell .ui-btn--sm / button.small */
 }
@@ -984,35 +974,6 @@ button.ghost.danger {
     }
 }
 
-.payment-list-wrap {
-    display: grid;
-    gap: 12px;
-    padding-top: 4px;
-}
-
-/* Head: grid 2 cột — tránh flex + button width:100% bóp chữ thành 1 cột dọc */
-.payment-list-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px 20px;
-    align-items: start;
-    margin-bottom: 18px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(var(--admin-primary-rgb), .12);
-}
-
-.payment-list-head__copy {
-    min-width: 0;
-}
-
-.payment-list-head h3 {
-    margin: 0 0 6px;
-    color: var(--admin-primary);
-    font-size: clamp(17px, 2.2vw, 20px);
-    font-weight: 800;
-    line-height: 1.3;
-}
-
 .payment-list {
     display: grid;
     gap: 12px;
@@ -1051,33 +1012,6 @@ button.ghost.danger {
     font-weight: 900;
     letter-spacing: .04em;
     vertical-align: middle;
-}
-
-.payment-list-desc {
-    margin: 0;
-    max-width: 48ch;
-    color: var(--admin-muted);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.5;
-}
-
-.payment-list-head__actions {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    gap: 8px;
-    align-items: stretch;
-    justify-content: flex-start;
-    margin-top: 0;
-    min-width: 10.5rem;
-}
-
-.payment-list-head__actions button {
-    width: auto !important;
-    min-width: 10.5rem;
-    white-space: nowrap;
-    justify-content: center;
 }
 
 .load-row .ghost.danger {
@@ -1152,41 +1086,9 @@ button.ghost.danger {
     .payment-item__actions button {
         width: 100%;
     }
-
-    /* Head: xếp dọc — chữ full width, nút full width bên dưới (không bóp chữ) */
-    .payment-list-head {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .payment-list-desc {
-        max-width: none;
-    }
-
-    .payment-list-head__actions {
-        width: 100%;
-        min-width: 0;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .payment-list-head__actions button {
-        flex: 1 1 auto;
-        min-width: min(100%, 9.5rem);
-        width: auto !important;
-    }
 }
 
-@media (max-width: 420px) {
-    .payment-list-head__actions {
-        flex-direction: column;
-    }
 
-    .payment-list-head__actions button {
-        width: 100% !important;
-        min-width: 0;
-    }
-}
 
 .payment-item {
     cursor: default;
@@ -1744,7 +1646,7 @@ body.admin-logged-in .admin-shell {
     grid-template-columns: minmax(200px, 1fr) minmax(150px, .4fr) 100px auto;
     gap: 12px;
     align-items: end;
-    margin-top: 18px;
+    margin-top: 8px;
 }
 .admin-list-tools label {
     display: grid;
@@ -1759,10 +1661,6 @@ body.admin-logged-in .admin-shell {
     width: 100%;
     min-width: 0;
 }
-.admin-list-tools button {
-    width: auto;
-    min-height: 44px;
-}
 .admin-list-summary {
     margin: 12px 0;
     font-size: 13px;
@@ -1775,48 +1673,17 @@ body.admin-logged-in .admin-shell {
     justify-content: center;
     align-items: center;
     gap: 12px;
-    margin-top: 18px;
+    margin-top: 10px;
 }
 .admin-list-pager[hidden] { display: none; }
-.admin-list-pager button { width: auto; min-width: 86px; }
 .admin-list-pager label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .admin-list-pager select { width: auto; min-width: 64px; }
-.admin-list-actions { width: 120px; align-self: start; }
-.admin-list-actions[open] { width: 300px; max-width: 100%; }
-.admin-list-actions summary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 14px;
-    border: 1px solid var(--admin-line);
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--admin-ink);
-    background: rgba(255, 255, 255, .8);
-    list-style: none;
-}
-.admin-list-actions summary::-webkit-details-marker { display: none; }
-.admin-list-actions summary::after { content: "▾"; }
-.admin-list-actions[open] summary::after { content: "▴"; }
-.admin-list-actions summary:focus-visible { outline: 2px solid var(--admin-primary); outline-offset: 3px; }
-.admin-list-actions .payment-item__actions,
-.admin-list-actions .music-item__actions { margin-top: 10px; }
 @media (max-width: 1000px) {
     .admin-list-tools { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .admin-list-search { grid-column: 1 / -1; }
 }
-@media (max-width: 900px) {
-    .music-item .admin-list-actions,
-    .music-item .admin-list-actions[open] { width: 100%; }
-}
 @media (max-width: 760px) {
-    .payment-item .admin-list-actions,
-    .payment-item .admin-list-actions[open] { width: 100%; }
     .admin-list-pager { gap: 8px; }
-    .admin-list-pager button { min-width: 72px; }
 }
 
 /* Keep collection headers in place; the collection owns scrolling. */
@@ -1832,7 +1699,6 @@ body.admin-logged-in .admin-shell {
     min-height: 0;
     box-sizing: border-box;
 }
-#weddingListPanel > .admin-hero { flex: 0 0 auto; }
 #weddingListPanel > .panel {
     display: flex;
     flex-direction: column;
@@ -1841,7 +1707,7 @@ body.admin-logged-in .admin-shell {
     margin-bottom: 0;
 }
 #musicView.is-active #musicPanel { margin-bottom: 0; }
-#weddingListPanel .payment-list-head,
+#weddingListPanel .panel-title,
 #musicPanel .panel-title,
 #musicForm,
 .admin-list-tools,
@@ -1867,22 +1733,8 @@ body.admin-logged-in .admin-shell {
     border-radius: 12px;
 }
 #paymentList .payment-item:hover { box-shadow: none; }
-#paymentList .keepsake-export-status { grid-column: 1 / -1; }
-#paymentList .admin-list-actions,
-#musicList .admin-list-actions { width: 108px; }
-#paymentList .admin-list-actions[open],
-#musicList .admin-list-actions[open] { width: 260px; }
-.admin-list-actions summary { padding: 7px 10px; font-size: 12px; }
-#paymentList .payment-item__actions,
-#musicList .music-item__actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    margin-top: 8px;
-}
 #paymentList button,
 #musicList button,
-.payment-list-head__actions button,
 .admin-list-tools button,
 .admin-list-pager button,
 #musicForm button {
@@ -1896,22 +1748,7 @@ body.admin-logged-in .admin-shell {
     line-height: 1.35;
     box-shadow: none !important;
 }
-#paymentList button[data-wedding-keepsake] { grid-column: 1 / -1; }
-.payment-list-head__actions { min-width: 0; }
-.payment-list-head { margin-bottom: 10px; padding-bottom: 10px; }
-.admin-list-tools { margin-top: 8px; }
-.admin-list-pager { margin-top: 10px; }
 @media (max-width: 760px) {
-    #paymentList .admin-list-actions,
-    #musicList .admin-list-actions,
-    #paymentList .admin-list-actions[open],
-    #musicList .admin-list-actions[open] { width: 100%; }
-    #weddingListPanel > .admin-hero { margin-bottom: 8px; }
-    #weddingListPanel .admin-hero h1 { font-size: 28px; margin: 0; }
-    #weddingListPanel .hero-desc,
-    #weddingListPanel .payment-list-desc { display: none; }
-    .payment-list-head { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-    .payment-list-head__actions { flex-direction: row; flex-wrap: wrap; justify-content: flex-end; }
     .admin-list-tools { gap: 6px 10px; }
     .admin-list-tools input,
     .admin-list-tools select { padding: 7px 10px; min-height: 36px; }
@@ -1924,4 +1761,65 @@ body.admin-logged-in .admin-shell {
     #musicForm select { min-height: 34px; padding: 6px 8px; }
     #musicForm label { gap: 4px; font-size: 12px; }
     #musicForm .music-actions { flex-wrap: wrap; gap: 4px; }
+}
+
+/* Selection and visible row actions. */
+.admin-list-refresh { display: flex; justify-content: flex-end; flex-shrink: 0; }
+.admin-bulk-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 12px;
+    flex-shrink: 0;
+}
+.admin-bulk-tools label { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.admin-bulk-tools [data-selection-count] { color: var(--admin-muted); font-size: 12px; }
+.admin-bulk-status { flex-shrink: 0; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--admin-line); border-radius: 10px; font-size: 12px; overflow-wrap: anywhere; }
+.admin-bulk-status > p { margin: 0; font-weight: 700; }
+.admin-bulk-status details { margin-top: 6px; }
+.admin-bulk-status summary { cursor: pointer; color: var(--admin-muted); }
+.admin-bulk-status ol { margin: 8px 0 0; padding-left: 22px; max-height: 150px; overflow-y: auto; }
+.admin-bulk-status li { padding: 6px 0; }
+.admin-bulk-status li span { display: block; margin-top: 3px; }
+.admin-bulk-status .is-running { color: var(--admin-primary); }
+.admin-bulk-status .is-success { color: #3d6b38; }
+.admin-bulk-status .is-error { color: #9f3f32; }
+.admin-bulk-status[hidden] { display: none; }
+.admin-bulk-tools input[type="checkbox"],
+#paymentList .admin-row-select,
+#musicList .admin-row-select {
+    width: 18px;
+    height: 18px;
+    min-height: 18px;
+    margin: 2px 0;
+    padding: 0;
+    accent-color: var(--admin-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+#paymentList .payment-item,
+#musicList .music-item { grid-template-columns: 18px minmax(0, 1fr) auto; }
+#paymentList .admin-icon-actions,
+#musicList .admin-icon-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    margin: 0;
+}
+#paymentList .admin-icon-actions button,
+#musicList .admin-icon-actions button { width: 32px; height: 32px !important; min-height: 32px !important; padding: 0 !important; }
+.admin-list-refresh button,
+.admin-bulk-tools button {
+    width: auto;
+    height: auto !important;
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    box-shadow: none !important;
+}
+@media (max-width: 760px) {
+    #paymentList .admin-icon-actions { max-width: 70px; }
 }

@@ -22,6 +22,7 @@ for (let page = 1; page <= 100; page++) {
 }
 assert.equal(new Set(reached).size, 1000);
 assert.equal(items.length, 1000);
+assert.equal(getListPage(items, initial, search).matchingIds.length, 1000);
 assert.equal(reached.at(-1), "wedding-1000");
 
 // Search reaches records beyond the previous 200-document cap, with/without accents.
@@ -34,6 +35,7 @@ for (const query of ["dang hao", "ĐẶNG ÁNH", "wc00000999", "wedding-999"]) {
 const paid = (item, filter) => filter === "all" || item.paid;
 const filtered = getListPage(items, { ...initial, filter: "paid", pageSize: 20 }, search, paid);
 assert.equal(filtered.matching, 500);
+assert.equal(filtered.matchingIds.length, 500);
 assert.equal(filtered.pageCount, 25);
 assert(filtered.items.every(item => item.paid));
 assert.equal(getListPage(items, { ...initial, filter: "paid", query: "wedding-1000" }, search, paid).matching, 0);

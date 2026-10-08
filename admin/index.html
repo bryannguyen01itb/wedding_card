@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/brand.css?v=brand-12c4b8">
     <link rel="stylesheet" href="../css/ui-shell.css?v=ui-shell-5-nozoom">
-    <link rel="stylesheet" href="admin.css?v=admin-lists-7">
+    <link rel="stylesheet" href="admin.css?v=admin-lists-11">
 </head>
 <body>
     <main class="admin-shell">
@@ -71,27 +71,9 @@
                 <!-- 1) Danh sách thiệp + màn sửa (ẩn list khi sửa) -->
                 <section class="admin-view is-active" data-admin-view="weddings" id="weddingsView">
                     <div id="weddingListPanel">
-                        <section class="admin-hero">
-                            <div>
-                                <p class="eyebrow">Quản lý thiệp</p>
-                                <h1>Danh sách thiệp</h1>
-                                <p class="hero-desc">Mở khóa, khóa, đổi gói, xóa hoặc sửa chi tiết từng thiệp.</p>
-                            </div>
-                        </section>
                         <section class="panel">
-                            <div class="payment-list-head">
-                                <div class="payment-list-head__copy">
-                                    <h3>Tất cả thiệp Firebase</h3>
-                                    <p class="payment-list-desc">Tìm thiệp theo tên cô dâu/chú rể, mã giao dịch hoặc ID. Thiệp quá 30 ngày được đánh dấu để dọn.</p>
-                                    <p class="payment-list-desc"><strong>Xuất thiệp kỷ niệm</strong> tải file HTML gồm ảnh, nhạc và lời chúc để admin gửi cho khách. Chỉ dùng dữ liệu đã lưu Firebase.</p>
-                                </div>
-                                <div class="payment-list-head__actions">
-                                    <button id="deleteOldWeddingsBtn" type="button" class="ghost small danger" title="Xóa vĩnh viễn thiệp không cập nhật &gt; 30 ngày">
-                                        <i class="bi bi-trash3"></i> Xóa &gt; 30 ngày
-                                    </button>
-                                    <button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
-                                </div>
-                            </div>
+                            <div class="panel-title"><i class="bi bi-envelope-paper-heart"></i><div><h2>Danh sách thiệp</h2><p>Mở khóa, khóa, đổi gói, xóa hoặc sửa chi tiết từng thiệp.</p></div></div>
+                            <div class="admin-list-refresh"><button id="refreshPaymentListBtn" type="button" class="ghost small"><i class="bi bi-arrow-clockwise"></i> Tải lại</button></div>
                             <div class="admin-list-tools" data-admin-list-tools="weddings">
                                 <label class="admin-list-search">Tìm thiệp
                                     <input type="search" data-list-search placeholder="Tên cô dâu/chú rể, mã GD, ID thiệp…" aria-controls="paymentList">
@@ -110,6 +92,17 @@
                                 </label>
                                 <button type="button" class="ghost small" data-list-reset>Đặt lại</button>
                             </div>
+                            <div class="admin-bulk-tools" data-bulk-tools="weddings">
+                                <label><input type="checkbox" data-select-all> Chọn tất cả kết quả</label>
+                                <span data-selection-count role="status">Đã chọn 0</span>
+                                <button type="button" class="ghost small" data-clear-selection disabled>Bỏ chọn</button>
+                                <button type="button" class="ghost small" data-bulk-export disabled><i class="bi bi-download"></i> Xuất kỷ niệm</button>
+                                <button type="button" class="ghost small danger" data-bulk-delete disabled><i class="bi bi-trash3"></i> Xóa đã chọn</button>
+                            </div>
+                            <section class="admin-bulk-status" data-bulk-status="weddings" aria-label="Trạng thái thao tác" hidden>
+                            <p data-bulk-progress role="status" aria-live="polite"></p>
+                            <details data-bulk-details><summary>Chi tiết từng mục</summary><ol data-bulk-results></ol></details>
+                        </section>
                             <p id="weddingsListSummary" class="admin-list-summary" role="status" aria-live="polite">Đang tải danh sách…</p>
                             <div id="paymentList" class="payment-list"></div>
                             <nav id="weddingsListPager" class="admin-list-pager" aria-label="Phân trang danh sách thiệp" hidden></nav>
@@ -474,6 +467,17 @@
                             </label>
                             <button type="button" class="ghost small" data-list-reset>Đặt lại</button>
                         </div>
+                        <div class="admin-bulk-tools" data-bulk-tools="music">
+                            <label><input type="checkbox" data-select-all> Chọn tất cả kết quả</label>
+                            <span data-selection-count role="status">Đã chọn 0</span>
+                            <button type="button" class="ghost small" data-clear-selection disabled>Bỏ chọn</button>
+
+                            <button type="button" class="ghost small danger" data-bulk-delete disabled><i class="bi bi-trash3"></i> Xóa đã chọn</button>
+                        </div>
+                        <section class="admin-bulk-status" data-bulk-status="music" aria-label="Trạng thái thao tác" hidden>
+                            <p data-bulk-progress role="status" aria-live="polite"></p>
+                            <details data-bulk-details><summary>Chi tiết từng mục</summary><ol data-bulk-results></ol></details>
+                        </section>
                         <p id="musicListSummary" class="admin-list-summary" role="status" aria-live="polite">Chưa tải thư viện nhạc.</p>
                         <div id="musicList" class="music-list"></div>
                         <nav id="musicListPager" class="admin-list-pager" aria-label="Phân trang thư viện nhạc" hidden></nav>
@@ -559,6 +563,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script type="module" src="admin.js?v=admin-lists-6"></script>
+    <script type="module" src="admin.js?v=admin-lists-11"></script>
 </body>
 </html>
